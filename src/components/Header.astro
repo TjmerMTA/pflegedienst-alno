@@ -1,0 +1,88 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { NAV, SITE } from '../config/site';
+const path = Astro.url.pathname;
+---
+<header class="hdr">
+  <div class="top">
+    <div class="wrap top-in">
+      <span><Icon name="pin" size={15} /> {SITE.street}, {SITE.zip} {SITE.city}</span>
+      <span class="hide-s"><Icon name="clock" size={15} /> Büro Mo–Fr 8–16 Uhr · Pflege 24/7</span>
+      <a href={`mailto:${SITE.email}`} class="hide-s"><Icon name="mail" size={15} /> {SITE.email}</a>
+    </div>
+  </div>
+  <div class="wrap bar">
+    <Logo />
+    <nav class="nav" id="nav" aria-label="Hauptnavigation">
+      <ul>
+        {NAV.map((n) => (
+          <li><a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a></li>
+        ))}
+      </ul>
+      <div class="nav-cta">
+        <a class="btn btn--primary" href="/erstbegutachtung/">Kostenlose Beratung</a>
+      </div>
+    </nav>
+    <div class="acts">
+      <a class="call" href={SITE.phoneHref}><span class="ci"><Icon name="phone" size={18} /></span><span class="ct"><small>Rufen Sie uns an</small>{SITE.phone}</span></a>
+      <a class="btn btn--primary cta-d" href="/erstbegutachtung/">Kostenlose Beratung</a>
+      <button class="burger" aria-expanded="false" aria-controls="nav" aria-label="Menü öffnen"><Icon name="menu" /></button>
+    </div>
+  </div>
+</header>
+<script>
+  const b = document.querySelector<HTMLButtonElement>('.burger');
+  const hdr = document.querySelector('.hdr');
+  b?.addEventListener('click', () => {
+    const open = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', String(open));
+    b.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
+    const nav = document.getElementById('nav');
+    if (nav && hdr) nav.style.insetBlockStart = `${hdr.getBoundingClientRect().bottom}px`;
+    hdr?.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+  const onScroll = () => hdr?.classList.toggle('scrolled', window.scrollY > 40);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+<style>
+  .hdr { position: sticky; inset-block-start: 0; z-index: 50; background: rgb(255 255 255 / .94); backdrop-filter: saturate(1.6) blur(12px); border-block-end: 1px solid transparent; transition: box-shadow .2s, border-color .2s; }
+  .hdr.scrolled { border-color: var(--line); box-shadow: 0 6px 24px rgb(16 50 58 / .06); }
+  .top { background: var(--brand-700); color: #d8f3f6; font-size: .84rem; }
+  .top-in { display: flex; gap: 26px; justify-content: flex-end; padding-block: 7px; }
+  .top-in span, .top-in a { display: inline-flex; align-items: center; gap: 6px; color: inherit; text-decoration: none; }
+  .top-in span:first-child { margin-inline-end: auto; }
+  .bar { display: flex; align-items: center; gap: 24px; min-height: 78px; }
+  .nav { margin-inline-start: auto; }
+  .nav ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+  .nav a { display: block; white-space: nowrap; padding: 10px 12px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 600; font-size: .98rem; }
+  .nav a:hover { background: var(--brand-50); color: var(--brand-700); }
+  .nav a[aria-current] { color: var(--brand-700); background: var(--brand-50); }
+  .nav-cta { display: none; }
+  .acts { display: flex; align-items: center; gap: 14px; }
+  .call { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 800; }
+  .ci { display: grid; place-items: center; inline-size: 42px; block-size: 42px; border-radius: 50%; background: var(--green-50); color: var(--green-700); }
+  .ct { display: grid; line-height: 1.2; font-size: 1.02rem; white-space: nowrap; }
+  .ct small { font-weight: 500; color: var(--muted); font-size: .76rem; }
+  .burger { display: none; border: 1px solid var(--line); background: #fff; border-radius: 12px; inline-size: 48px; block-size: 48px; place-items: center; color: var(--ink); cursor: pointer; }
+  @media (max-width: 1320px) { .call .ct { display: none; } }
+  @media (max-width: 1180px) { .cta-d { display: none; } }
+  @media (max-width: 1020px) {
+    .burger { display: grid; }
+    .nav { position: fixed; inset: 0; background: #fff; padding: 20px; display: none; overflow-y: auto; }
+    .hdr.open .nav { display: block; }
+    .nav ul { flex-direction: column; }
+    .nav a { font-size: 1.2rem; padding: 16px 12px; border-block-end: 1px solid var(--line); border-radius: 0; }
+    .nav-cta { display: block; margin-block-start: 22px; }
+    .nav-cta .btn { inline-size: 100%; }
+    .acts { margin-inline-start: auto; }
+  }
+  @media (max-width: 720px) {
+    .hide-s { display: none !important; }
+    .top-in { justify-content: flex-start; }
+    .call .ct { display: none; }
+    .bar { min-height: 70px; gap: 12px; }
+  }
+</style>

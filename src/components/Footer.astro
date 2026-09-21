@@ -1,0 +1,69 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { SITE, whatsappUrl } from '../config/site';
+const year = new Date().getFullYear();
+---
+<footer class="ftr">
+  <div class="wrap cols">
+    <div class="about">
+      <Logo light />
+      <p>Ambulanter Pflegedienst in Dortmund. Wir pflegen, beraten und begleiten – zuverlässig, herzlich und direkt bei Ihnen zu Hause.</p>
+      <div class="badges">
+        <span><Icon name="shield" size={16} /> Zugelassen bei allen Kassen</span>
+        <span><Icon name="clock" size={16} /> 24/7 erreichbar</span>
+      </div>
+    </div>
+    <div>
+      <h2>Leistungen</h2>
+      <ul>
+        <li><a href="/leistungen/grundpflege/">Grundpflege</a></li>
+        <li><a href="/leistungen/behandlungspflege/">Behandlungspflege</a></li>
+        <li><a href="/leistungen/verhinderungspflege/">Verhinderungspflege</a></li>
+        <li><a href="/leistungen/betreuung-hauswirtschaft/">Betreuung & Haushalt</a></li>
+        <li><a href="/leistungen/pflegeberatung-37-3/">Beratungsbesuch § 37.3</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Pflegedienst</h2>
+      <ul>
+        <li><a href="/ueber-uns/">Über uns & Team</a></li>
+        <li><a href="/kosten-finanzierung/">Kosten & Finanzierung</a></li>
+        <li><a href="/erstbegutachtung/">Erstbegutachtung</a></li>
+        <li><a href="/blog/">Pflege-Ratgeber</a></li>
+        <li><a href="/kontakt/">Kontakt & Anfahrt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Kontakt</h2>
+      <ul class="contact">
+        <li><Icon name="pin" size={18} /><span>{SITE.street}<br />{SITE.zip} {SITE.city}</span></li>
+        <li><Icon name="phone" size={18} /><a href={SITE.phoneHref}>{SITE.phone}</a></li>
+        <li><Icon name="whatsapp" size={18} /><a href={whatsappUrl} rel="noopener" target="_blank">WhatsApp schreiben</a></li>
+        <li><Icon name="mail" size={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap legal">
+    <span>© {year} {SITE.name}</span>
+    <nav aria-label="Rechtliches"><a href="/impressum/">Impressum</a><a href="/datenschutz/">Datenschutz</a>{SITE.gaId ? <button type="button" data-consent-open>Cookie-Einstellungen</button> : <a href="/datenschutz/#cookies">Cookies</a>}</nav>
+  </div>
+</footer>
+<style>
+  .ftr { background: #0c2a31; color: #b9ced2; padding-block: 64px 28px; font-size: .96rem; }
+  .ftr a { color: #dff3f6; text-decoration: none; }
+  .ftr a:hover { color: #fff; text-decoration: underline; }
+  .cols { display: grid; gap: 40px; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; }
+  .about p { margin-block: 18px; max-width: 360px; }
+  h2 { color: #fff; font-size: 1rem; letter-spacing: .02em; margin-block-end: 16px; }
+  ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .contact li { display: flex; gap: 10px; align-items: flex-start; }
+  .contact :global(svg) { flex: none; margin-block-start: 3px; color: var(--green); }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badges span { display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; padding: 6px 12px; border-radius: 999px; background: rgb(255 255 255 / .07); color: #dff3f6; }
+  .legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; border-block-start: 1px solid rgb(255 255 255 / .1); margin-block-start: 48px; padding-block-start: 24px; font-size: .88rem; }
+  .legal nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  .legal button { background: none; border: 0; color: #dff3f6; font: inherit; cursor: pointer; padding: 0; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .cols { grid-template-columns: 1fr; } .ftr { padding-block-end: 100px; } }
+</style>

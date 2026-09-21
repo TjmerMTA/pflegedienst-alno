@@ -1,0 +1,96 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { faqSchema } from '../config/faq';
+
+// Stand: Werte seit 01.01.2025 (Pflegeunterstützungs- und -entlastungsgesetz). TODO: jährlich prüfen.
+const rows = [
+  { pg: 'Pflegegrad 1', geld: '–', sach: '–', ent: '131 €' },
+  { pg: 'Pflegegrad 2', geld: '347 €', sach: '796 €', ent: '131 €' },
+  { pg: 'Pflegegrad 3', geld: '599 €', sach: '1.497 €', ent: '131 €' },
+  { pg: 'Pflegegrad 4', geld: '800 €', sach: '1.859 €', ent: '131 €' },
+  { pg: 'Pflegegrad 5', geld: '990 €', sach: '2.299 €', ent: '131 €' },
+];
+const faq = [
+  { q: 'Muss ich beim Pflegedienst etwas zuzahlen?', a: '<p>Solange die Leistungen im Budget der Pflegesachleistung bleiben, entstehen für die Pflege keine Kosten. Nur wenn Sie mehr Leistungen wünschen, als die Kasse übernimmt, fällt ein Eigenanteil an – das besprechen wir vorher transparent mit Ihnen.</p>' },
+  { q: 'Kann ich Pflegegeld und Pflegedienst kombinieren?', a: '<p>Ja, über die Kombinationsleistung. Nutzen Sie z. B. nur 60 % der Sachleistung, erhalten Sie zusätzlich 40 % des Pflegegeldes ausgezahlt.</p>' },
+  { q: 'Wer stellt den Antrag auf einen Pflegegrad?', a: '<p>Den Antrag stellt die pflegebedürftige Person (oder ein Angehöriger mit Vollmacht) bei der Pflegekasse – ein formloser Anruf genügt. Wir helfen beim Ausfüllen und bereiten Sie auf die Begutachtung durch den Medizinischen Dienst vor.</p>' },
+];
+---
+<Base title="Kosten & Finanzierung der ambulanten Pflege" description="Was kostet ein Pflegedienst in Dortmund? Pflegegeld, Pflegesachleistung, Entlastungsbetrag und Verhinderungspflege 2026 im Überblick – verständlich erklärt vom Pflegedienst ALNO." schema={[faqSchema(faq)]}>
+  <PageHero title="Kosten & Finanzierung" lead="Die gute Nachricht zuerst: Ambulante Pflege wird zum größten Teil von Pflege- und Krankenkasse bezahlt. Wir rechnen direkt mit den Kassen ab und zeigen Ihnen, welche Ansprüche Sie haben." crumbs={[{ label: 'Kosten & Finanzierung' }]} />
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid grid-3">
+        <div class="card"><span class="ico"><Icon name="syringe" /></span><h2 class="h3">Behandlungspflege</h2><p>Zahlt die <b>Krankenkasse</b> – auf ärztliche Verordnung, auch ohne Pflegegrad.</p></div>
+        <div class="card"><span class="ico ico--green"><Icon name="heart" /></span><h2 class="h3">Grundpflege</h2><p>Zahlt die <b>Pflegekasse</b> über die Pflegesachleistung – ab Pflegegrad 2.</p></div>
+        <div class="card"><span class="ico"><Icon name="home" /></span><h2 class="h3">Betreuung & Haushalt</h2><p>Über den <b>Entlastungsbetrag</b> von 131 € im Monat – schon ab Pflegegrad 1.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Leistungen der Pflegeversicherung</span>
+        <h2>Monatliche Beträge nach Pflegegrad</h2>
+        <p class="lead">Übersicht der wichtigsten Leistungen bei häuslicher Pflege (Stand 2026).</p>
+      </div>
+      <div class="table-wrap card tbl">
+        <table>
+          <thead><tr><th scope="col">Pflegegrad</th><th scope="col">Pflegegeld<br /><small>wenn Angehörige pflegen</small></th><th scope="col">Pflegesachleistung<br /><small>wenn ein Pflegedienst pflegt</small></th><th scope="col">Entlastungsbetrag<br /><small>zweckgebunden</small></th></tr></thead>
+          <tbody>{rows.map((r) => <tr><th scope="row">{r.pg}</th><td>{r.geld}</td><td><b>{r.sach}</b></td><td>{r.ent}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p class="muted small">Angaben ohne Gewähr. Eine individuelle Berechnung erhalten Sie in unserem kostenlosen Beratungsgespräch.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap prose-grid">
+      <div class="prose">
+        <h2>Verhinderungs- und Kurzzeitpflege</h2>
+        <p>Seit dem 1. Juli 2025 gibt es einen <b>gemeinsamen Jahresbetrag von 3.539 €</b> für Verhinderungs- und Kurzzeitpflege (ab Pflegegrad 2). Sie entscheiden flexibel, wofür Sie das Budget einsetzen – zum Beispiel für stundenweise Entlastung durch unseren Pflegedienst. Mehr dazu unter <a href="/leistungen/verhinderungspflege/">Verhinderungspflege</a>.</p>
+        <h2>Behandlungspflege über die Krankenkasse</h2>
+        <p>Die Kosten der medizinischen Behandlungspflege trägt die Krankenkasse, sobald eine ärztliche Verordnung vorliegt und genehmigt ist. Die Erstverordnung gilt meist 14 Tage, danach stellt der Arzt bei Bedarf eine Folgeverordnung aus.</p>
+        <h2>Beratungsbesuch nach § 37.3 SGB XI</h2>
+        <p>Wer ausschließlich Pflegegeld bezieht, muss regelmäßig einen Beratungsbesuch nachweisen. Die Kosten übernimmt die Pflegekasse. <a href="/leistungen/pflegeberatung-37-3/">Mehr erfahren</a></p>
+      </div>
+      <aside class="card tip">
+        <span class="ico ico--green"><Icon name="info" /></span>
+        <h2 class="h3">Noch kein Pflegegrad?</h2>
+        <p>Wir helfen beim Antrag und bereiten Sie auf den Besuch des Medizinischen Dienstes vor. Viele Familien bekommen dadurch deutlich mehr Unterstützung, als sie erwartet hätten.</p>
+        <a class="btn btn--primary" href="/erstbegutachtung/">Kostenlos beraten lassen</a>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap narrow">
+      <h2>Fragen zu Kosten</h2>
+      <Faq items={faq} />
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+<style>
+  .h3 { font-size: 1.25rem; }
+  .tbl { padding: 0; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; min-width: 620px; }
+  th, td { padding: 16px 20px; text-align: start; border-block-end: 1px solid var(--line); }
+  thead th { background: var(--brand-700); color: #fff; font-size: .95rem; vertical-align: top; }
+  thead small { font-weight: 400; opacity: .8; }
+  tbody tr:nth-child(even) { background: var(--bg-soft); }
+  tbody tr:last-child > * { border: 0; }
+  td b { color: var(--brand-700); }
+  .small { font-size: .9rem; margin-block-start: 14px; }
+  .prose-grid { display: grid; grid-template-columns: 1fr 360px; gap: 48px; align-items: start; }
+  .prose h2:first-child { margin-block-start: 0; }
+  .tip { background: linear-gradient(160deg, var(--green-50), #fff 60%); }
+  .narrow { max-width: 820px; }
+  @media (max-width: 900px) { .prose-grid { grid-template-columns: 1fr; } }
+</style>

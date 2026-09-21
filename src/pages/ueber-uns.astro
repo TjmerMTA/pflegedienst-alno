@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import Certificates from '../components/Certificates.astro';
+import CtaBand from '../components/CtaBand.astro';
+import teamImg from '../assets/img/haende.jpg';
+import careImg from '../assets/img/betreuung.jpg';
+
+// TODO: реальные фото и имена команды от клиента
+const team = [
+  { name: 'Alla Nogina', role: 'Geschäftsführerin', q: 'Gründerin, Ansprechpartnerin für Angehörige' },
+  { name: 'N. N.', role: 'Pflegedienstleitung', q: 'Examinierte Krankenpflegerin, Wundexpertin' },
+  { name: 'N. N.', role: 'Stellv. Pflegedienstleitung', q: 'Examinierte Altenpflegerin, Praxisanleiterin' },
+  { name: 'N. N.', role: 'Verwaltung', q: 'Abrechnung, Anträge, Terminplanung' },
+];
+const quals = ['3-jährig examinierte Gesundheits- und Krankenpfleger/innen', '3-jährig examinierte Altenpfleger/innen', 'Kranken- und Altenpflegehelfer/innen', 'Hauswirtschafter/innen', 'Auszubildende in der Pflege', 'Verwaltungsfachkräfte'];
+const values = [
+  { icon: 'heart', t: 'Würde', d: 'Die Würde des Menschen steht bei uns an erster Stelle – in jeder Handlung.' },
+  { icon: 'users', t: 'Familiär', d: 'Wir begleiten verständnisvoll und herzlich. Niemand soll sich im Alter einsam fühlen.' },
+  { icon: 'shield', t: 'Kompetent', d: 'Pflege auf hohem medizinischem Niveau, regelmäßig fortgebildet.' },
+  { icon: 'hands', t: 'Selbstbestimmt', d: 'Jeder Mensch entscheidet mit. Wir pflegen individuell, nicht nach Schema.' },
+];
+---
+<Base title="Über uns & Team" description="Lernen Sie den Pflegedienst ALNO in Dortmund-Hörde kennen: unser Leitbild, unser qualifiziertes Pflegeteam und unsere Werte – Würde, Herzlichkeit und Kompetenz.">
+  <PageHero title="Über uns: Menschen, die mit Herz pflegen" lead="Der Pflegedienst ALNO ist ein familiärer, inhabergeführter Pflegedienst aus Dortmund-Hörde. Wir möchten den uns anvertrauten Menschen ein würdevolles, geborgenes Leben im eigenen Zuhause ermöglichen." crumbs={[{ label: 'Über uns' }]} />
+
+  <section class="section">
+    <div class="wrap split">
+      <div>
+        <span class="eyebrow">Unser Leitbild</span>
+        <h2>Körper, Geist und Seele im Blick</h2>
+        <p>Wenn Sie nach einer fürsorglichen, herzlichen und vor allem kompetenten Pflege suchen, sind Sie bei uns richtig. Uns ist bewusst, wie verantwortungsvoll diese Aufgabe ist – und wie viel Vertrauen Familien uns schenken.</p>
+        <p>Wir kümmern uns um die körperliche Gesundheit und ebenso um das seelische Wohlbefinden. Über die medizinische Versorgung hinaus sind wir auch bei persönlichen und hauswirtschaftlichen Angelegenheiten da – vom gemeinsamen Einkauf bis zum Gespräch bei einer Tasse Kaffee.</p>
+      </div>
+      <Image src={teamImg} alt="Pflegekraft hält die Hand eines lächelnden Seniors" widths={[424]} class="img" />
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap">
+      <div class="head head--center"><span class="eyebrow">Unsere Werte</span><h2>Wofür wir stehen</h2></div>
+      <div class="grid grid-4">
+        {values.map((v) => <div class="card"><span class="ico"><Icon name={v.icon} /></span><h3>{v.t}</h3><p>{v.d}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="team">
+    <div class="wrap">
+      <div class="head"><span class="eyebrow">Unser Team</span><h2>Ihre Ansprechpartner</h2><p class="lead">Feste Gesichter, kurze Wege: Bei uns wissen Sie immer, wer zu Ihnen kommt.</p></div>
+      <div class="grid grid-4">
+        {team.map((m) => (
+          <figure class="card member">
+            <div class="ph" aria-hidden="true">{m.name === 'N. N.' ? m.role[0] : m.name.split(' ').map((w) => w[0]).join('')}</div>
+            <figcaption><b>{m.name}</b><span class="role">{m.role}</span><small>{m.q}</small></figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap split">
+      <Image src={careImg} alt="Pflegerin unterstützt einen Senior beim Schreiben" widths={[424]} class="img" />
+      <div>
+        <span class="eyebrow">Qualifikationen</span>
+        <h2>Ein Team aus verschiedenen Berufsgruppen</h2>
+        <p>Damit wir ein breites Spektrum abdecken können, beschäftigen wir Mitarbeiterinnen und Mitarbeiter mit diesen Ausbildungen:</p>
+        <ul class="checks">{quals.map((q) => <li>{q}</li>)}</ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="head head--center"><span class="eyebrow">Zulassungen</span><h2>Geprüfte Qualität</h2></div>
+      <Certificates />
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap jobs card">
+      <div><h2>Wir suchen Verstärkung</h2><p>Sie sind Pflegefachkraft oder Pflegehelfer/in und möchten in einem familiären Team arbeiten? Wir freuen uns auf Ihre Nachricht.</p></div>
+      <a class="btn btn--primary" href="/kontakt/">Jetzt melden</a>
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+<style>
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .img { inline-size: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+  .member { margin: 0; text-align: center; }
+  .ph { inline-size: 120px; block-size: 120px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; font-size: 2.2rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-700)); box-shadow: 0 0 0 6px var(--green-50), 0 0 0 9px var(--green); }
+  figcaption { display: grid; gap: 4px; }
+  .role { color: var(--brand-700); font-weight: 700; }
+  small { color: var(--muted); }
+  .jobs { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .jobs p { margin: 0; max-width: 640px; }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+</style>

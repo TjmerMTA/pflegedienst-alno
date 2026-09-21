@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { SITE, whatsappUrl } from '../config/site';
+---
+<Base title="Kostenlose Erstbegutachtung zu Hause buchen" description="Termin für eine kostenlose Erstbegutachtung beim Pflegedienst ALNO in Dortmund anfragen: Eine Pflegefachkraft besucht Sie zu Hause und plant die passende Versorgung.">
+  <PageHero title="Kostenlose Erstbegutachtung" lead="Eine Pflegefachkraft besucht Sie zu Hause oder im Krankenhaus, erfasst den Hilfebedarf und plant mit Ihnen die passende Versorgung – kostenlos und unverbindlich." crumbs={[{ label: 'Erstbegutachtung' }]} />
+  <section class="section">
+    <div class="wrap layout">
+      <div class="card">
+        <h2>Wunschtermin anfragen</h2>
+        <p class="muted">Wir bestätigen den Termin telefonisch – meist innerhalb eines Werktags.</p>
+        <ContactForm variant="erstbegutachtung" id="eb-form" />
+      </div>
+      <aside>
+        <h2 class="h3">Das erwartet Sie</h2>
+        <ol class="tl">
+          <li><span><Icon name="phone" size={18} /></span><div><b>Kurzes Telefonat</b><p>Wir klären, wer Pflege braucht und bestätigen den Termin.</p></div></li>
+          <li><span><Icon name="home" size={18} /></span><div><b>Besuch bei Ihnen</b><p>Ca. 45–60 Minuten. Angehörige sind herzlich willkommen.</p></div></li>
+          <li><span><Icon name="clipboard" size={18} /></span><div><b>Pflegeplan & Kosten</b><p>Sie erhalten einen Vorschlag mit allen Leistungen und dem, was die Kasse übernimmt.</p></div></li>
+          <li><span><Icon name="heart" size={18} /></span><div><b>Start der Pflege</b><p>Oft schon innerhalb weniger Tage.</p></div></li>
+        </ol>
+        <div class="card mini">
+          <b>Bitte bereithalten (falls vorhanden):</b>
+          <ul class="checks"><li>Bescheid über den Pflegegrad</li><li>Ärztliche Verordnungen</li><li>Medikamentenplan</li><li>Versichertenkarte</li></ul>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn--ghost" href={SITE.phoneHref}><Icon name="phone" size={20} /> Lieber anrufen</a>
+          <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> WhatsApp</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>
+<style>
+  .layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: start; }
+  .layout h2 { font-size: 1.6rem; margin-block-end: .2em; }
+  .h3 { font-size: 1.35rem !important; margin-block-end: 20px !important; }
+  .tl { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 4px; }
+  .tl li { display: flex; gap: 14px; position: relative; padding-block-end: 16px; }
+  .tl li:not(:last-child)::before { content: ''; position: absolute; inset-inline-start: 19px; inset-block: 42px 0; border-inline-start: 2px dashed var(--brand-100); }
+  .tl li > span { flex: none; display: grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: 50%; background: var(--brand-50); color: var(--brand-600); }
+  .tl p { margin: 2px 0 0; color: var(--ink-2); font-size: .95rem; }
+  .mini { padding: 20px; margin-block-end: 20px; box-shadow: none; background: var(--bg-soft); }
+  .mini .checks { margin: 12px 0 0; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,52 @@
+---
+// Схематичная карта Stadtbezirke Dortmund (без внешних карт → без cookie и согласий).
+import { AREAS } from '../config/site';
+const pos: Record<string, [number, number]> = {
+  Mengede: [0, 0], Eving: [2, 0], Scharnhorst: [3, 0],
+  Huckarde: [1, 1], 'Innenstadt-Nord': [2, 1], Brackel: [3, 1],
+  'Lütgendortmund': [0, 2], 'Innenstadt-West': [1, 2], 'Innenstadt-Ost': [2, 2], Aplerbeck: [3, 2],
+  Hombruch: [1, 3], 'Hörde': [2, 3],
+};
+const W = 150, H = 84, G = 10;
+const tiles = AREAS.map((a) => {
+  const [c, r] = pos[a.name];
+  return { ...a, x: c * (W + G) + (r % 2 ? (W + G) / 2 : 0), y: r * (H + G) };
+});
+const width = 4 * (W + G) + (W + G) / 2;
+const height = 4 * (H + G);
+---
+<div class="area">
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="area-t">
+    <title id="area-t">Einsatzgebiet des Pflegedienstes ALNO in Dortmund: Schwerpunkt im Süden und in der Innenstadt</title>
+    {tiles.map((t) => (
+      <g class:list={['tile', { core: t.core }]}>
+        <rect x={t.x} y={t.y} width={W} height={H} rx="16" />
+        <text x={t.x + W / 2} y={t.y + H / 2 + 5} text-anchor="middle">{t.name}</text>
+        {t.name === 'Hörde' && (
+          <g class="pin" transform={`translate(${t.x + W - 26} ${t.y + 10})`}>
+            <circle cx="10" cy="10" r="14" />
+            <path d="M10 3a6 6 0 0 1 6 6c0 4.5-6 10-6 10S4 13.5 4 9a6 6 0 0 1 6-6z" fill="#fff" />
+          </g>
+        )}
+      </g>
+    ))}
+  </svg>
+  <ul class="legend">
+    <li><span class="sw core"></span> Schwerpunkt – kurze Anfahrt, schnelle Einsätze</li>
+    <li><span class="sw"></span> Auf Anfrage</li>
+    <li><span class="sw pinl"></span> Unser Büro: Sulpkestraße 50, Hörde</li>
+  </ul>
+</div>
+<style>
+  .area svg { inline-size: 100%; block-size: auto; }
+  .tile rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; }
+  .tile text { font: 600 15px var(--font); fill: var(--muted); }
+  .tile.core rect { fill: var(--brand-600); stroke: var(--brand-700); }
+  .tile.core text { fill: #fff; }
+  .pin circle { fill: var(--green); stroke: #fff; stroke-width: 3; }
+  .legend { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: .92rem; color: var(--ink-2); }
+  .legend li { display: flex; gap: 8px; align-items: center; }
+  .sw { inline-size: 18px; block-size: 18px; border-radius: 5px; border: 1.5px solid var(--line); background: #fff; }
+  .sw.core { background: var(--brand-600); border-color: var(--brand-700); }
+  .sw.pinl { border-radius: 50%; background: var(--green); border-color: #fff; box-shadow: 0 0 0 1px var(--line); }
+</style>

@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config/site';
+---
+<Base title="Seite nicht gefunden" description="Die gewünschte Seite wurde nicht gefunden." noindex>
+  <section class="section">
+    <div class="wrap nf">
+      <p class="code">404</p>
+      <h1>Diese Seite gibt es leider nicht</h1>
+      <p class="lead">Vielleicht hilft Ihnen einer dieser Links weiter – oder rufen Sie uns einfach an: <a href={SITE.phoneHref}>{SITE.phone}</a></p>
+      <div class="btn-row"><a class="btn btn--primary" href="/">Zur Startseite</a><a class="btn btn--ghost" href="/leistungen/">Leistungen</a><a class="btn btn--ghost" href="/kontakt/">Kontakt</a></div>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { text-align: center; max-width: 720px; }
+  .nf .btn-row { justify-content: center; }
+  .code { font-size: 6rem; font-weight: 800; color: var(--brand-100); line-height: 1; margin: 0; }
+</style>

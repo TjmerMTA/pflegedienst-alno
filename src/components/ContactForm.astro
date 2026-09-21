@@ -1,0 +1,143 @@
+---
+// Форма заявки. Варианты: beratung (бесплатная консультация), rueckruf (обратный звонок),
+// erstbegutachtung (запись на первичную оценку на дому).
+// Защита от спама: honeypot-поле + минимальное время заполнения. Отправка — fetch на SITE.formEndpoint.
+import { SITE } from '../config/site';
+interface Props { variant?: 'beratung' | 'rueckruf' | 'erstbegutachtung'; id?: string }
+const { variant = 'beratung', id = 'anfrage' } = Astro.props;
+const subject = { beratung: 'Kostenlose Beratung', rueckruf: 'Rückruf-Anfrage', erstbegutachtung: 'Termin Erstbegutachtung' }[variant];
+---
+<form class="form" id={id} data-lead-form data-endpoint={SITE.formEndpoint} novalidate>
+  <input type="hidden" name="subject" value={`Website: ${subject}`} />
+  <input type="hidden" name="from_page" value={Astro.url.pathname} />
+  {variant !== 'rueckruf' && (
+    <fieldset class="seg field">
+      <legend>Worum geht es? </legend>
+      {['Grundpflege', 'Behandlungspflege', 'Verhinderungspflege', 'Betreuung', 'Noch unklar'].map((v, i) => (
+        <label><input type="radio" name="leistung" value={v} checked={i === 4} /><span>{v}</span></label>
+      ))}
+    </fieldset>
+  )}
+  <div class="row">
+    <div class="field">
+      <label for={`${id}-name`}>Ihr Name <span class="req">*</span></label>
+      <input id={`${id}-name`} name="name" autocomplete="name" required minlength="2" />
+      <span class="err" aria-live="polite"></span>
+    </div>
+    <div class="field">
+      <label for={`${id}-phone`}>Telefon <span class="req">*</span></label>
+      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +()/\-]{6,}" />
+      <span class="err" aria-live="polite"></span>
+    </div>
+  </div>
+  {variant === 'erstbegutachtung' && (
+    <div class="row">
+      <div class="field">
+        <label for={`${id}-stadtteil`}>Stadtteil in Dortmund <span class="req">*</span></label>
+        <input id={`${id}-stadtteil`} name="stadtteil" required placeholder="z. B. Hörde" />
+        <span class="err" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for={`${id}-datum`}>Wunschtermin</label>
+        <input id={`${id}-datum`} name="wunschtermin" type="date" />
+      </div>
+      <div class="field">
+        <label for={`${id}-zeit`}>Tageszeit</label>
+        <select id={`${id}-zeit`} name="tageszeit">
+          <option>Egal</option><option>Vormittags</option><option>Mittags</option><option>Nachmittags</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for={`${id}-pg`}>Pflegegrad vorhanden?</label>
+        <select id={`${id}-pg`} name="pflegegrad">
+          <option>Weiß ich nicht</option><option>Noch keiner / beantragt</option><option>Pflegegrad 1</option><option>Pflegegrad 2</option><option>Pflegegrad 3</option><option>Pflegegrad 4</option><option>Pflegegrad 5</option>
+        </select>
+      </div>
+    </div>
+  )}
+  {variant === 'rueckruf' ? (
+    <div class="field">
+      <label for={`${id}-zeit`}>Wann dürfen wir anrufen?</label>
+      <select id={`${id}-zeit`} name="rueckrufzeit"><option>So bald wie möglich</option><option>Vormittags</option><option>Nachmittags</option></select>
+    </div>
+  ) : (
+    <div class="row">
+      <div class="field">
+        <label for={`${id}-email`}>E-Mail <span class="muted">(optional)</span></label>
+        <input id={`${id}-email`} name="email" type="email" autocomplete="email" />
+        <span class="err" aria-live="polite"></span>
+      </div>
+    </div>
+  )}
+  {variant !== 'rueckruf' && (
+    <div class="field">
+      <label for={`${id}-msg`}>Ihre Nachricht <span class="muted">(optional)</span></label>
+      <textarea id={`${id}-msg`} name="message" placeholder="Für wen suchen Sie Pflege? Was wird gebraucht?"></textarea>
+    </div>
+  )}
+  <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+  <label class="consent"><input type="checkbox" name="datenschutz" required /> <span>Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert werden. Details in der <a href="/datenschutz/" target="_blank">Datenschutzerklärung</a>. <span class="req">*</span></span></label>
+  <button class="btn btn--primary" type="submit">{variant === 'rueckruf' ? 'Rückruf anfordern' : variant === 'erstbegutachtung' ? 'Termin anfragen' : 'Kostenlos beraten lassen'}</button>
+  <p class="form-status" role="status" aria-live="polite"></p>
+  <p class="muted note">Kostenlos und unverbindlich. Wir melden uns in der Regel noch am selben Werktag.</p>
+</form>
+<script>
+  const MSG = {
+    required: 'Bitte füllen Sie dieses Feld aus.',
+    phone: 'Bitte geben Sie eine gültige Telefonnummer an.',
+    email: 'Bitte prüfen Sie die E-Mail-Adresse.',
+    consent: 'Bitte stimmen Sie der Datenverarbeitung zu.',
+    ok: 'Vielen Dank! Ihre Anfrage ist bei uns angekommen. Wir rufen Sie schnellstmöglich zurück.',
+    preview: 'Vorschau-Modus: Das Formular ist geprüft, wird aber noch nicht versendet (Empfänger wird beim Livegang hinterlegt).',
+    fail: 'Leider ist ein Fehler aufgetreten. Bitte rufen Sie uns an: 0231 54 67 686.',
+    spam: 'Bitte nehmen Sie sich einen Moment Zeit und versuchen Sie es erneut.',
+  };
+  document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
+    const started = Date.now();
+    const status = form.querySelector<HTMLElement>('.form-status')!;
+    const show = (cls: 'ok' | 'fail', text: string) => { status.className = `form-status ${cls}`; status.textContent = text; };
+    const check = (el: HTMLInputElement) => {
+      const err = el.closest('.field')?.querySelector<HTMLElement>('.err');
+      let m = '';
+      if (el.validity.valueMissing) m = MSG.required;
+      else if (el.type === 'tel' && el.validity.patternMismatch) m = MSG.phone;
+      else if (el.type === 'email' && el.validity.typeMismatch) m = MSG.email;
+      el.setAttribute('aria-invalid', m ? 'true' : 'false');
+      if (err) err.textContent = m;
+      return !m;
+    };
+    form.querySelectorAll<HTMLInputElement>('input[required]:not([type=checkbox]), input[type=email]').forEach((el) => el.addEventListener('blur', () => check(el)));
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fields = [...form.querySelectorAll<HTMLInputElement>('input[required]:not([type=checkbox]), input[type=email]')];
+      const valid = fields.map(check).every(Boolean);
+      const consent = form.querySelector<HTMLInputElement>('input[name=datenschutz]')!;
+      if (!valid) { fields.find((f) => f.getAttribute('aria-invalid') === 'true')?.focus(); return; }
+      if (!consent.checked) { show('fail', MSG.consent); consent.focus(); return; }
+      const data = new FormData(form);
+      if (data.get('website') || Date.now() - started < 3000) { show('fail', MSG.spam); return; }
+      const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+      btn.disabled = true;
+      const endpoint = form.dataset.endpoint;
+      try {
+        if (endpoint) {
+          const r = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
+          if (!r.ok) throw new Error(String(r.status));
+          show('ok', MSG.ok);
+        } else {
+          show('ok', MSG.preview);
+        }
+        form.reset();
+        (window as any).gtag?.('event', 'generate_lead', { form: data.get('subject') });
+      } catch {
+        show('fail', MSG.fail);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+</script>
+<style>
+  .note { font-size: .88rem; margin: 0; }
+  fieldset.field { border: 0; padding: 0; margin: 0; }
+</style>

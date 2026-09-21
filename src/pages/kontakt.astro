@@ -1,0 +1,72 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import ContactForm from '../components/ContactForm.astro';
+import ServiceArea from '../components/ServiceArea.astro';
+import { SITE, whatsappUrl } from '../config/site';
+const { lat, lng } = SITE.geo;
+const osm = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.012}%2C${lat - 0.006}%2C${lng + 0.012}%2C${lat + 0.006}&layer=mapnik&marker=${lat}%2C${lng}`;
+---
+<Base title="Kontakt & Anfahrt" description="Kontakt zum Pflegedienst ALNO in Dortmund-Hörde: Telefon 0231 54 67 686, WhatsApp, E-Mail oder Formular für eine kostenlose Beratung. Sulpkestraße 50, 44269 Dortmund.">
+  <PageHero title="Kontakt: Wir sind für Sie da" lead="Rufen Sie an, schreiben Sie per WhatsApp oder nutzen Sie das Formular. Die Beratung ist kostenlos und unverbindlich." crumbs={[{ label: 'Kontakt' }]} />
+  <section class="section">
+    <div class="wrap layout">
+      <div class="card">
+        <h2>Kostenlose Beratung anfragen</h2>
+        <ContactForm variant="beratung" id="kontakt-form" />
+      </div>
+      <aside class="side">
+        <a class="c" href={SITE.phoneHref}><span class="ico"><Icon name="phone" /></span><span><small>Telefon</small><b>{SITE.phone}</b><small>Alternativ: {SITE.phone2}</small></span></a>
+        <a class="c" href={whatsappUrl} target="_blank" rel="noopener"><span class="ico ico--green"><Icon name="whatsapp" /></span><span><small>WhatsApp</small><b>Nachricht schreiben</b></span></a>
+        <a class="c" href={`mailto:${SITE.email}`}><span class="ico"><Icon name="mail" /></span><span><small>E-Mail</small><b>{SITE.email}</b></span></a>
+        <div class="c"><span class="ico ico--green"><Icon name="pin" /></span><span><small>Adresse</small><b>{SITE.street}</b><span>{SITE.zip} {SITE.city}-Hörde</span><small>Fax: {SITE.fax}</small></span></div>
+        <div class="c"><span class="ico"><Icon name="clock" /></span><span><small>Erreichbarkeit</small>{SITE.hours.map((h) => <span><b>{h.days}:</b> {h.time}</span>)}</span></div>
+      </aside>
+    </div>
+  </section>
+  <section class="section section--soft" id="anfahrt">
+    <div class="wrap split">
+      <div>
+        <h2>Anfahrt</h2>
+        <div class="map" data-map={osm}>
+          <div class="map-ph">
+            <Icon name="pin" size={36} />
+            <p>Zum Schutz Ihrer Daten wird die Karte (OpenStreetMap) erst nach Klick geladen. Dabei wird Ihre IP-Adresse an die OpenStreetMap Foundation übertragen.</p>
+            <button class="btn btn--primary" type="button">Karte laden</button>
+            <a href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`} target="_blank" rel="noopener">In OpenStreetMap öffnen</a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h2>Einsatzgebiet</h2>
+        <ServiceArea />
+      </div>
+    </div>
+  </section>
+</Base>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-map]').forEach((m) => {
+    m.querySelector('button')?.addEventListener('click', () => {
+      m.innerHTML = `<iframe src="${m.dataset.map}" title="Karte: Pflegedienst ALNO, Sulpkestraße 50, Dortmund" loading="lazy"></iframe>`;
+    });
+  });
+</script>
+<style>
+  .layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 36px; align-items: start; }
+  .layout h2 { font-size: 1.6rem; }
+  .side { display: grid; gap: 14px; }
+  .c { display: flex; gap: 16px; align-items: flex-start; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: #fff; text-decoration: none; color: var(--ink); }
+  a.c:hover { border-color: var(--brand); color: var(--ink); }
+  .c .ico { margin: 0; }
+  .c > span:last-child { display: grid; gap: 2px; }
+  .c small { color: var(--muted); }
+  .c b { font-size: 1.1rem; word-break: break-word; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #fff; aspect-ratio: 4/3; }
+  .map :global(iframe) { inline-size: 100%; block-size: 100%; border: 0; }
+  .map-ph { block-size: 100%; display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; padding: 24px; color: var(--ink-2); background: repeating-linear-gradient(45deg, var(--bg-soft) 0 12px, #fff 12px 24px); }
+  .map-ph :global(svg) { color: var(--brand-600); }
+  .map-ph p { max-width: 380px; font-size: .92rem; margin: 0; }
+  @media (max-width: 900px) { .layout, .split { grid-template-columns: 1fr; } }
+</style>

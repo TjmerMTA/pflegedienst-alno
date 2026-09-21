@@ -1,0 +1,22 @@
+---
+import Icon from './Icon.astro';
+// TODO: заменить на сканы реальных документов / печати (Versorgungsvertrag, MD-Prüfbericht и т. д.)
+const items = [
+  { icon: 'shield', t: 'Versorgungsvertrag § 72 SGB XI', d: 'Zugelassen bei allen Pflegekassen' },
+  { icon: 'clipboard', t: 'Vertrag § 132a SGB V', d: 'Behandlungspflege mit allen Krankenkassen' },
+  { icon: 'award', t: 'Qualitätsprüfung MD', d: 'Regelmäßig geprüft durch den Medizinischen Dienst' },
+  { icon: 'users', t: 'Examinierte Fachkräfte', d: '3-jährig examinierte Kranken- und Altenpflege' },
+];
+---
+<ul class="certs">
+  {items.map((c) => (
+    <li><span class="ico ico--green"><Icon name={c.icon} /></span><span><b>{c.t}</b><small>{c.d}</small></span></li>
+  ))}
+</ul>
+<style>
+  .certs { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+  li { display: flex; gap: 14px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+  li .ico { margin: 0; inline-size: 48px; block-size: 48px; }
+  li span:last-child { display: grid; line-height: 1.35; }
+  small { color: var(--muted); font-size: .88rem; }
+</style>

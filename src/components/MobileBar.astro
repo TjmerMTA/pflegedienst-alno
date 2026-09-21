@@ -1,0 +1,24 @@
+---
+import Icon from './Icon.astro';
+import { SITE, whatsappUrl } from '../config/site';
+---
+<nav class="mbar" aria-label="Schnellkontakt">
+  <a href={SITE.phoneHref} class="m-call"><Icon name="phone" size={20} /><span>Anrufen</span></a>
+  <a href={whatsappUrl} target="_blank" rel="noopener" class="m-wa"><Icon name="whatsapp" size={20} /><span>WhatsApp</span></a>
+  <a href="/erstbegutachtung/" class="m-cta"><Icon name="calendar" size={20} /><span>Beratung</span></a>
+</nav>
+<a href={whatsappUrl} target="_blank" rel="noopener" class="wa-float" aria-label="Per WhatsApp schreiben"><Icon name="whatsapp" size={28} /></a>
+<style>
+  .mbar { display: none; }
+  .wa-float { position: fixed; inset-block-end: 24px; inset-inline-end: 24px; z-index: 40; display: grid; place-items: center; inline-size: 60px; block-size: 60px; border-radius: 50%; background: #1faf57; color: #fff; box-shadow: 0 10px 30px rgb(31 175 87 / .4); transition: transform .15s; }
+  .wa-float:hover { transform: scale(1.06); color: #fff; }
+  @media (max-width: 720px) {
+    .wa-float { display: none; }
+    .mbar { position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 45; display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: rgb(255 255 255 / .97); border-block-start: 1px solid var(--line); box-shadow: 0 -8px 24px rgb(16 50 58 / .08); }
+    .mbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: .8rem; }
+    .m-call { background: var(--brand-50); color: var(--brand-700); }
+    .m-wa { background: #e7f8ee; color: #137a3c; }
+    .m-cta { background: var(--brand-600); color: #fff; }
+    .m-cta:hover { color: #fff; }
+  }
+</style>

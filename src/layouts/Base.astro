@@ -1,0 +1,83 @@
+---
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MobileBar from '../components/MobileBar.astro';
+import Consent from '../components/Consent.astro';
+import { SITE, NOINDEX } from '../config/site';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  type?: 'website' | 'article';
+  schema?: Record<string, unknown>[];
+  noindex?: boolean;
+}
+const { title, description, image = '/og.jpg', type = 'website', schema = [], noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const fullTitle = title.includes('ALNO') ? title : `${title} | ${SITE.shortName} Dortmund`;
+const ogImage = new URL(image, Astro.site);
+const robots = NOINDEX || noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
+
+const business = {
+  '@context': 'https://schema.org',
+  '@type': ['LocalBusiness', 'MedicalBusiness'],
+  '@id': new URL('/#organization', Astro.site).href,
+  name: SITE.name,
+  description: 'Ambulanter Pflegedienst in Dortmund: Grundpflege, Behandlungspflege, Verhinderungspflege, Betreuung und Pflegeberatung nach § 37.3 SGB XI.',
+  url: new URL('/', Astro.site).href,
+  logo: new URL('/logo-mark.png', Astro.site).href,
+  image: ogImage.href,
+  telephone: '+49 231 5467686',
+  faxNumber: '+49 231 58069169',
+  email: SITE.email,
+  address: { '@type': 'PostalAddress', streetAddress: SITE.street, postalCode: SITE.zip, addressLocality: SITE.city, addressRegion: SITE.region, addressCountry: SITE.country },
+  geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
+  areaServed: { '@type': 'City', name: 'Dortmund' },
+  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '16:00' }],
+  priceRange: 'Abrechnung über Pflege- und Krankenkasse',
+};
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#047d8c" />
+    <meta property="og:type" content={type} />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <Font cssVariable="--font-sans" preload />
+    <script type="application/ld+json" set:html={JSON.stringify(business)} />
+    {schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+  </head>
+  <body>
+    <a class="sr-only skip" href="#main">Zum Inhalt springen</a>
+    {NOINDEX && <div class="devbar">Entwurf zur Abstimmung · Texte, Bewertungen und Teamfotos sind Platzhalter</div>}
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <MobileBar />
+    <Consent />
+  </body>
+</html>
+<style is:global>
+  .skip:focus { position: fixed; inset-block-start: 10px; inset-inline-start: 10px; width: auto; height: auto; clip: auto; z-index: 100; background: #fff; padding: 10px 16px; border-radius: 10px; }
+  .devbar { background: #10323a; color: #d2eff3; font-size: .8rem; text-align: center; padding: 6px 16px; }
+</style>

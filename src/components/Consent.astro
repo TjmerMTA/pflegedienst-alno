@@ -1,0 +1,48 @@
+---
+// Баннер согласия (DSGVO). Активен только при заданном PUBLIC_GA_ID:
+// до «Akzeptieren» Google Analytics не загружается вообще.
+import { SITE } from '../config/site';
+const ga = SITE.gaId;
+---
+{ga && (
+  <div class="consent-box" id="consent" role="dialog" aria-labelledby="consent-t" hidden>
+    <p id="consent-t"><b>Datenschutz-Einstellungen</b></p>
+    <p>Wir möchten mit Google Analytics anonymisiert messen, wie unsere Website genutzt wird. Das geschieht nur mit Ihrer Einwilligung, die Sie jederzeit widerrufen können. <a href="/datenschutz/">Mehr erfahren</a></p>
+    <div class="btn-row">
+      <button class="btn btn--primary" data-consent="yes">Akzeptieren</button>
+      <button class="btn btn--ghost" data-consent="no">Nur notwendige</button>
+    </div>
+  </div>
+)}
+<script is:inline define:vars={{ ga }}>
+  (function () {
+    var KEY = 'alno-consent';
+    var box = document.getElementById('consent');
+    function load() {
+      if (!ga || window.__ga) return;
+      window.__ga = true;
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ga;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date()); gtag('config', ga, { anonymize_ip: true });
+    }
+    var v = null; try { v = localStorage.getItem(KEY); } catch (e) {}
+    if (v === 'yes') load(); else if (!v && box) box.hidden = false;
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-consent],[data-consent-open]');
+      if (!t) return;
+      if (t.hasAttribute('data-consent-open')) { if (box) box.hidden = false; return; }
+      var val = t.getAttribute('data-consent');
+      try { localStorage.setItem(KEY, val); } catch (e) {}
+      if (box) box.hidden = true;
+      if (val === 'yes') load();
+    });
+  })();
+</script>
+<style>
+  .consent-box { position: fixed; inset-inline: 16px; inset-block-end: 16px; z-index: 60; max-width: 460px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-lg); font-size: .93rem; }
+  .consent-box p { margin-block-end: .7em; }
+  @media (max-width: 720px) { .consent-box { inset-block-end: 90px; } }
+</style>

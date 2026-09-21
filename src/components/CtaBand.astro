@@ -1,0 +1,28 @@
+---
+import Icon from './Icon.astro';
+import { SITE, whatsappUrl } from '../config/site';
+interface Props { title?: string; text?: string }
+const { title = 'Lassen Sie uns gemeinsam die beste Pflege planen', text = 'Kostenlose Erstbegutachtung bei Ihnen zu Hause – unverbindlich und in ganz Dortmund.' } = Astro.props;
+---
+<section class="section">
+  <div class="wrap">
+    <div class="band">
+      <div>
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> Termin vereinbaren</a>
+        <a class="btn btn--white" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
+        <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .band { display: grid; gap: 28px; grid-template-columns: 1.2fr 1fr; align-items: center; padding: clamp(28px, 5vw, 56px); border-radius: var(--radius-lg); color: #e6f7f9; background: radial-gradient(500px 260px at 100% 0%, rgb(112 214 75 / .35), transparent 70%), linear-gradient(135deg, var(--brand-700), var(--brand-600)); box-shadow: var(--shadow-lg); }
+  h2 { color: #fff; }
+  p { margin: 0; font-size: 1.1rem; }
+  .btn-row { justify-content: flex-end; }
+  @media (max-width: 900px) { .band { grid-template-columns: 1fr; } .btn-row { justify-content: flex-start; } }
+</style>

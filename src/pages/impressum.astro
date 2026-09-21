@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { SITE } from '../config/site';
+---
+<Base title="Impressum" description="Impressum des Pflegedienstes ALNO GmbH, Sulpkestraße 50, 44269 Dortmund – Angaben gemäß § 5 DDG.">
+  <PageHero title="Impressum" crumbs={[{ label: 'Impressum' }]} />
+  <section class="section">
+    <div class="wrap prose">
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <p>{SITE.name}<br />{SITE.street}<br />{SITE.zip} {SITE.city}</p>
+      <p>Handelsregister: {SITE.hrb}<br />Registergericht: {SITE.court}</p>
+      <p><b>Vertreten durch:</b><br />{SITE.ceo} (Geschäftsführerin)</p>
+      <h2>Kontakt</h2>
+      <p>Telefon: <a href={SITE.phoneHref}>{SITE.phone}</a><br />Telefax: {SITE.fax}<br />E-Mail: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+      <h2>Aufsichtsbehörde</h2>
+      <p>WTG-Behörde der Stadt Dortmund (Heimaufsicht)<br /><span class="muted">[Anschrift vom Kunden zu bestätigen]</span></p>
+      <h2>Berufsbezeichnung und berufsrechtliche Regelungen</h2>
+      <p>Die Pflegefachkräfte führen die Berufsbezeichnung „Pflegefachfrau/Pflegefachmann“, „Gesundheits- und Krankenpfleger/in“ bzw. „Altenpfleger/in“, verliehen in der Bundesrepublik Deutschland. Es gelten das Pflegeberufegesetz (PflBG) sowie das SGB V und SGB XI.</p>
+      <h2>Angaben zur Berufshaftpflichtversicherung</h2>
+      <p><span class="muted">[Name und Sitz des Versicherers vom Kunden zu ergänzen]</span><br />Geltungsraum der Versicherung: Deutschland</p>
+      <h2>Verbraucherstreitbeilegung</h2>
+      <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+      <h2>Haftung für Inhalte</h2>
+      <p>Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Bei Bekanntwerden von Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+      <h2>Haftung für Links</h2>
+      <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.</p>
+      <h2>Urheberrecht</h2>
+      <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+    </div>
+  </section>
+</Base>

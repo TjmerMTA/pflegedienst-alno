@@ -1,0 +1,28 @@
+---
+import Icon from './Icon.astro';
+// TODO: заменить реальными отзывами (с согласием авторов) или подключить Google-отзывы.
+const items = [
+  { text: 'Seit Mamas Schlaganfall kommt das ALNO-Team zweimal täglich. Pünktlich, freundlich und immer mit einem offenen Ohr – wir als Familie sind unglaublich entlastet.', name: 'Sabine K.', rel: 'Tochter einer Patientin, Hörde' },
+  { text: 'Die Beratung zum Pflegegrad war Gold wert. Frau Nogina hat uns alles in Ruhe erklärt und beim Antrag geholfen. Ohne sie hätten wir viel Geld verschenkt.', name: 'Thomas W.', rel: 'Sohn eines Patienten, Aplerbeck' },
+  { text: 'Ich werde nach meiner Hüft-OP zu Hause versorgt und fühle mich richtig gut aufgehoben. Die Schwestern sind kompetent und herzlich.', name: 'Irmgard B.', rel: 'Patientin, 81 Jahre, Hombruch' },
+];
+---
+<div class="grid grid-3">
+  {items.map((t) => (
+    <figure class="card t">
+      <div class="stars" aria-label="5 von 5 Sternen">{[1, 2, 3, 4, 5].map(() => <Icon name="star" size={18} />)}</div>
+      <blockquote>„{t.text}“</blockquote>
+      <figcaption><span class="av">{t.name[0]}</span><span><b>{t.name}</b><small>{t.rel}</small></span></figcaption>
+    </figure>
+  ))}
+</div>
+<style>
+  .t { margin: 0; display: flex; flex-direction: column; gap: 16px; }
+  .stars { display: flex; gap: 2px; color: #f5b301; }
+  .stars :global(svg) { fill: currentColor; }
+  blockquote { margin: 0; font-size: 1.04rem; color: var(--ink); flex: 1; }
+  figcaption { display: flex; gap: 12px; align-items: center; }
+  figcaption span:last-child { display: grid; line-height: 1.3; }
+  small { color: var(--muted); }
+  .av { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border-radius: 50%; background: var(--brand-50); color: var(--brand-700); font-weight: 800; }
+</style>

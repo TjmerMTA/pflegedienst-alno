@@ -1,0 +1,38 @@
+# Pages CMS (https://pagescms.org) — визуальный редактор блога и услуг прямо поверх GitHub.
+# Вход через GitHub-аккаунт, сохранение = коммит, после коммита сайт пересобирается сам.
+media:
+  input: src/assets/img
+  output: ../../assets/img
+content:
+  - name: blog
+    label: Ratgeber (Blog)
+    type: collection
+    path: src/content/blog
+    filename: '{fields.title}.md'
+    view:
+      fields: [title, date, draft]
+    fields:
+      - { name: title, label: Titel (H1 + Meta Title), type: string, required: true }
+      - { name: description, label: Meta Description (max. 170 Zeichen), type: text, required: true }
+      - { name: date, label: Datum, type: date, required: true }
+      - { name: updated, label: Aktualisiert am, type: date }
+      - { name: author, label: Autor, type: string, default: Team Pflegedienst ALNO }
+      - { name: image, label: Titelbild, type: image }
+      - { name: imageAlt, label: Bildbeschreibung (Alt-Text), type: string }
+      - { name: tags, label: Schlagwörter, type: string, list: true }
+      - { name: draft, label: Entwurf (nicht veröffentlichen), type: boolean, default: false }
+      - { name: body, label: Inhalt, type: rich-text }
+  - name: leistungen
+    label: Leistungen
+    type: collection
+    path: src/content/leistungen
+    fields:
+      - { name: title, label: Name, type: string, required: true }
+      - { name: metaTitle, label: Meta Title, type: string, required: true }
+      - { name: description, label: Meta Description, type: text, required: true }
+      - { name: teaser, label: Kurztext, type: text, required: true }
+      - { name: icon, label: Icon, type: select, options: { values: [heart, syringe, hands, home, clipboard, users, shield] } }
+      - { name: order, label: Reihenfolge, type: number }
+      - { name: payer, label: Kostenträger, type: string }
+      - { name: highlights, label: Leistungsumfang, type: string, list: true }
+      - { name: body, label: Inhalt, type: rich-text }

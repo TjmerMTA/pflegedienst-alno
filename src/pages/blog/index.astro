@@ -1,0 +1,41 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
+import CtaBand from '../../components/CtaBand.astro';
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => +b.data.date - +a.data.date);
+const fmt = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+---
+<Base title="Pflege-Ratgeber für Angehörige" description="Ratgeber des Pflegedienstes ALNO: Pflegegrad beantragen, Leistungen der Pflegekasse, Verhinderungspflege und Tipps für pflegende Angehörige in Dortmund.">
+  <PageHero title="Pflege-Ratgeber" lead="Verständliche Antworten auf die Fragen, die uns Angehörige am häufigsten stellen." crumbs={[{ label: 'Ratgeber' }]} />
+  <section class="section">
+    <div class="wrap grid grid-3">
+      {posts.map((p) => (
+        <article class="card post">
+          {p.data.image && <Image src={p.data.image} alt={p.data.imageAlt ?? ''} widths={[424]} class="thumb" />}
+          <div class="body">
+            <time datetime={p.data.date.toISOString()}>{fmt(p.data.date)}</time>
+            <h2><a href={`/blog/${p.id}/`}>{p.data.title}</a></h2>
+            <p>{p.data.description}</p>
+            <span class="more">Weiterlesen <Icon name="arrow" size={18} /></span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+<style>
+  .post { padding: 0; overflow: hidden; display: flex; flex-direction: column; position: relative; transition: transform .15s, box-shadow .15s; }
+  .post:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .thumb { inline-size: 100%; aspect-ratio: 16/9; object-fit: cover; }
+  .body { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+  h2 { font-size: 1.25rem; }
+  h2 a { color: var(--ink); text-decoration: none; }
+  h2 a::after { content: ''; position: absolute; inset: 0; }
+  p { color: var(--ink-2); flex: 1; }
+  time { font-size: .86rem; color: var(--muted); margin-block-end: 8px; }
+  .more { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; color: var(--brand-600); }
+</style>

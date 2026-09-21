@@ -1,0 +1,77 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { SITE, whatsappUrl } from '../../config/site';
+
+export async function getStaticPaths() {
+  const items = await getCollection('leistungen');
+  return items.map((entry) => ({ params: { slug: entry.id }, props: { entry, all: items } }));
+}
+const { entry, all } = Astro.props;
+const { Content } = await render(entry);
+const others = all.filter((a) => a.id !== entry.id).sort((a, b) => a.data.order - b.data.order);
+const service = {
+  '@context': 'https://schema.org', '@type': 'Service',
+  name: entry.data.title, serviceType: entry.data.title, description: entry.data.description,
+  provider: { '@id': new URL('/#organization', Astro.site).href },
+  areaServed: { '@type': 'City', name: 'Dortmund' },
+};
+---
+<Base title={entry.data.metaTitle} description={entry.data.description} schema={[service]}>
+  <PageHero title={`${entry.data.title} in Dortmund`} lead={entry.data.teaser} crumbs={[{ href: '/leistungen/', label: 'Leistungen' }, { label: entry.data.title }]} />
+  <section class="section">
+    <div class="wrap layout">
+      <div>
+        <div class="card box">
+          <h2>Das gehört dazu</h2>
+          <ul class="checks">{entry.data.highlights.map((h) => <li>{h}</li>)}</ul>
+          <p class="payer"><Icon name="euro" size={18} /> <span><b>Kostenträger:</b> {entry.data.payer}</span></p>
+        </div>
+        <div class="prose"><Content /></div>
+      </div>
+      <aside>
+        <div class="card sticky">
+          <h2 class="h3">Kostenlos beraten lassen</h2>
+          <p class="muted">Wir melden uns noch am selben Werktag.</p>
+          <div class="btn-row col">
+            <a class="btn btn--primary" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
+            <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> WhatsApp</a>
+          </div>
+          <hr />
+          <ContactForm variant="rueckruf" id="svc-form" />
+        </div>
+      </aside>
+    </div>
+  </section>
+  <section class="section section--soft">
+    <div class="wrap">
+      <h2>Weitere Leistungen</h2>
+      <div class="grid grid-4">
+        {others.map((o) => (
+          <a class="card other" href={`/leistungen/${o.id}/`}><span class="ico"><Icon name={o.data.icon} /></span><h3>{o.data.title}</h3><p>{o.data.teaser}</p></a>
+        ))}
+      </div>
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+<style>
+  .layout { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+  .box { margin-block-end: 36px; background: linear-gradient(160deg, var(--brand-50), #fff 55%); }
+  .box h2 { font-size: 1.4rem; }
+  .payer { display: flex; gap: 8px; align-items: flex-start; color: var(--green-700); margin: 0; }
+  .payer :global(svg) { flex: none; margin-block-start: 4px; }
+  .sticky { position: sticky; inset-block-start: 110px; }
+  .h3 { font-size: 1.3rem; margin-block-end: .3em; }
+  .col { flex-direction: column; }
+  .col .btn { inline-size: 100%; }
+  hr { border: 0; border-block-start: 1px solid var(--line); margin-block: 22px; }
+  .other { text-decoration: none; color: var(--ink); }
+  .other:hover { border-color: var(--brand-100); color: var(--ink); }
+  .other p { color: var(--ink-2); font-size: .95rem; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .sticky { position: static; } }
+</style>
