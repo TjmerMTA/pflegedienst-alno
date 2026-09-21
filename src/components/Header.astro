@@ -27,28 +27,35 @@ const path = Astro.url.pathname;
     <div class="acts">
       <a class="call" href={SITE.phoneHref}><span class="ci"><Icon name="phone" size={18} /></span><span class="ct"><small>Rufen Sie uns an</small>{SITE.phone}</span></a>
       <a class="btn btn--primary cta-d" href="/erstbegutachtung/">Kostenlose Beratung</a>
-      <button class="burger" aria-expanded="false" aria-controls="nav" aria-label="Menü öffnen"><Icon name="menu" /></button>
+      <button class="burger" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menü öffnen"><Icon name="menu" class="i-open" /><Icon name="close" class="i-close" /></button>
     </div>
   </div>
 </header>
 <script>
   const b = document.querySelector<HTMLButtonElement>('.burger');
-  const hdr = document.querySelector('.hdr');
-  b?.addEventListener('click', () => {
-    const open = b.getAttribute('aria-expanded') !== 'true';
+  const hdr = document.querySelector<HTMLElement>('.hdr');
+  const nav = document.getElementById('nav');
+  const setOpen = (open: boolean) => {
+    if (!b || !hdr || !nav) return;
+    if (open) nav.style.insetBlockStart = `${Math.max(0, hdr.getBoundingClientRect().bottom)}px`;
     b.setAttribute('aria-expanded', String(open));
     b.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
-    const nav = document.getElementById('nav');
-    if (nav && hdr) nav.style.insetBlockStart = `${hdr.getBoundingClientRect().bottom}px`;
-    hdr?.classList.toggle('open', open);
-    document.body.style.overflow = open ? 'hidden' : '';
-  });
+    hdr.classList.toggle('open', open);
+    document.documentElement.classList.toggle('menu-open', open);
+  };
+  b?.addEventListener('click', () => setOpen(b.getAttribute('aria-expanded') !== 'true'));
+  nav?.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) setOpen(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && hdr?.classList.contains('open')) { setOpen(false); b?.focus(); } });
+  matchMedia('(min-width: 1021px)').addEventListener('change', (e) => { if (e.matches) setOpen(false); });
+  window.addEventListener('pageshow', () => setOpen(false));
   const onScroll = () => hdr?.classList.toggle('scrolled', window.scrollY > 40);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 </script>
 <style>
-  .hdr { position: sticky; inset-block-start: 0; z-index: 50; background: rgb(255 255 255 / .94); backdrop-filter: saturate(1.6) blur(12px); border-block-end: 1px solid transparent; transition: box-shadow .2s, border-color .2s; }
+  .hdr { position: sticky; inset-block-start: 0; z-index: 50; background: rgb(255 255 255 / .94); border-block-end: 1px solid transparent; transition: box-shadow .2s, border-color .2s; }
+  /* blur на псевдоэлементе: backdrop-filter на самой шапке ломает position: fixed у мобильного меню */
+  .hdr::before { content: ''; position: absolute; inset: 0; z-index: -1; backdrop-filter: saturate(1.6) blur(12px); }
   .hdr.scrolled { border-color: var(--line); box-shadow: 0 6px 24px rgb(16 50 58 / .06); }
   .top { background: var(--brand-700); color: #d8f3f6; font-size: .84rem; }
   .top-in { display: flex; gap: 26px; justify-content: flex-end; padding-block: 7px; }
@@ -66,17 +73,19 @@ const path = Astro.url.pathname;
   .ci { display: grid; place-items: center; inline-size: 42px; block-size: 42px; border-radius: 50%; background: var(--green-50); color: var(--green-700); }
   .ct { display: grid; line-height: 1.2; font-size: 1.02rem; white-space: nowrap; }
   .ct small { font-weight: 500; color: var(--muted); font-size: .76rem; }
+  .burger :global(.i-close), .burger[aria-expanded='true'] :global(.i-open) { display: none; }
+  .burger[aria-expanded='true'] :global(.i-close) { display: block; }
   .burger { display: none; border: 1px solid var(--line); background: #fff; border-radius: 12px; inline-size: 48px; block-size: 48px; place-items: center; color: var(--ink); cursor: pointer; }
   @media (max-width: 1320px) { .call .ct { display: none; } }
   @media (max-width: 1180px) { .cta-d { display: none; } }
   @media (max-width: 1020px) {
     .burger { display: grid; }
-    .nav { position: fixed; inset: 0; background: #fff; padding: 20px; display: none; overflow-y: auto; }
+    .nav { position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 60; background: #fff; padding: 12px 20px calc(24px + env(safe-area-inset-bottom)); display: none; overflow-y: auto; overscroll-behavior: contain; border-block-start: 1px solid var(--line); }
     .hdr.open .nav { display: block; }
     .nav ul { flex-direction: column; }
-    .nav a { font-size: 1.2rem; padding: 16px 12px; border-block-end: 1px solid var(--line); border-radius: 0; }
+    .nav a { font-size: 1.2rem; padding: 16px 8px; border-block-end: 1px solid var(--line); border-radius: 0; }
     .nav-cta { display: block; margin-block-start: 22px; }
-    .nav-cta .btn { inline-size: 100%; }
+    .nav .nav-cta .btn { display: flex; inline-size: 100%; padding: 14px 24px; border: 0; border-radius: 999px; color: #fff; font-size: 1.05rem; }
     .acts { margin-inline-start: auto; }
   }
   @media (max-width: 720px) {
@@ -85,4 +94,10 @@ const path = Astro.url.pathname;
     .call .ct { display: none; }
     .bar { min-height: 70px; gap: 12px; }
   }
+  @media (max-width: 380px) {
+    .call { display: none; }
+  }
+  /* блок прокрутки на body, не на html: overflow на html ломает sticky-шапку */
+  :global(html.menu-open body) { overflow: hidden; }
+  :global(html.menu-open .mbar), :global(html.menu-open .wa-float) { display: none !important; }
 </style>
