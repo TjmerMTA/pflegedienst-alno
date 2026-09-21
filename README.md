@@ -16,7 +16,10 @@ npm install
 npm run dev       # http://localhost:4321
 npm run build     # → dist/
 npm run preview
+./deploy.sh       # сборка + выкладка в ветку gh-pages
 ```
+
+Автосборку через GitHub Actions можно включить, переложив `docs/deploy-workflow.yml.example` в `.github/workflows/deploy.yml` (нужен токен с правом `workflow`) и переключив Pages на «GitHub Actions».
 
 ## Настройки
 
@@ -26,7 +29,7 @@ npm run preview
 | FAQ | `src/config/faq.ts` |
 | Обработчик форм (Web3Forms / Formspree) | переменная `PUBLIC_FORM_ENDPOINT` (GitHub → Settings → Variables) |
 | Google Analytics 4 | переменная `PUBLIC_GA_ID` — баннер согласия включится сам, до согласия GA не грузится |
-| Продакшн-домен | `SITE_URL` в `.github/workflows/deploy.yml` + `public/CNAME` |
+| Продакшн-домен | `SITE_URL` в `deploy.sh` + `public/CNAME` |
 
 Если `SITE_URL` не содержит `siteboosty` — сайт автоматически открывается для индексации и `robots.txt` отдаёт sitemap.
 
