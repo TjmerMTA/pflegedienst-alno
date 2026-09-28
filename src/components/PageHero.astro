@@ -1,13 +1,21 @@
 ---
-interface Props { title: string; lead?: string; crumbs?: { href?: string; label: string }[] }
-const { title, lead, crumbs = [] } = Astro.props;
+import { Image } from 'astro:assets';
+interface Props { title: string; lead?: string; crumbs?: { href?: string; label: string }[]; bg?: string }
+const { title, lead, crumbs = [], bg } = Astro.props;
 const all = [{ href: '/', label: 'Startseite' }, ...crumbs];
 const schema = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: all.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.label, ...(c.href ? { item: new URL(c.href, Astro.site).href } : {}) })),
 };
+// Фоновое фото: src/assets/img/hero/<раздел>.jpg (например leistungen.jpg), иначе default.jpg.
+// Нет ни одного файла — остаётся нейтральный фон.
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/img/hero/*.{jpg,jpeg,png,webp,avif}', { eager: true });
+const byName = (n?: string) => n && Object.entries(photos).find(([p]) => p.split('/').pop()!.replace(/\.\w+$/, '') === n)?.[1].default;
+const section = Astro.url.pathname.split('/').filter(Boolean)[0];
+const photo = byName(bg) || byName(section) || byName('default');
 ---
-<section class="page-hero">
+<section class:list={['page-hero', { 'page-hero--photo': photo }]}>
+  {photo && <Image src={photo} alt="" class="page-hero__bg" widths={[640, 1024, 1600, 2200]} sizes="100vw" loading="eager" fetchpriority="high" />}
   <div class="wrap">
     <nav aria-label="Brotkrumen"><ol class="crumbs">{all.map((c) => <li>{c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</li>)}</ol></nav>
     <h1>{title}</h1>

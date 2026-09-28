@@ -191,6 +191,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
 </Base>
 <style>
   .hero { background: radial-gradient(900px 500px at 85% 0%, var(--brand-50), transparent 65%), radial-gradient(600px 400px at 0% 100%, var(--green-50), transparent 60%); padding-block: clamp(36px, 6vw, 80px) clamp(40px, 6vw, 72px); overflow: hidden; }
+  @media (min-width: 1021px) { .hero { padding-block: clamp(29px, 4.8vw, 64px) clamp(32px, 4.8vw, 58px); } }
   .hero-in { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(30px, 5vw, 64px); align-items: center; }
   .hero h1 { margin-block: 18px 20px; }
   .hl { color: var(--brand-600); }

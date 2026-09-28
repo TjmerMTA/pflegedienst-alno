@@ -3,7 +3,7 @@ title: Behandlungspflege
 metaTitle: Behandlungspflege nach ärztlicher Verordnung in Dortmund
 description: Medizinische Behandlungspflege in Dortmund – Wundversorgung, Injektionen, Medikamentengabe, Kompressionsstrümpfe. Kosten trägt die Krankenkasse.
 teaser: Medizinische Versorgung nach ärztlicher Verordnung – von Wundversorgung bis Insulingabe.
-icon: syringe
+icon: cross
 order: 2
 payer: Krankenkasse (auf ärztliche Verordnung, § 37 SGB V)
 highlights:

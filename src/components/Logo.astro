@@ -9,8 +9,8 @@ const { light = false } = Astro.props;
   <span><b>Pflegedienst</b><em>ALNO <small>GmbH</small></em></span>
 </a>
 <style>
-  .logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #13a9bd; }
-  .logo img { inline-size: 48px; block-size: 48px; }
+  .logo { flex: none; display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #13a9bd; }
+  .logo img { inline-size: 48px; block-size: 48px; max-width: none; }
   .logo span { display: grid; line-height: 1.02; white-space: nowrap; }
   .logo b { font-weight: 600; font-size: 1.12rem; letter-spacing: -.01em; }
   .logo em { font-style: normal; font-weight: 800; font-size: 1.28rem; letter-spacing: .01em; }

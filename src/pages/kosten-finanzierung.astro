@@ -26,7 +26,7 @@ const faq = [
   <section class="section">
     <div class="wrap">
       <div class="grid grid-3">
-        <div class="card"><span class="ico"><Icon name="syringe" /></span><h2 class="h3">Behandlungspflege</h2><p>Zahlt die <b>Krankenkasse</b> – auf ärztliche Verordnung, auch ohne Pflegegrad.</p></div>
+        <div class="card"><span class="ico"><Icon name="cross" /></span><h2 class="h3">Behandlungspflege</h2><p>Zahlt die <b>Krankenkasse</b> – auf ärztliche Verordnung, auch ohne Pflegegrad.</p></div>
         <div class="card"><span class="ico ico--green"><Icon name="heart" /></span><h2 class="h3">Grundpflege</h2><p>Zahlt die <b>Pflegekasse</b> über die Pflegesachleistung – ab Pflegegrad 2.</p></div>
         <div class="card"><span class="ico"><Icon name="home" /></span><h2 class="h3">Betreuung & Haushalt</h2><p>Über den <b>Entlastungsbetrag</b> von 131 € im Monat – schon ab Pflegegrad 1.</p></div>
       </div>
@@ -61,7 +61,7 @@ const faq = [
         <p>Wer ausschließlich Pflegegeld bezieht, muss regelmäßig einen Beratungsbesuch nachweisen. Die Kosten übernimmt die Pflegekasse. <a href="/leistungen/pflegeberatung-37-3/">Mehr erfahren</a></p>
       </div>
       <aside class="card tip">
-        <span class="ico ico--green"><Icon name="info" /></span>
+        <span class="ico ico--solid"><Icon name="info" /></span>
         <h2 class="h3">Noch kein Pflegegrad?</h2>
         <p>Wir helfen beim Antrag und bereiten Sie auf den Besuch des Medizinischen Dienstes vor. Viele Familien bekommen dadurch deutlich mehr Unterstützung, als sie erwartet hätten.</p>
         <a class="btn btn--primary" href="/erstbegutachtung/">Kostenlos beraten lassen</a>
@@ -79,7 +79,7 @@ const faq = [
 </Base>
 <style>
   .h3 { font-size: 1.25rem; }
-  .tbl { padding: 0; overflow: hidden; }
+  .tbl { padding: 0; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; min-width: 620px; }
   th, td { padding: 16px 20px; text-align: start; border-block-end: 1px solid var(--line); }
   thead th { background: var(--brand-700); color: #fff; font-size: .95rem; vertical-align: top; }
@@ -90,7 +90,8 @@ const faq = [
   .small { font-size: .9rem; margin-block-start: 14px; }
   .prose-grid { display: grid; grid-template-columns: 1fr 360px; gap: 48px; align-items: start; }
   .prose h2:first-child { margin-block-start: 0; }
-  .tip { background: linear-gradient(160deg, var(--green-50), #fff 60%); }
+  .tip { display: flex; flex-direction: column; align-items: center; text-align: center; background: linear-gradient(160deg, var(--green-50), #fff 60%); }
+  .tip .btn { margin-block-start: 6px; }
   .narrow { max-width: 820px; }
   @media (max-width: 900px) { .prose-grid { grid-template-columns: 1fr; } }
 </style>

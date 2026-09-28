@@ -23,6 +23,9 @@ const { title = 'Lassen Sie uns gemeinsam die beste Pflege planen', text = 'Kost
   .band { display: grid; gap: 28px; grid-template-columns: 1.2fr 1fr; align-items: center; padding: clamp(28px, 5vw, 56px); border-radius: var(--radius-lg); color: #e6f7f9; background: radial-gradient(500px 260px at 100% 0%, rgb(112 214 75 / .35), transparent 70%), linear-gradient(135deg, var(--brand-700), var(--brand-600)); box-shadow: var(--shadow-lg); }
   h2 { color: #fff; }
   p { margin: 0; font-size: 1.1rem; }
-  .btn-row { justify-content: flex-end; }
-  @media (max-width: 900px) { .band { grid-template-columns: 1fr; } .btn-row { justify-content: flex-start; } }
+  /* Две колонки: WhatsApp стоит под телефоном и выровнен по его центру */
+  .btn-row { display: grid; grid-template-columns: auto auto; justify-content: end; align-items: center; }
+  .btn--wa { grid-column: 2; justify-self: center; }
+  @media (max-width: 900px) { .band { grid-template-columns: 1fr; } .btn-row { justify-content: start; } }
+  @media (max-width: 640px) { .btn-row { grid-template-columns: 1fr; } .btn--wa { grid-column: auto; justify-self: stretch; } }
 </style>
