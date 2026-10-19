@@ -31,7 +31,7 @@ const okText = isRechner ? 'Vielen Dank! Wir haben Ihre Angaben erhalten und mel
     </div>
     <div class="field">
       <label for={`${id}-phone`}>Telefon <span class="req">*</span></label>
-      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +()/\-]{6,}" />
+      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +\(\)\/\-]{6,}" />
       <span class="err" aria-live="polite"></span>
     </div>
   </div>
