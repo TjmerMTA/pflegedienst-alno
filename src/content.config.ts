@@ -33,4 +33,18 @@ const leistungen = defineCollection({
   }),
 });
 
-export const collections = { blog, leistungen };
+// Команда: один .md = одна карточка на /ueber-uns/ (правится клиентом в Pages CMS)
+const team = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/team' }),
+  schema: ({ image }) =>
+    z.object({
+      name: z.string(),
+      role: z.string(),
+      description: z.string().optional(),
+      photo: image().optional(),
+      order: z.number().default(100),
+      hidden: z.boolean().default(false),
+    }),
+});
+
+export const collections = { blog, leistungen, team };
