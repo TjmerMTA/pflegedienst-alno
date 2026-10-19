@@ -35,7 +35,7 @@ const business = {
   email: SITE.email,
   address: { '@type': 'PostalAddress', streetAddress: SITE.street, postalCode: SITE.zip, addressLocality: SITE.city, addressRegion: SITE.region, addressCountry: SITE.country },
   geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
-  areaServed: { '@type': 'City', name: 'Dortmund' },
+  areaServed: [{ '@type': 'City', name: 'Dortmund' }, { '@type': 'City', name: 'Schwerte' }],
   openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '16:00' }],
   priceRange: 'Abrechnung über Pflege- und Krankenkasse',
 };

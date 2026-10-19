@@ -45,19 +45,11 @@ export const NAV = [
   { href: '/kontakt/', label: 'Kontakt' },
 ];
 
-// Районы обслуживания (Stadtbezirke Dortmund). core — основная зона, остальные — по запросу.
-// TODO: подтвердить у клиента.
+// Районы обслуживания (реальные зоны клиента): три Stadtbezirke Дортмунда и город Schwerte.
+// key связывает группу с фигурой на схеме в ServiceArea.astro.
 export const AREAS = [
-  { name: 'Hörde', core: true },
-  { name: 'Aplerbeck', core: true },
-  { name: 'Hombruch', core: true },
-  { name: 'Innenstadt-Ost', core: true },
-  { name: 'Innenstadt-West', core: true },
-  { name: 'Brackel', core: true },
-  { name: 'Innenstadt-Nord', core: false },
-  { name: 'Scharnhorst', core: false },
-  { name: 'Lütgendortmund', core: false },
-  { name: 'Huckarde', core: false },
-  { name: 'Eving', core: false },
-  { name: 'Mengede', core: false },
+  { key: 'aplerbeck', title: 'Stadtbezirk Aplerbeck', districts: ['Aplerbeck', 'Berghofen', 'Schüren', 'Sölde', 'Sölderholz'] },
+  { key: 'hoerde', title: 'Stadtbezirk Hörde', districts: ['Benninghofen', 'Hacheney', 'Hörde', 'Holzen', 'Syburg', 'Wellinghofen', 'Wichlinghofen'] },
+  { key: 'hombruch', title: 'Stadtbezirk Hombruch', districts: ['Barop', 'Bittermark', 'Brünninghausen', 'Hombruch', 'Persebeck-Kruckel-Schnee', 'Kirchhörde-Löttringhausen', 'Rombergpark-Lücklemberg', 'Menglinghausen'] },
+  { key: 'schwerte', title: 'Stadt Schwerte', districts: ['Schwerte-Mitte', 'Ergste', 'Geisecke', 'Holzen (Schwerte)', 'Lichtendorf', 'Villigst', 'Wandhofen', 'Westhofen'] },
 ];
