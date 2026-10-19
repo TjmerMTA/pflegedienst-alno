@@ -11,8 +11,8 @@ import Certificates from '../components/Certificates.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { SITE, whatsappUrl } from '../config/site';
 import { FAQ, faqSchema } from '../config/faq';
-import heroImg from '../assets/img/familie.jpg';
-import homeImg from '../assets/img/pflege-zuhause.jpg';
+import heroImg from '../assets/img/startseite-hero.jpg';
+import homeImg from '../assets/img/startseite-zuhause.jpg';
 
 const leistungen = (await getCollection('leistungen')).sort((a, b) => a.data.order - b.data.order);
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => +b.data.date - +a.data.date).slice(0, 3);
@@ -28,17 +28,18 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
           <a class="btn btn--primary" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> Kostenlose Erstbegutachtung</a>
           <a class="btn btn--ghost" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
         </div>
+        <p class="tel-hint"><Icon name="phone" size={18} /> <span>Termine vereinbaren Sie auch ganz einfach telefonisch: <a href={SITE.phoneHref}>{SITE.phone}</a> (8–22 Uhr)</span></p>
         <ul class="trust">
           <li><Icon name="shield" size={20} /> Alle Kassen</li>
-          <li><Icon name="clock" size={20} /> 24/7 Rufbereitschaft</li>
+          <li><Icon name="clock" size={20} /> Telefon 8–22 Uhr</li>
           <li><Icon name="heart" size={20} /> Feste Bezugspflege</li>
         </ul>
       </div>
       <div class="hero-vis">
         <div class="ring"></div>
-        <Image src={heroImg} alt="Pflegekraft des Pflegedienstes ALNO mit einer Seniorin zu Hause" widths={[424]} loading="eager" fetchpriority="high" class="hero-img" />
+        <Image src={heroImg} alt="Pflegekraft umarmt eine lächelnde Seniorin" widths={[480, 960]} sizes="(max-width: 900px) 80vw, 480px" loading="eager" fetchpriority="high" class="hero-img" />
         <div class="float f1"><span class="ico ico--green"><Icon name="check" /></span><span><b>Beratung kostenlos</b><small>auch im Krankenhaus</small></span></div>
-        <div class="float f2"><b>24/7</b><small>Rufbereitschaft</small></div>
+        <div class="float f2"><b>8–22 Uhr</b><small>telefonisch erreichbar</small></div>
       </div>
     </div>
   </section>
@@ -81,7 +82,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section section--soft">
     <div class="wrap split">
       <div class="media">
-        <Image src={homeImg} alt="Pflegerin und Seniorin lächeln gemeinsam im Wohnzimmer" widths={[424]} />
+        <Image src={homeImg} alt="Pflegerin legt einem Senior im Wohnzimmer eine Decke um" widths={[424]} />
         <div class="stat"><b>100 %</b><span>Pflege im gewohnten Zuhause</span></div>
       </div>
       <div>
@@ -144,6 +145,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
         <span class="eyebrow">Kostenlose Beratung</span>
         <h2>Wir rufen Sie zurück</h2>
         <p class="lead">Hinterlassen Sie Namen und Telefonnummer. Eine Pflegefachkraft meldet sich und beantwortet Ihre Fragen – kostenlos und unverbindlich.</p>
+        <p class="visit"><Icon name="pin" size={20} /> <span>Lieber direkt sprechen? Rufen Sie uns an unter <a href={SITE.phoneHref}>{SITE.phone}</a> oder kommen Sie zu unseren Bürozeiten (Mo–Fr 8–16 Uhr) einfach in unserem Büro in der {SITE.street} vorbei.</span></p>
         <ul class="checks">
           <li>Antwort in der Regel am selben Werktag</li>
           <li>Beratung zu Pflegegrad und Finanzierung</li>
@@ -196,6 +198,10 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   .hero h1 { margin-block: 18px 20px; }
   .hl { color: var(--brand-600); }
   .hero .lead { max-width: 560px; margin-block-end: 28px; }
+  .tel-hint { display: flex; gap: 8px; align-items: flex-start; margin: 18px 0 0; font-weight: 600; color: var(--ink-2); }
+  .tel-hint :global(svg), .visit :global(svg) { flex: none; margin-block-start: 3px; color: var(--green-700); }
+  .tel-hint a, .visit a { color: var(--brand-700); white-space: nowrap; }
+  .visit { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: #fff; border: 1px solid var(--line); }
   .trust { display: flex; flex-wrap: wrap; gap: 10px 22px; list-style: none; padding: 0; margin: 28px 0 0; color: var(--ink-2); font-weight: 600; }
   .trust li { display: flex; gap: 8px; align-items: center; }
   .trust :global(svg) { color: var(--green-700); }
@@ -220,6 +226,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   .svc:hover { transform: translateY(-3px); border-color: var(--brand-100); box-shadow: var(--shadow-lg); color: var(--ink); }
   .svc p { color: var(--ink-2); flex: 1; }
   .svc--cta { background: linear-gradient(160deg, var(--green-50), #fff 60%); }
+  /* 6 услуг + карточка «Wer bezahlt» — карточка во всю ширину, чтобы не висела одна в последнем ряду */
+  .svc--cta { grid-column: 1 / -1; }
+  @media (min-width: 900px) { .svc--cta { display: grid; grid-template-columns: auto auto 1fr auto; column-gap: 24px; align-items: center; } .svc--cta h3, .svc--cta p, .svc--cta .ico { margin: 0; } }
   .more { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; color: var(--brand-600); margin-block-start: 8px; }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
   .split--form, .split--faq { align-items: start; }

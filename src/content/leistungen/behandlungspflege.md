@@ -7,17 +7,17 @@ icon: cross
 order: 2
 payer: Krankenkasse (auf ärztliche Verordnung, § 37 SGB V)
 highlights:
-  - Wundversorgung und Verbandswechsel
+  - Akutversorgung, Wundversorgung und Verbandswechsel
   - Injektionen, z. B. Insulin und Thromboseprophylaxe
   - Medikamentengabe und -überwachung
   - Blutzucker- und Blutdruckmessung
-  - Katheter-, Stoma- und Kanülenversorgung
+  - Katheter- und Stomaversorgung
   - An- und Ausziehen von Kompressionsstrümpfen
 ---
 
 ## Was ist Behandlungspflege?
 
-Die medizinische Behandlungspflege umfasst alle Tätigkeiten, die auf ärztliche Verordnung von examinierten Pflegefachkräften durchgeführt werden – etwa Wundversorgung, Verbandswechsel, Medikamentengabe, Dekubitusbehandlung oder Blutzuckermessungen.
+Die medizinische Behandlungspflege umfasst alle Tätigkeiten, die auf ärztliche Verordnung von examinierten Pflegefachkräften durchgeführt werden – etwa Akutversorgung, Wundversorgung, Verbandswechsel, Medikamentengabe, Dekubitusbehandlung oder Blutzuckermessungen.
 
 ## Kosten: Das zahlt die Krankenkasse
 

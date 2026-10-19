@@ -8,10 +8,9 @@ order: 3
 payer: Pflegekasse (ab Pflegegrad 2, gemeinsamer Jahresbetrag)
 highlights:
   - Vertretung bei Urlaub, Krankheit oder Terminen
-  - Stundenweise oder tageweise möglich
   - Alle Leistungen der Grundpflege und Betreuung
   - Kein Abzug beim Pflegegeld bei stundenweiser Nutzung unter 8 Stunden
-  - Wir kümmern uns um den Antrag
+  - Auf Nachfrage helfen wir Ihnen gerne mit den Anträgen
 ---
 
 ## Was ist Verhinderungspflege?

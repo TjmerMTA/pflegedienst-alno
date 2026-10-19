@@ -23,8 +23,8 @@ export const SITE = {
   hrb: 'HRB 29328',
   court: 'Amtsgericht Dortmund',
   hours: [
-    { days: 'Mo – Fr', time: '08:00 – 16:00 Uhr' },
-    { days: 'Pflege-Notruf', time: '24 Stunden, 7 Tage' },
+    { days: 'Büro Mo – Fr', time: '08:00 – 16:00 Uhr' },
+    { days: 'Telefonisch', time: '08:00 – 22:00 Uhr' },
   ],
   // Сюда адрес обработчика форм (Web3Forms / Formspree / свой endpoint). Пусто — режим превью.
   formEndpoint: import.meta.env.PUBLIC_FORM_ENDPOINT || '',

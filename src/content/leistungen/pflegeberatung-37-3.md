@@ -4,7 +4,7 @@ metaTitle: Beratungseinsatz nach § 37.3 SGB XI in Dortmund
 description: Pflichtberatung nach § 37 Abs. 3 SGB XI für Pflegegeldempfänger in Dortmund – halbjährlich oder vierteljährlich. Kostenfrei, Abrechnung mit der Pflegekasse.
 teaser: Pflichtberatung für Pflegegeld-Empfänger – kostenfrei und mit hilfreichen Tipps für Angehörige.
 icon: clipboard
-order: 5
+order: 6
 payer: Pflegekasse (kostenfrei für Sie)
 highlights:
   - Pflichtbesuch für alle Pflegegeld-Empfänger
@@ -23,4 +23,4 @@ Wer Pflegegeld bezieht und die Pflege selbst organisiert, muss regelmäßig eine
 - **Pflegegrad 4 und 5:** einmal pro Vierteljahr
 - **Pflegegrad 1:** freiwillig einmal pro Halbjahr
 
-Wird der Besuch versäumt, kann die Pflegekasse das Pflegegeld kürzen. Wir erinnern Sie rechtzeitig an den nächsten Termin.
+Wird der Beratungseinsatz versäumt, kann die Pflegekasse das Pflegegeld kürzen. Bitte vereinbaren Sie Ihren nächsten Termin daher rechtzeitig selbst. Ihre Pflege und Ihr Wohlbefinden stehen bei uns an erster Stelle.
