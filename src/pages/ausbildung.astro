@@ -1,0 +1,139 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import ApplicationForm from '../components/ApplicationForm.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SITE } from '../config/site';
+
+const ways = [
+  { icon: 'award', t: 'Pflegefachfrau / Pflegefachmann', d: 'Die generalistische Pflegeausbildung dauert 3 Jahre und verbindet Theorie an der Pflegeschule mit viel Praxis bei uns.', tag: 'Ausbildung' },
+  { icon: 'clipboard', t: 'Praktikum', d: 'Sie wollen die Pflege erst kennenlernen? Im Praktikum begleiten Sie unsere Teams und sehen, wie der Alltag wirklich aussieht.', tag: 'Praktikum' },
+  { icon: 'heart', t: 'FSJ / Bundesfreiwilligendienst', d: 'Ein Jahr Orientierung nach der Schule: Sie helfen mit, lernen viel und finden heraus, ob die Pflege zu Ihnen passt.', tag: 'FSJ / BFD' },
+  { icon: 'home', t: 'Quereinstieg', d: 'Neuer Beruf mit Sinn: Auch mit Erfahrung aus anderen Branchen finden wir gemeinsam Ihren Weg in die Pflege.', tag: 'Quereinstieg' },
+];
+
+const gets = [
+  { icon: 'users', t: 'Praxisanleitung', d: 'Eine feste Praxisanleiterin begleitet Sie durch die Ausbildung und ist Ihre erste Ansprechpartnerin.' },
+  { icon: 'euro', t: 'Ausbildungsvergütung', d: 'Sie werden nach den tariflichen Regelungen für Auszubildende in der Pflege (TVAöD – Pflege, angelehnt an den TVöD-P) vergütet. Die Vergütung steigt von Jahr zu Jahr. Aktuelle Beträge nennen wir Ihnen im Gespräch.' },
+  { icon: 'shield', t: 'Sicherer Einstieg', d: 'Pflegefachkräfte werden dringend gebraucht. Mit Ihrem Abschluss haben Sie beste Chancen – gern bei uns.' },
+  { icon: 'heart', t: 'Familiäres Team', d: 'Fehler dürfen passieren, Fragen sind erwünscht: Bei uns lernen Sie in einer Atmosphäre ohne Druck.' },
+];
+
+const reqs = [
+  'Freude am Umgang mit Menschen, Einfühlungsvermögen und Verantwortungsbewusstsein',
+  'Für die Pflegefachausbildung: mindestens Mittlerer Schulabschluss oder Hauptschulabschluss mit zusätzlicher Qualifikation (z. B. Pflegehelfer-Ausbildung)',
+  'Zuverlässigkeit, Teamgeist und Lernbereitschaft',
+  'Gute Deutschkenntnisse (empfohlen: Niveau B2)',
+  'Für Tourenbegleitung von Vorteil: Führerschein Klasse B',
+];
+
+const stages = [
+  { t: 'Jahr 1', d: 'Grundlagen der Pflege, erste Einsätze in unserem Pflegedienst, Orientierung im Alltag.' },
+  { t: 'Jahr 2', d: 'Mehr Verantwortung bei der Versorgung, Einsätze in weiteren Bereichen (z. B. Klinik, Pflegeheim).' },
+  { t: 'Jahr 3', d: 'Selbstständige Pflege kleiner Touren unter Anleitung, Vorbereitung auf die Abschlussprüfung.' },
+];
+---
+<Base title="Ausbildung & Praktikum in der Pflege" description="Ausbildung zur Pflegefachfrau / zum Pflegefachmann in Dortmund beim Pflegedienst ALNO – auch Praktikum, FSJ und Quereinstieg. Mit Praxisanleitung und familiärem Team. Jetzt bewerben.">
+  <PageHero title="Ausbildung: Starten Sie Ihre Zukunft in der Pflege" lead="Pflegefachfrau / Pflegefachmann werden, ein Praktikum machen, ein FSJ absolvieren oder als Quereinsteiger/in neu anfangen – bei uns in Dortmund-Hörde." crumbs={[{ label: 'Ausbildung' }]}>
+    <div class="btn-row hero-cta">
+      <a class="btn btn--green" href="#bewerbung">Jetzt bewerben</a>
+      <a class="btn btn--white" href="#wege">Alle Wege zu uns</a>
+    </div>
+  </PageHero>
+
+  <section class="section" id="wege">
+    <div class="wrap">
+      <div class="head"><span class="eyebrow">Ihre Möglichkeiten</span><h2>Vier Wege in die Pflege</h2><p class="lead">Egal ob direkt nach der Schule oder mitten im Berufsleben: Wir finden gemeinsam das passende Angebot.</p></div>
+      <div class="grid grid-4">
+        {ways.map((w) => (
+          <article class="card way">
+            <span class="ico"><Icon name={w.icon} /></span>
+            <h3>{w.t}</h3>
+            <p>{w.d}</p>
+            <a class="more" href="#bewerbung" data-wunsch={w.tag}>Dafür bewerben <Icon name="arrow" size={16} /></a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap split">
+      <div>
+        <span class="eyebrow">Pflegefachfrau / Pflegefachmann</span>
+        <h2>Die generalistische Pflegeausbildung</h2>
+        <p>Die Ausbildung dauert <b>3 Jahre</b> und bereitet Sie auf die Pflege von Menschen aller Altersgruppen vor. Den praktischen Teil absolvieren Sie bei uns im Pflegedienst; die Theorie lernen Sie an einer Pflegeschule.</p>
+        <p>Unsere Kooperationsschule: <b>[Pflegeschule – Name folgt]</b>.</p>
+        {/* TODO: Partnerschule (Name, Ort, Link) vom Klienten bestätigen lassen; Ausbildungsstart (Termine) und Zahl der Plätze ergänzen. */}
+        <p class="muted">Ausbildungsbeginn und freie Plätze besprechen wir gern persönlich mit Ihnen.</p>
+      </div>
+      <ol class="stages">
+        {stages.map((s) => <li><b>{s.t}</b><p>{s.d}</p></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="head head--center"><span class="eyebrow">Das bekommen Sie</span><h2>Was wir Auszubildenden bieten</h2></div>
+      <div class="grid grid-4">
+        {gets.map((g) => <div class="card"><span class="ico ico--green"><Icon name={g.icon} /></span><h3>{g.t}</h3><p>{g.d}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap split">
+      <div>
+        <span class="eyebrow">Voraussetzungen</span>
+        <h2>Das bringen Sie mit</h2>
+        <ul class="checks">{reqs.map((r) => <li>{r}</li>)}</ul>
+        <p class="muted">Unsicher, ob es bei Ihnen passt? Rufen Sie uns an – wir klären gemeinsam, welcher Weg für Sie möglich ist.</p>
+      </div>
+      <div class="card ask">
+        <h3>Fragen zur Ausbildung?</h3>
+        <p>Wir beraten Sie gern persönlich – auch Eltern sind willkommen.</p>
+        <a class="btn btn--primary" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
+        <a class="btn btn--ghost" href="/karriere/">Zu den offenen Stellen</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="bewerbung">
+    <div class="wrap form-wrap">
+      <div class="card">
+        <h2>Jetzt bewerben</h2>
+        <ApplicationForm variant="ausbildung" id="ausbildung-form" />
+      </div>
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+<script>
+  // Klick auf „Dafür bewerben“ wählt den Wunsch im Formular vor
+  document.querySelectorAll<HTMLElement>('[data-wunsch]').forEach((a) => {
+    a.addEventListener('click', () => {
+      const r = [...document.querySelectorAll<HTMLInputElement>('#ausbildung-form input[name=wunsch]')].find((i) => i.value === a.dataset.wunsch);
+      if (r) r.checked = true;
+    });
+  });
+</script>
+<style>
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .hero-cta { margin-block-start: 24px; }
+  .way { display: flex; flex-direction: column; }
+  .way p { flex: 1; }
+  .more { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--brand-700); text-decoration: none; }
+  .more:hover { text-decoration: underline; }
+  .stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: s; }
+  .stages li { position: relative; padding: 18px 22px 18px 72px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); counter-increment: s; }
+  .stages li::before { content: counter(s); position: absolute; inset-inline-start: 20px; inset-block-start: 18px; display: grid; place-items: center; inline-size: 38px; block-size: 38px; border-radius: 50%; background: var(--brand-600); color: #fff; font-weight: 800; }
+  .stages p { margin: 2px 0 0; color: var(--ink-2); }
+  .ask { display: grid; gap: 14px; justify-items: start; }
+  .ask h3, .ask p { margin: 0; }
+  .form-wrap { max-width: 820px; }
+  .form-wrap h2 { font-size: 1.6rem; }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .ask .btn { inline-size: 100%; white-space: normal; } .stages li { padding-inline-start: 66px; } }
+</style>

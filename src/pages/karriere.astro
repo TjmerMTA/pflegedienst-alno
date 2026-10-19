@@ -1,0 +1,152 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import ApplicationForm from '../components/ApplicationForm.astro';
+import { SITE, whatsappUrl } from '../config/site';
+import img from '../assets/img/karriere.jpg';
+
+const why = [
+  { icon: 'users', t: 'Familiäres Team', d: 'Inhabergeführt, kurze Wege, ein offenes Ohr: Bei uns sind Sie kein Mitarbeiter unter vielen.' },
+  { icon: 'calendar', t: 'Feste Touren', d: 'Planbare Dienste und feste Patientinnen und Patienten – Sie kennen die Menschen, die Sie pflegen.' },
+  { icon: 'euro', t: 'Faire Bezahlung', d: 'Pünktliches, leistungsgerechtes Gehalt – Details besprechen wir offen im Gespräch.' },
+  { icon: 'award', t: 'Fortbildung', d: 'Wir unterstützen Fort- und Weiterbildungen, damit Sie fachlich und persönlich wachsen können.' },
+];
+
+// TODO: Beispielstellen — Klient ersetzt sie durch die tatsächlich offenen Stellen (Titel, Text, Eckdaten).
+const jobs = [
+  { t: 'Pflegefachkraft (m/w/d)', pos: 'Pflegefachkraft (m/w/d)', d: 'Grund- und Behandlungspflege bei unseren Patientinnen und Patienten zu Hause, Pflegeplanung und -dokumentation.', tags: ['Vollzeit / Teilzeit', 'Examen als Pflegefachkraft'] },
+  { t: 'Pflegehelfer/in (m/w/d)', pos: 'Pflegehelfer/in (m/w/d)', d: 'Unterstützung bei der Grundpflege, Mobilisation und Alltagshilfe – mit Einarbeitung durch erfahrene Kolleginnen.', tags: ['Vollzeit / Teilzeit', 'Pflegehelfer-Ausbildung oder Erfahrung'] },
+  { t: 'Betreuungskraft / Alltagsbegleiter/in (m/w/d)', pos: 'Betreuungskraft / Alltagsbegleiter/in (m/w/d)', d: 'Zeit schenken: Gespräche, gemeinsame Spaziergänge, Begleitung zu Terminen und Unterstützung im Haushalt.', tags: ['Teilzeit / Minijob', 'Qualifizierung nach § 53b SGB XI von Vorteil'] },
+];
+
+// TODO: Leistungen/Konditionen (Gehalt, Fahrzeug, Urlaub) vom Klienten bestätigen lassen.
+const offers = [
+  'Unbefristete Anstellung in Voll- oder Teilzeit, auch Minijob möglich',
+  'Feste Touren und verlässliche Dienstplanung',
+  'Faire Regelung für Fahrzeug bzw. Fahrtkosten auf der Tour',
+  'Gründliche Einarbeitung mit festen Ansprechpartnern',
+  'Fort- und Weiterbildungen, Praxisanleitung für neue Kolleginnen und Kollegen',
+  'Regelmäßige Teambesprechungen und Raum für Ihre Ideen',
+];
+
+const steps = [
+  { t: 'Bewerbung senden', d: 'Per Formular, E-Mail oder WhatsApp. Ein kurzer Lebenslauf reicht uns für den Anfang.' },
+  { t: 'Kennenlernen', d: 'Wir rufen Sie zurück und laden Sie zu einem persönlichen Gespräch in Dortmund-Hörde ein.' },
+  { t: 'Probearbeiten', d: 'Sie begleiten eine Tour und lernen das Team kennen – unverbindlich und ganz ohne Druck.' },
+  { t: 'Zusage & Start', d: 'Wir besprechen Vertrag und Starttermin – und Sie werden Schritt für Schritt eingearbeitet.' },
+];
+---
+<Base title="Karriere – Pflegekraft gesucht in Dortmund" description="Jobs beim Pflegedienst ALNO in Dortmund-Hörde: Pflegefachkraft, Pflegehelfer/in und Betreuungskraft (m/w/d) gesucht. Familiäres Team, feste Touren, faire Bezahlung – jetzt online bewerben.">
+  <PageHero title="Karriere: Pflegen mit Herz – in einem Team, das zusammenhält" lead="Wir suchen Pflegefachkräfte, Pflegehelfer/innen und Betreuungskräfte für Dortmund. Bewerben Sie sich in wenigen Minuten – ganz ohne Anschreiben." crumbs={[{ label: 'Karriere' }]}>
+    <div class="btn-row hero-cta">
+      <a class="btn btn--green" href="#bewerbung">Jetzt bewerben</a>
+      <a class="btn btn--white" href="#stellen">Offene Stellen</a>
+    </div>
+  </PageHero>
+
+  <section class="section">
+    <div class="wrap split">
+      <Image src={img} alt="Mehrere Hände liegen in einem Kreis übereinander – Zusammenhalt im Team" widths={[424, 848]} sizes="(max-width: 900px) 100vw, 520px" class="img" />
+      <div>
+        <span class="eyebrow">Warum ALNO</span>
+        <h2>Ein Pflegedienst, bei dem Sie ankommen</h2>
+        <p>Der Pflegedienst ALNO ist ein familiärer, inhabergeführter Pflegedienst aus Dortmund-Hörde. Wir pflegen mit Herz und Kompetenz – und genauso gehen wir miteinander um: respektvoll, zuverlässig und auf Augenhöhe.</p>
+        <p>Wenn Sie Menschen gern im eigenen Zuhause unterstützen und dabei ein Team im Rücken haben möchten, sind Sie bei uns richtig.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap">
+      <div class="head head--center"><span class="eyebrow">Ihre Vorteile</span><h2>Darum lohnt sich ALNO</h2></div>
+      <div class="grid grid-4">
+        {why.map((v) => <div class="card"><span class="ico"><Icon name={v.icon} /></span><h3>{v.t}</h3><p>{v.d}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="stellen">
+    <div class="wrap">
+      <div class="head"><span class="eyebrow">Offene Stellen</span><h2>Wir suchen Verstärkung</h2><p class="lead">Nichts Passendes dabei? Bewerben Sie sich gern initiativ – wir freuen uns über jede Nachricht.</p></div>
+      <div class="grid grid-3">
+        {jobs.map((j) => (
+          <article class="card job">
+            <h3>{j.t}</h3>
+            <p>{j.d}</p>
+            <ul class="tags">{j.tags.map((t) => <li>{t}</li>)}</ul>
+            <a class="btn btn--ghost" href="#bewerbung" data-position={j.pos}>Dafür bewerben <Icon name="arrow" size={18} /></a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap split">
+      <div>
+        <span class="eyebrow">Das bieten wir</span>
+        <h2>Gute Arbeit verdient gute Bedingungen</h2>
+        <ul class="checks">{offers.map((o) => <li>{o}</li>)}</ul>
+        <p class="muted">Sie möchten in der Pflege starten? Schauen Sie auch auf unsere Seite <a href="/ausbildung/">Ausbildung &amp; Praktikum</a>.</p>
+      </div>
+      <div>
+        <span class="eyebrow">So läuft die Bewerbung</span>
+        <h2>In vier Schritten zu uns</h2>
+        <ol class="steps">
+          {steps.map((s, i) => <li><span class="n">{i + 1}</span><div><b>{s.t}</b><p>{s.d}</p></div></li>)}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="bewerbung">
+    <div class="wrap layout">
+      <div class="card">
+        <h2>Jetzt bewerben</h2>
+        <ApplicationForm variant="karriere" id="karriere-form" />
+      </div>
+      <aside class="side">
+        <h3>Lieber persönlich?</h3>
+        <p>Rufen Sie uns an oder schicken Sie Ihren Lebenslauf direkt per E-Mail oder WhatsApp.</p>
+        <a class="c" href={SITE.phoneHref}><span class="ico"><Icon name="phone" /></span><span><small>Telefon</small><b>{SITE.phone}</b></span></a>
+        <a class="c" href={`mailto:${SITE.email}`}><span class="ico"><Icon name="mail" /></span><span><small>E-Mail</small><b>{SITE.email}</b></span></a>
+        <a class="c" href={whatsappUrl} target="_blank" rel="noopener"><span class="ico ico--green"><Icon name="whatsapp" /></span><span><small>WhatsApp</small><b>Nachricht schreiben</b></span></a>
+      </aside>
+    </div>
+  </section>
+</Base>
+<script>
+  // Klick auf „Dafür bewerben“ wählt die Stelle im Formular vor
+  document.querySelectorAll<HTMLElement>('[data-position]').forEach((a) => {
+    a.addEventListener('click', () => {
+      const sel = document.querySelector<HTMLSelectElement>('#karriere-form select[name=position]');
+      if (sel && a.dataset.position) sel.value = a.dataset.position;
+    });
+  });
+</script>
+<style>
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .img { inline-size: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+  .hero-cta { margin-block-start: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .job { display: flex; flex-direction: column; gap: 4px; }
+  .job .btn { margin-block-start: auto; align-self: flex-start; }
+  .job p { flex: 1; }
+  .tags { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tags li { font-size: .82rem; font-weight: 600; padding: 5px 12px; border-radius: 999px; background: var(--brand-50); color: var(--brand-700); }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+  .steps li { display: flex; gap: 16px; align-items: flex-start; }
+  .steps p { margin: 2px 0 0; color: var(--ink-2); }
+  .n { flex: none; display: grid; place-items: center; inline-size: 38px; block-size: 38px; border-radius: 50%; background: var(--brand-600); color: #fff; font-weight: 800; }
+  .layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 36px; align-items: start; }
+  .layout h2 { font-size: 1.6rem; }
+  .side { display: grid; gap: 14px; }
+  .side h3, .side p { margin: 0; }
+  .c { display: flex; gap: 16px; align-items: flex-start; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: #fff; text-decoration: none; color: var(--ink); }
+  a.c:hover { border-color: var(--brand); color: var(--ink); }
+  .c > span:last-child { display: grid; gap: 2px; min-inline-size: 0; overflow-wrap: anywhere; }
+  .c small { color: var(--muted); }
+  .c .ico { margin: 0; }
+  @media (max-width: 900px) { .split, .layout { grid-template-columns: 1fr; } }
+</style>
