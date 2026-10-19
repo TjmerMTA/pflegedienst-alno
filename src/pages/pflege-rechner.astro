@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Rechner from '../components/Rechner.astro';
+import CtaBand from '../components/CtaBand.astro';
+---
+<Base title="Pflege-Rechner: Was zahlt die Pflegekasse?" description="Kostenloser Pflege-Rechner 2026: Pflegegrad wählen, Pflegeplan zusammenstellen und sehen, was die Pflegekasse zahlt – und was Sie selbst zahlen. Mit Entlastungsbetrag-Rechner.">
+  <PageHero title="Pflege-Rechner" lead="In 3 Schritten herausfinden, was die Pflegekasse zahlt – und was Sie selbst zahlen. Unverbindlich und kostenlos." crumbs={[{ href: '/kosten-finanzierung/', label: 'Kosten & Finanzierung' }, { label: 'Pflege-Rechner' }]} />
+  <section class="section">
+    <div class="wrap">
+      <Rechner />
+    </div>
+  </section>
+  <CtaBand />
+</Base>

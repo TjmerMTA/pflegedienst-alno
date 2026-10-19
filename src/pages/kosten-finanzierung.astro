@@ -47,6 +47,11 @@ const faq = [
         </table>
       </div>
       <p class="muted small">Angaben ohne Gewähr. Eine individuelle Berechnung erhalten Sie in unserem kostenlosen Beratungsgespräch.</p>
+      <a class="card calc calc--gap" href="/pflege-rechner/">
+        <span class="ico ico--green"><Icon name="euro" /></span>
+        <div><h2 class="h3">Pflege-Rechner: Was zahlt die Pflegekasse?</h2><p>Pflegegrad wählen, Leistungen zusammenstellen – und sofort sehen, was die Kasse übernimmt und was Sie selbst zahlen.</p></div>
+        <span class="btn btn--primary">Jetzt berechnen <Icon name="arrow" size={20} /></span>
+      </a>
     </div>
   </section>
 
@@ -92,6 +97,12 @@ const faq = [
   .prose h2:first-child { margin-block-start: 0; }
   .tip { display: flex; flex-direction: column; align-items: center; text-align: center; background: linear-gradient(160deg, var(--green-50), #fff 60%); }
   .tip .btn { margin-block-start: 6px; }
+  .calc--gap { margin-block-start: clamp(28px, 4vw, 44px); }
+  .calc { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; text-decoration: none; color: var(--ink); background: linear-gradient(160deg, var(--green-50), #fff 60%); transition: transform .15s, box-shadow .15s; }
+  .calc:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); color: var(--ink); }
+  .calc .ico, .calc h2, .calc p { margin: 0; }
+  .calc p { color: var(--ink-2); margin-block-start: 4px; }
+  @media (max-width: 760px) { .calc { grid-template-columns: 1fr; gap: 16px; } .calc .ico { margin-block-end: 0; } }
   .narrow { max-width: 820px; }
   @media (max-width: 900px) { .prose-grid { grid-template-columns: 1fr; } }
 </style>
