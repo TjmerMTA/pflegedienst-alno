@@ -1,8 +1,12 @@
 # Pages CMS (https://pagescms.org) — визуальный редактор блога и услуг прямо поверх GitHub.
 # Вход через GitHub-аккаунт, сохранение = коммит, после коммита сайт пересобирается сам.
 media:
-  input: src/assets/img
-  output: ../../assets/img
+  - name: images
+    input: src/assets/img
+    output: ../../assets/img
+  - name: team
+    input: src/assets/img/team
+    output: ../../assets/img/team
 content:
   - name: blog
     label: Ratgeber (Blog)
@@ -36,3 +40,19 @@ content:
       - { name: payer, label: Kostenträger, type: string }
       - { name: highlights, label: Leistungsumfang, type: string, list: true }
       - { name: body, label: Inhalt, type: rich-text }
+  - name: team
+    label: Team (Über uns)
+    type: collection
+    path: src/content/team
+    filename: '{fields.name}.md'
+    view:
+      fields: [name, role, order, hidden]
+      primary: name
+      sort: [order]
+    fields:
+      - { name: name, label: Name, type: string, required: true }
+      - { name: role, label: Funktion, type: string, required: true }
+      - { name: description, label: Beschreibung, type: text }
+      - { name: photo, label: Foto, type: image, options: { media: team } }
+      - { name: order, label: Reihenfolge (kleine Zahl = weiter vorn), type: number, default: 100 }
+      - { name: hidden, label: Ausblenden (nicht auf der Seite zeigen), type: boolean, default: false }

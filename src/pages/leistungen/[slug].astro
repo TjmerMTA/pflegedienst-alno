@@ -18,7 +18,7 @@ const service = {
   '@context': 'https://schema.org', '@type': 'Service',
   name: entry.data.title, serviceType: entry.data.title, description: entry.data.description,
   provider: { '@id': new URL('/#organization', Astro.site).href },
-  areaServed: { '@type': 'City', name: 'Dortmund' },
+  areaServed: [{ '@type': 'City', name: 'Dortmund' }, { '@type': 'City', name: 'Schwerte' }],
 };
 ---
 <Base title={entry.data.metaTitle} description={entry.data.description} schema={[service]}>
