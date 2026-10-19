@@ -76,6 +76,11 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
           <span class="more">Kosten & Finanzierung <Icon name="arrow" size={18} /></span>
         </a>
       </div>
+      <a class="calc-tease" href="/pflege-rechner/">
+        <span class="ico ico--green"><Icon name="euro" /></span>
+        <span><b>Pflege-Rechner</b><small>Was zahlt die Pflegekasse – und was Sie selbst? In 3 Schritten berechnen.</small></span>
+        <span class="more">Jetzt berechnen <Icon name="arrow" size={18} /></span>
+      </a>
     </div>
   </section>
 
@@ -228,6 +233,12 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   /* 6 услуг + карточка «Wer bezahlt» — карточка во всю ширину, чтобы не висела одна в последнем ряду */
   .svc--cta { grid-column: 1 / -1; }
   @media (min-width: 900px) { .svc--cta { display: grid; grid-template-columns: auto auto 1fr auto; column-gap: 24px; align-items: center; } .svc--cta h3, .svc--cta p, .svc--cta .ico { margin: 0; } }
+  .calc-tease { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-block-start: 22px; padding: 14px 20px; border-radius: var(--radius); border: 1px dashed var(--brand); background: var(--brand-50); text-decoration: none; color: var(--ink); transition: background .15s, transform .15s; }
+  .calc-tease:hover { background: #fff; transform: translateY(-1px); color: var(--ink); }
+  .calc-tease .ico { margin: 0; inline-size: 44px; block-size: 44px; border-radius: 14px; }
+  .calc-tease > span:nth-child(2) { display: grid; line-height: 1.35; flex: 1; min-inline-size: 200px; }
+  .calc-tease small { color: var(--ink-2); font-size: .92rem; }
+  .calc-tease .more { margin: 0; }
   .more { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; color: var(--brand-600); margin-block-start: 8px; }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
   .split--form, .split--faq { align-items: start; }
