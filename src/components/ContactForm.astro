@@ -13,8 +13,8 @@ const subject = { beratung: 'Kostenlose Beratung', rueckruf: 'Rückruf-Anfrage',
   {variant !== 'rueckruf' && (
     <fieldset class="seg field">
       <legend>Worum geht es? </legend>
-      {['Grundpflege', 'Behandlungspflege', 'Verhinderungspflege', 'Betreuung', 'Noch unklar'].map((v, i) => (
-        <label><input type="radio" name="leistung" value={v} checked={i === 4} /><span>{v}</span></label>
+      {['Grundpflege', 'Behandlungspflege', 'Verhinderungspflege', 'Betreuung', 'Entlastungsleistungen', 'Noch unklar'].map((v, i, all) => (
+        <label><input type="radio" name="leistung" value={v} checked={i === all.length - 1} /><span>{v}</span></label>
       ))}
     </fieldset>
   )}
