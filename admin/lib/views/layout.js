@@ -58,7 +58,7 @@ export function layout(ctx, { title, body, notices: ns = [], bodyClass = '' }) {
     { key: 'team', href: '/wp-admin/edit.php?post_type=team', label: t('menu.team'), iconName: 'team', subs: [
       { key: 'all', href: '/wp-admin/edit.php?post_type=team', label: t('menu.team.all') },
       { key: 'new', href: '/wp-admin/post-new.php?post_type=team', label: t('menu.team.new') }] },
-    { key: 'settings', href: '/wp-admin/post.php?post_type=page&post=_global', label: t('menu.settings'), iconName: 'settings' },
+    ...((ctx.pages || []).some((p) => p.id === '_global') ? [{ key: 'settings', href: '/wp-admin/post.php?post_type=page&post=_global', label: t('menu.settings'), iconName: 'settings' }] : []),
     { key: 'revisions', href: '/wp-admin/revision.php', label: t('menu.revisions'), iconName: 'revisions' },
     { key: 'profile', href: '/wp-admin/profile.php', label: t('menu.profile'), iconName: 'profile' },
   ];

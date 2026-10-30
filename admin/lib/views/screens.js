@@ -45,7 +45,7 @@ export function dashboard(ctx, { counts, status, activity, firstPage }) {
           <li><a href="${ctx.cfg.siteUrl}/" target="_blank" rel="noopener">${icon('home', 'welcome-icon')}${t('dash.next.view')}</a></li></ul></div>
         <div class="welcome-panel-column"><h3>${t('dash.more')}</h3><ul>
           <li><a href="/wp-admin/upload.php">${icon('media', 'welcome-icon')}${t('dash.more.media')}</a></li>
-          <li><a href="/wp-admin/post.php?post_type=page&post=_global">${icon('settings', 'welcome-icon')}${t('dash.more.settings')}</a></li>
+          ${ctx.pages.some((p) => p.id === '_global') ? html`<li><a href="/wp-admin/post.php?post_type=page&post=_global">${icon('settings', 'welcome-icon')}${t('dash.more.settings')}</a></li>` : ''}
           <li><a href="/wp-admin/revision.php">${icon('revisions', 'welcome-icon')}${t('dash.more.revisions')}</a></li></ul></div>
       </div>
     </div>
