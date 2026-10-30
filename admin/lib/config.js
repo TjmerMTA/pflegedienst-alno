@@ -35,6 +35,14 @@ export function loadConfig(env = process.env) {
   };
 }
 
+// Users, sessions and logs must never end up in the repository.
+export function assertConfig(cfg) {
+  const rel = path.relative(cfg.siteDir, cfg.dataDir);
+  if (rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))) {
+    throw new Error(`ADMIN_DATA_DIR (${cfg.dataDir}) liegt im Website-Ordner. Bitte einen Ordner außerhalb wählen.`);
+  }
+}
+
 // Paths inside the edited site (contract: docs/admin-content-format.md).
 export function sitePaths(siteDir) {
   return {

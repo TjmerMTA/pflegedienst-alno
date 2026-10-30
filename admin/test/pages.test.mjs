@@ -105,11 +105,27 @@ test('sub-fields are validated with their item number', () => {
   assert.match(m, /cards\.items\[1\]\.text: höchstens 120/);
 });
 
-test('image sub-fields keep the shape of the file', () => {
+test('an image sub-field is stored as { value, alt }', () => {
   const page = load('index');
-  const r = applyValues(page, { cards: { items: { a: { title: 'T', text: '', photo: { value: 'team.jpg', alt: 'Alt' } } } } }, ctx);
+  const r = applyValues(page, { cards: { items: { a: { title: 'T', text: '', photo: { value: 'team.jpg', alt: 'Alt', extra: 'weg' } } } } }, ctx);
   assert.deepEqual(r.errors, []);
-  assert.deepEqual(r.page.groups[2].fields[0].value, [{ title: 'T', text: '', photo: 'team.jpg', photoAlt: 'Alt' }]);
+  assert.deepEqual(r.page.groups[2].fields[0].value, [{ title: 'T', text: '', photo: { value: 'team.jpg', alt: 'Alt' } }]);
+  const empty = applyValues(page, { cards: { items: { a: { title: 'T', text: '', photo: { value: '', alt: '' } } } } }, ctx);
+  assert.deepEqual(empty.errors, [], 'an optional image may stay empty');
+  assert.deepEqual(empty.page.groups[2].fields[0].value[0].photo, { value: '', alt: '' });
+});
+
+test('an image sub-field needs a valid path and an alt text', () => {
+  const page = load('index');
+  const item = (photo) => ({ cards: { items: { a: { title: 'T', text: '', photo } } } });
+  assert.match(msgs(applyValues(page, item({ value: 'team.jpg', alt: '' }), ctx)).join(), /cards\.items\[1\]\.photo: Alternativtext fehlt/);
+  assert.match(msgs(applyValues(page, item({ value: '../x.jpg', alt: 'a' }), ctx)).join(), /ungültiger Bildpfad/);
+  assert.match(msgs(applyValues(page, item({ value: 'fehlt.jpg', alt: 'a' }), ctx)).join(), /nicht gefunden/);
+});
+
+test('restoring a revision keeps list images as { value, alt }', () => {
+  const m = mergeOldValues(load('index'), load('index'));
+  assert.deepEqual(m.groups[2].fields[0].value[0].photo, { value: 'team.jpg', alt: 'Team auf einem Bild' });
 });
 
 test('broken structures are detected', () => {

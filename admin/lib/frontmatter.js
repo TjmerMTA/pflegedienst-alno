@@ -88,7 +88,8 @@ function quoteIfNeeded(s) {
   const str = String(s);
   if (str === '') return '""';
   const risky = /^[\s\-?:,\[\]{}#&*!|>'"%@`]/.test(str) || /:(\s|$)|\s#|\n|\t|\s$/.test(str)
-    || /^(true|false|null|~|yes|no|on|off)$/i.test(str) || /^-?\d+(\.\d+)?$/.test(str) || /^\d{4}-\d{2}-\d{2}/.test(str);
+    || /^(true|false|null|~|yes|no|on|off|y|n)$/i.test(str) || /^\d{4}-\d{2}-\d{2}/.test(str)
+    || (str.trim() !== '' && !Number.isNaN(Number(str))) || /^[-+]?[\d_]+(\.\d*)?$/.test(str) || /^[-+]?\.(inf|nan)$/i.test(str);
   return risky ? JSON.stringify(str) : str;
 }
 

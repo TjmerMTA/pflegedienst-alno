@@ -6,6 +6,7 @@ import http from 'node:http';
 import { safeJoin, PathError, slugify, SLUG_RE } from '../lib/fsutil.js';
 import { parseNested } from '../lib/http.js';
 import { isImagePath } from '../lib/pages.js';
+import { assertConfig } from '../lib/config.js';
 import { makeSite, startApp, Client, PASSWORD } from './helpers.mjs';
 
 let site; let srv; let c; let nonce;
@@ -128,6 +129,12 @@ test('form parser keeps order and nesting', () => {
   const o = parseNested([['f[g][b][t]', '1'], ['f[g][a][t]', '2'], ['n', '3']]);
   assert.deepEqual(Object.keys(o.f.g), ['b', 'a']);
   assert.equal(o.n, '3');
+});
+
+test('the data folder may not be inside the site', () => {
+  assert.throws(() => assertConfig({ siteDir: '/srv/site', dataDir: '/srv/site/data' }), /außerhalb/);
+  assert.throws(() => assertConfig({ siteDir: '/srv/site', dataDir: '/srv/site' }), /außerhalb/);
+  assert.doesNotThrow(() => assertConfig({ siteDir: '/srv/site', dataDir: '/srv/site-data' }));
 });
 
 test('a foreign Host header is refused (DNS rebinding)', async () => {

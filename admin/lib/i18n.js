@@ -514,6 +514,7 @@ const ruMessages = [
   [/^mindestens ein Eintrag$/, 'нужен хотя бы один элемент'],
   [/^Alternativtext fehlt$/, 'нет альтернативного текста'],
   [/^Alternativtext zu lang$/, 'альтернативный текст слишком длинный'],
+  [/^unbekannter Platzhalter (.*)$/, 'неизвестная подстановка $1'],
   [/^ungültiger Bildpfad$/, 'неверный путь картинки'],
   [/^Bild „(.*)“ nicht gefunden$/, 'картинка «$1» не найдена'],
   [/^ungültiges Datum$/, 'неверная дата'],

@@ -120,18 +120,5 @@ export function setField(fields, name, value) {
   return fields;
 }
 
-export function waitFor(fn, ms = 5000) {
-  return new Promise((resolve, reject) => {
-    const started = Date.now();
-    const tick = async () => {
-      const v = await fn();
-      if (v) return resolve(v);
-      if (Date.now() - started > ms) return reject(new Error('waitFor timed out'));
-      setTimeout(tick, 20);
-    };
-    tick();
-  });
-}
-
 export const read = (site, rel) => fs.readFileSync(path.join(site.siteDir, rel), 'utf8');
 export const deploys = (site) => (fs.existsSync(site.deployLog) ? fs.readFileSync(site.deployLog, 'utf8').trim().split('\n').filter(Boolean).length : 0);

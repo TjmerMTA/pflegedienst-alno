@@ -51,14 +51,14 @@ test('login sets a HttpOnly SameSite=Strict cookie; no Secure on plain http', as
   assert.equal((await c.get('/wp-admin/')).status, 200);
 });
 
-test('behind https the cookie is Secure', async () => {
+test('behind https the cookie is Secure', async (t) => {
   const srv2 = await startApp(site, { ADMIN_TRUST_PROXY: '1' });
+  t.after(() => srv2.close());
   const c = new Client(srv2.base);
   const form = await c.get('/wp-login.php');
   const nonce = /name="_login_nonce" value="([^"]+)"/.exec(form.text_)[1];
   const r = await c.post('/wp-login.php', { log: 'tester', pwd: PASSWORD, _login_nonce: nonce }, { 'X-Forwarded-Proto': 'https' });
   assert.match(r.headers.getSetCookie().find((x) => x.startsWith('alno_session=')), /; Secure/);
-  await srv2.close();
 });
 
 test('the session token is not stored in clear text', async () => {

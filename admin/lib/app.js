@@ -63,6 +63,19 @@ export function createApp(cfg, { now } = {}) {
     return git.commit(paths, message, user);
   }
 
+  // Writes and commits as one step: if the commit fails the file goes back to what it was, so the
+  // working tree never holds a change that was neither committed nor published.
+  async function writeAndCommit(file, data, previous, message, user) {
+    await writeAtomic(file, data);
+    try {
+      await commit([rel(file)], message, user);
+    } catch (e) {
+      if (previous === null) await fsp.rm(file, { force: true });
+      else await writeAtomic(file, previous);
+      throw e;
+    }
+  }
+
   const imageExists = (p) => {
     if (!isImagePath(p)) return false;
     try { return fs.statSync(safeJoin(P.img, p)).isFile(); } catch { return false; }
@@ -242,7 +255,8 @@ export function createApp(cfg, { now } = {}) {
     return writeLock(async () => {
       const loaded = await loadPage(id);
       if (loaded.structureErrors.length) return pageEditScreen(res, ctx, loaded, { status: 422 });
-      const { page: next, errors } = applyValues(loaded.page, form.f || {}, { imageExists });
+      const tokens = id === '_global' ? tokenKeys(loaded.page) : await globalTokens();
+      const { page: next, errors } = applyValues(loaded.page, form.f || {}, { imageExists, tokens });
       if (form._hash !== loaded.hash) {
         return pageEditScreen(res, ctx, loaded, { pageObj: next, notices: [{ type: 'warning', message: ctx.t('notice.conflict') }], status: 409 });
       }
@@ -252,8 +266,7 @@ export function createApp(cfg, { now } = {}) {
       const out = serializePage(next);
       const base = `/wp-admin/post.php?post_type=page&post=${encodeURIComponent(id)}`;
       if (out === loaded.text) return redirect(res, `${base}&message=nochange`);
-      await writeAtomic(loaded.file, out);
-      await commit([rel(loaded.file)], `Admin: ${next.label || id} aktualisiert`, ctx.user);
+      await writeAndCommit(loaded.file, out, loaded.text, `Admin: ${next.label || id} aktualisiert`, ctx.user);
       const job = await publisher.request(`${next.label || id}`, ctx.user);
       log({ event: 'save', user: ctx.user, file: rel(loaded.file), job });
       redirect(res, `${base}&job=${job}`);
@@ -371,9 +384,8 @@ export function createApp(cfg, { now } = {}) {
       const out = serializeEntry(coll, entries, body);
       const base = `/wp-admin/post.php?post_type=${def.postType}&post=${encodeURIComponent(slug)}`;
       if (entry && out === entry.text) return redirect(res, `${base}&message=nochange`);
-      await writeAtomic(file, out);
       const title = new Map(entries).get(coll === 'team' ? 'name' : 'title');
-      await commit([rel(file)], `Admin: ${isNew ? 'neu' : 'aktualisiert'} – ${title} (${def.dir}/${slug}.md)`, ctx.user);
+      await writeAndCommit(file, out, entry ? entry.text : null, `Admin: ${isNew ? 'neu' : 'aktualisiert'} – ${title} (${def.dir}/${slug}.md)`, ctx.user);
       const job = await publisher.request(String(title), ctx.user);
       log({ event: isNew ? 'create' : 'save', user: ctx.user, file: rel(file), job });
       redirect(res, `${base}&job=${job}`);
@@ -645,8 +657,8 @@ export function createApp(cfg, { now } = {}) {
         try { parseFrontmatter(splitFrontmatter(old).fm); } catch (e) { return fail([e.message]); }
         out = old;
       }
-      await writeAtomic(abs, out);
-      await commit([file], `Admin: Revision ${rev.slice(0, 7)} wiederhergestellt – ${file}`, ctx.user);
+      const previous = fs.existsSync(abs) ? await fsp.readFile(abs, 'utf8') : null;
+      await writeAndCommit(abs, out, previous, `Admin: Revision ${rev.slice(0, 7)} wiederhergestellt – ${file}`, ctx.user);
       const job = await publisher.request(`Revision ${rev.slice(0, 7)}`, ctx.user);
       log({ event: 'restore', user: ctx.user, file, rev, job });
       const back = editUrlFor(file) || `/wp-admin/revision.php?file=${encodeURIComponent(file)}`;

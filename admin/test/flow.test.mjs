@@ -2,7 +2,7 @@ import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { makeSite, startApp, Client, PASSWORD, FAKE_DEPLOY, read, deploys, setField, waitFor } from './helpers.mjs';
+import { makeSite, startApp, Client, PASSWORD, FAKE_DEPLOY, read, deploys, setField } from './helpers.mjs';
 
 let site; let srv; let c;
 const INDEX = 'src/content/pages/index.json';
@@ -100,8 +100,9 @@ test('a failed build does not deploy and says so', async () => {
   assert.equal((await srv.app.publisher.snapshot()).lastError, null);
 });
 
-test('a failed deploy is reported', async () => {
+test('a failed deploy is reported', async (t) => {
   process.env.FAKE_DEPLOY_FAIL = '1';
+  t.after(() => { delete process.env.FAKE_DEPLOY_FAIL; });
   const { fields } = await c.editForm(editUrl);
   setField(fields, 'f[hero][pill]', 'Deploy kaputt');
   const job = jobOf(await save(fields));
@@ -116,8 +117,9 @@ test('a failed deploy is reported', async () => {
   await srv.app.publisher.idle();
 });
 
-test('one build at a time: saves during a build share one follow-up run', async () => {
+test('one build at a time: saves during a build share one follow-up run', async (t) => {
   process.env.FAKE_BUILD_MS = '300';
+  t.after(() => { delete process.env.FAKE_BUILD_MS; });
   fs.rmSync(site.buildLog, { force: true });
   const before_ = deploys(site);
   const jobs = [];
@@ -189,6 +191,19 @@ test('image and alt change through the form', async () => {
   const f = JSON.parse(read(site, INDEX)).groups[1].fields[4];
   assert.equal(f.value, 'team.jpg');
   assert.equal(f.alt, 'Neuer Alternativtext');
+});
+
+test('image and alt per list item through the form', async () => {
+  const { fields, res } = await c.editForm(editUrl);
+  assert.match(res.text_, /Team auf einem Bild/);
+  const name = fields.find(([k]) => /^f\[cards\]\[items\]\[[^_].*\]\[photo\]\[value\]$/.test(k))[0];
+  setField(fields, name, 'hero/start.jpg');
+  setField(fields, name.replace('[value]', '[alt]'), 'Anderes Bild');
+  assert.equal((await save(fields)).status, 303);
+  assert.deepEqual(JSON.parse(read(site, INDEX)).groups[2].fields[0].value[0].photo, { value: 'hero/start.jpg', alt: 'Anderes Bild' });
+  const media = await c.get('/wp-admin/upload.php?item=hero%2Fstart.jpg');
+  assert.match(media.text_, /Karten › Karten 1/);
+  assert.match(media.text_, /Anderes Bild/);
 });
 
 test('blog: edit keeps the Markdown body and the unknown keys', async () => {
@@ -354,12 +369,13 @@ test('password change from the profile', async () => {
   assert.equal((await new Client(srv.base).login('pia', 'neues-passwort-1')).status, 303);
 });
 
-test('git push happens only after a green build, when switched on', async () => {
+test('git push happens only after a green build, when switched on', async (t) => {
   const bare = path.join(site.root, 'remote.git');
   site.git('init', '-q', '--bare', bare);
   site.git('remote', 'add', 'origin', bare);
   site.git('push', '-q', '-u', 'origin', 'main');
   const srv2 = await startApp(site, { ADMIN_GIT_PUSH: '1' });
+  t.after(() => srv2.close());
   const c2 = new Client(srv2.base);
   await c2.login();
   const { fields } = await c2.editForm(editUrl);
@@ -373,27 +389,76 @@ test('git push happens only after a green build, when switched on', async () => 
   await c2.post('/wp-admin/post.php', again.fields);
   await srv2.app.publisher.idle();
   assert.equal(site.git('rev-parse', 'origin/main').trim(), head, 'a red build is not pushed');
-  await srv2.close();
   const fix = await c.editForm(editUrl);
   setField(fix.fields, 'f[hero][pill]', 'Repariert');
   await save(fix.fields);
   await srv.app.publisher.idle();
 });
 
-test('an interrupted run is reported after a restart', async () => {
+test('an interrupted run is reported after a restart', async (t) => {
   const f = path.join(site.dataDir, 'status.json');
   const st = JSON.parse(fs.readFileSync(f, 'utf8'));
   fs.writeFileSync(f, JSON.stringify({ ...st, state: 'building', runningFrom: st.seq, runningUpTo: st.seq }));
   const srv2 = await startApp(site);
+  t.after(() => srv2.close());
   const s = await srv2.app.publisher.snapshot();
   assert.equal(s.state, 'idle');
   assert.match(s.lastError.log, /Unterbrochen/);
-  await srv2.close();
   fs.writeFileSync(f, JSON.stringify(st));
+});
+
+test('if the commit fails, the file goes back and nothing is built', async () => {
+  const text = read(site, INDEX);
+  const before_ = deploys(site);
+  const { fields } = await c.editForm(editUrl);
+  setField(fields, 'f[hero][pill]', 'Commit scheitert');
+  const lock = path.join(site.siteDir, '.git', 'index.lock');
+  fs.writeFileSync(lock, '');
+  const r = await save(fields);
+  fs.rmSync(lock);
+  assert.equal(r.status, 500);
+  assert.equal(read(site, INDEX), text);
+  await srv.app.publisher.idle();
+  assert.equal(deploys(site), before_);
+});
+
+test('an unknown {{token}} is refused, known ones and token links pass', async () => {
+  const { fields } = await c.editForm(editUrl);
+  setField(fields, 'f[hero][pill]', 'Ruf {{telefon}} an');
+  const r = await save(fields);
+  assert.equal(r.status, 422);
+  assert.match(r.text_, /unbekannter Platzhalter \{\{telefon\}\}/);
+  setField(fields, 'f[hero][pill]', 'Ruf {{phone}} an');
+  setField(fields, 'f[hero][lead]', '<p><a href="{{phone}}">Anruf</a></p>');
+  assert.equal((await save(fields)).status, 303);
+  assert.match(read(site, INDEX), /href=\\"\{\{phone\}\}\\"/);
+});
+
+test('values YAML would read as numbers, booleans or null stay strings', async () => {
+  const url = '/wp-admin/post.php?post_type=team&post=max-muster';
+  for (const v of ['1e3', '0x10', '.5', '-1.5', 'null', 'Yes', '.inf', '1_000', '12:30', 'a: b', '# x', '- y', '"z"']) {
+    const { fields } = await c.editForm(url);
+    setField(fields, 'role', v);
+    const r = await save(fields);
+    assert.ok([303].includes(r.status), v);
+    const again = await c.editForm(url);
+    assert.equal(again.fields.find(([k]) => k === 'role')[1], v);
+    const line = /^role: (.*)$/m.exec(read(site, 'src/content/team/max-muster.md'))[1];
+    if (/^(1e3|0x10|\.5|-1\.5|null|Yes|\.inf|1_000)$/.test(v)) assert.ok(line.startsWith('"'), `${v} must be quoted, got ${line}`);
+  }
+});
+
+test('an image outside the library is kept, not dropped on save', async () => {
+  const f = path.join(site.siteDir, 'src/content/team/max-muster.md');
+  fs.writeFileSync(f, '---\nname: Max Muster\nrole: Verwaltung\nphoto: ../../other/foto.jpg\norder: 2\n---\n');
+  site.git('-c', 'user.name=x', '-c', 'user.email=x@example.org', 'commit', '-qam', 'Testbild');
+  const { fields } = await c.editForm('/wp-admin/post.php?post_type=team&post=max-muster');
+  setField(fields, 'role', 'Geändert');
+  assert.equal((await save(fields)).status, 303);
+  assert.match(fs.readFileSync(f, 'utf8'), /^photo: \.\.\/\.\.\/other\/foto\.jpg$/m);
 });
 
 test('the fake deploy command is what ran', () => {
   assert.ok(FAKE_DEPLOY.includes('fake-deploy.mjs'));
   assert.ok(fs.readFileSync(site.deployLog, 'utf8').includes('deploy'));
-  assert.equal(typeof waitFor, 'function');
 });

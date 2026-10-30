@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // User management: npm run admin:user -- add <name> | passwd <name> | delete <name> | list
 // Passwords are read from the terminal without echo (or from stdin when it is not a terminal).
-import { loadConfig } from '../lib/config.js';
+import { loadConfig, assertConfig } from '../lib/config.js';
 import { createAuth, USERNAME_RE } from '../lib/auth.js';
 
 const [cmd, name, ...rest] = process.argv.slice(2);
 const langArg = rest.find((a) => a.startsWith('--lang='))?.slice(7);
 const cfg = loadConfig();
+assertConfig(cfg);
 const auth = createAuth({ dataDir: cfg.dataDir });
 
 function usage() {

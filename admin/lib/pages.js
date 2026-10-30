@@ -85,13 +85,11 @@ export function structureOf(page) {
   return JSON.stringify({ ...top, groups: (groups || []).map((g) => ({ ...g, fields: (g.fields || []).map(strip) })) });
 }
 
-// Where the alt text of an image sub-field inside a list item lives. The contract gives `alt` to
-// top-level image fields; for list items we keep whatever shape the file uses ({value, alt} object
-// or a sibling `<id>Alt` key) and default to the sibling key.
+// An image sub-field of a list item is stored as item[id] = { value, alt }: the same keys as a
+// top-level image field.
 function itemImage(item, sub) {
   const v = item?.[sub.id];
-  if (v && typeof v === 'object') return { value: v.value ?? v.src ?? '', alt: v.alt ?? '', shape: 'object' };
-  return { value: v ?? '', alt: item?.[`${sub.id}Alt`] ?? '', shape: 'sibling' };
+  return { value: v?.value ?? '', alt: v?.alt ?? '' };
 }
 
 export function readItemImage(item, sub) { return itemImage(item, sub); }
@@ -146,7 +144,6 @@ function setFieldValue(f, v, p, errors) {
     case 'list': {
       const items = Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.entries(v).filter(([k]) => k !== '_').map(([, x]) => x) : (v === '' ? [] : null));
       if (!items) { errors.push({ path: p, msg: 'ungültige Liste' }); return; }
-      const old = Array.isArray(f.value) ? f.value : [];
       f.value = items.map((item, i) => {
         const res = {};
         if (!item || typeof item !== 'object') { errors.push({ path: `${p}[${i + 1}]`, msg: 'ungültiger Eintrag' }); return res; }
@@ -156,10 +153,7 @@ function setFieldValue(f, v, p, errors) {
           const sv = item[sub.id];
           if (sub.type === 'image') {
             const o = typeof sv === 'string' ? { value: sv } : (sv || {});
-            const shape = old.length ? itemImage(old[0], sub).shape : 'sibling';
-            const value = normText(o.value ?? '', false); const alt = normText(o.alt ?? '', false);
-            if (shape === 'object') res[sub.id] = { value, alt };
-            else { res[sub.id] = value; res[`${sub.id}Alt`] = alt; }
+            res[sub.id] = { value: normText(o.value ?? '', false), alt: normText(o.alt ?? '', false) };
           } else if (sub.type === 'richtext') {
             res[sub.id] = sanitizeHtml(typeof sv === 'string' ? sv : '', PAGE_TAGS);
           } else {
@@ -191,6 +185,9 @@ function checkValue(f, value, alt, p, ctx, errors) {
   if ((f.type === 'text' || f.type === 'textarea') && looksLikeHtml(value)) err('HTML ist hier nicht erlaubt');
   if (f.type === 'text' && value.includes('\n')) err('nur eine Zeile');
   if (f.type === 'richtext' && sanitizeHtml(value, PAGE_TAGS) !== value.trim()) err('nicht erlaubtes HTML');
+  if (ctx.tokens?.length) {
+    for (const m of value.matchAll(/\{\{([^{}]*)\}\}/g)) if (!ctx.tokens.includes(m[1])) err(`unbekannter Platzhalter {{${m[1]}}}`);
+  }
 }
 
 export function isImagePath(v) {
@@ -238,9 +235,7 @@ export function mergeOldValues(current, old) {
       if (!of) continue;
       if (f.type === 'list') {
         if (!Array.isArray(of.value)) continue;
-        const subIds = new Set(f.fields.flatMap((s) => (s.type === 'image' ? [s.id, `${s.id}Alt`] : [s.id])));
-        f.value = of.value.map((item) => Object.fromEntries(Object.entries(item || {}).filter(([k]) => subIds.has(k))));
-        for (const item of f.value) for (const s of f.fields) if (!(s.id in item)) item[s.id] = '';
+        f.value = of.value.map((item) => Object.fromEntries(f.fields.map((s) => [s.id, s.type === 'image' ? itemImage(item, s) : (item?.[s.id] ?? '')])));
       } else {
         f.value = of.value;
         if (f.type === 'image') f.alt = of.alt ?? '';

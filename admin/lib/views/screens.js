@@ -266,7 +266,7 @@ export function collectionEdit(ctx, { coll, slug, isNew, values, body, errors = 
   const status = isNew ? t('edit.status.new') : coll === 'blog' && values.draft ? t('edit.status.draft') : coll === 'team' && values.hidden ? t('list.hidden') : t('edit.status.published');
   const relFile = `src/content/${def.dir}/${slug}.md`;
   return html`<h1 class="wp-heading-inline">${heading}</h1>${!isNew && url && !(coll === 'blog' && values.draft) ? html` <a class="page-title-action" href="${ctx.cfg.siteUrl}${url}" target="_blank" rel="noopener">${t('edit.view')}</a>` : ''}
-  ${isNew && def.canCreate ? '' : ''}<hr class="wp-header-end">
+  <hr class="wp-header-end">
   <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form">
     ${nonce(ctx)}<input type="hidden" name="action" value="editpost"><input type="hidden" name="post_type" value="${pt}">
     <input type="hidden" name="post" value="${isNew ? '' : slug}"><input type="hidden" name="_hash" value="${hash || ''}">

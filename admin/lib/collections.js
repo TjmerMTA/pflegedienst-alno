@@ -188,6 +188,8 @@ export function applyForm(coll, oldEntries, input, ctx = {}) {
         const o = raw && typeof raw === 'object' ? raw : { value: raw };
         const v = clean(o.value ?? '');
         if (!v) {
+          // A path the library cannot show (outside src/assets/img) is not the user's removal.
+          if (next.get(f.id) && !imgFromFrontmatter(next.get(f.id))) break;
           set(f.id, undefined);
           if (f.altKey) set(f.altKey, undefined);
           break;

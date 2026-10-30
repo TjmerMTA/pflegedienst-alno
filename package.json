@@ -10,7 +10,7 @@
     "admin": "node admin/server.js",
     "admin:user": "node admin/bin/user.js",
     "admin:demo": "node admin/bin/demo.js",
-    "test:admin": "node --test admin/test/"
+    "test:admin": "node --test --test-timeout=60000 admin/test/"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

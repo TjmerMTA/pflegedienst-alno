@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // ALNO Admin — start with `npm run admin`. Configuration: see admin/README.md.
 import http from 'node:http';
-import { loadConfig } from './lib/config.js';
+import { loadConfig, assertConfig } from './lib/config.js';
 import { createApp } from './lib/app.js';
 
 const cfg = loadConfig();
+assertConfig(cfg);
 const app = createApp(cfg);
 const server = http.createServer(app.handler);
 server.headersTimeout = 30_000;

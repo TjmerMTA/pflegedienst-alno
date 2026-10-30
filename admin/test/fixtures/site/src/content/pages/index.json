@@ -35,7 +35,7 @@
             { "id": "text", "label": "Text", "type": "textarea", "max": 120 },
             { "id": "photo", "label": "Bild", "type": "image" }
           ],
-          "value": [ { "title": "Karte eins", "text": "Text der Karte", "photo": "team.jpg", "photoAlt": "Team auf einem Bild" } ] }
+          "value": [ { "title": "Karte eins", "text": "Text der Karte", "photo": { "value": "team.jpg", "alt": "Team auf einem Bild" } } ] }
       ]
     }
   ]

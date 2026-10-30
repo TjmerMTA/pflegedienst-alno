@@ -35,6 +35,7 @@ export function safeHref(href) {
   const v = decodeEntities(String(href || '')).replace(/[\u0000- \u007f-\u009f]/g, '');
   if (!v) return null;
   if (/^(https?:|mailto:|tel:)/i.test(v)) return v;
+  if (/^\{\{[\w-]+\}\}/.test(v)) return v; // contract: {{key}} is replaced by the site
   if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return null;
   if (v.startsWith('//')) return null;
   if (/^[/#?]/.test(v) || /^[\w.-]/.test(v)) return v;

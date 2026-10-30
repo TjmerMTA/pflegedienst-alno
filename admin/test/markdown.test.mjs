@@ -89,6 +89,15 @@ test('frontmatter quotes what YAML would misread', () => {
   assert.equal(back.get('f'), 'Zitat "x"');
 });
 
+test('strings that YAML would read as another type are quoted', () => {
+  for (const v of ['1e3', '0x10', '0o7', '.5', '+5', '1_000', '.inf', '.NaN', 'Null', 'TRUE', 'yes', 'n', '~']) {
+    assert.match(buildMarkdownFile([['a', v]], ''), new RegExp(`^a: ".*"$`, 'm'), v);
+    assert.equal(new Map(parseFrontmatter(splitFrontmatter(buildMarkdownFile([['a', v]], '')).fm)).get('a'), v);
+  }
+  assert.match(buildMarkdownFile([['a', 'Grundpflege']], ''), /^a: Grundpflege$/m);
+  assert.match(buildMarkdownFile([['a', 'Pflege 24 Stunden']], ''), /^a: Pflege 24 Stunden$/m);
+});
+
 test('a newline cannot inject a frontmatter key', () => {
   const out = buildMarkdownFile([['title', 'x\ndraft: true']], '');
   const back = new Map(parseFrontmatter(splitFrontmatter(out).fm));
