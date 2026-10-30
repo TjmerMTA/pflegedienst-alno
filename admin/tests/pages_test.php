@@ -59,8 +59,9 @@ test('required and max are enforced by characters, not bytes', function () use (
     $page = load('index');
     has($msgs($apply($page, ['seo' => ['title' => '']])), 'seo.title: Pflichtfeld');
     has($msgs($apply($page, ['seo' => ['title' => '   ']])), 'Pflichtfeld');
-    eq($msgs($apply($page, ['seo' => ['title' => str_repeat('ü', 70)]])), '');
-    has($msgs($apply($page, ['seo' => ['title' => str_repeat('ü', 71)]])), 'höchstens 70 Zeichen (jetzt 71)');
+    $words = trim(str_repeat('üüüü ', 14)); // 69 characters, in words: one long word has its own rule
+    eq($msgs($apply($page, ['seo' => ['title' => $words . 'ü']])), '');
+    has($msgs($apply($page, ['seo' => ['title' => $words . 'üü']])), 'höchstens 70 Zeichen (jetzt 71)');
 });
 
 test('text and textarea take no HTML', function () use ($apply, $msgs) {
