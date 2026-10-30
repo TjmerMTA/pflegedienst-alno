@@ -121,6 +121,7 @@ final class Api
     {
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
+        session_cache_limiter('');
         ini_set('session.gc_maxlifetime', (string) (Auth::SESSION_IDLE * 2));
         session_name(self::SESSION_COOKIE);
         if (!is_dir($this->store->path('sessions'))) @mkdir($this->store->path('sessions'), 0700, true);
