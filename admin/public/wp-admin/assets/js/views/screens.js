@@ -99,7 +99,7 @@ export function pageList(ctx, { pages }) {
     </tr>`;
   });
   return html`<h1 class="wp-heading-inline">${t('menu.pages')}</h1><hr class="wp-header-end">
-  <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t('list.items', { n: pages.length })}</span></div></div>
+  <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t.count(pages.length)}</span></div></div>
   <table class="wp-list-table widefat fixed striped table-view-list pages">
     <thead><tr><th scope="col" class="column-title column-primary">${t('list.title')}</th><th scope="col" class="column-url">${t('list.url')}</th></tr></thead>
     <tbody>${rows.length ? rows : html`<tr class="no-items"><td colspan="2">${t('list.nopages')}</td></tr>`}</tbody>
@@ -215,7 +215,7 @@ export function collectionList(ctx, { def, entries, trash, view, search, counts 
   return html`<h1 class="wp-heading-inline">${heading}</h1>${def.canCreate ? html` <a href="#/post-new.php?post_type=${pt}" class="page-title-action">${t('list.addnew')}</a>` : ''}<hr class="wp-header-end">
   <ul class="subsubsub">${views.map(([href, label, n, cur], i) => html`<li><a href="${href}"${cur ? raw(' class="current" aria-current="page"') : ''}>${label} <span class="count">(${n})</span></a>${i < views.length - 1 ? ' |' : ''}</li>`)}</ul>
   ${view !== 'trash' ? html`<form class="search-form" data-get="#/edit.php"><p class="search-box"><input type="hidden" name="post_type" value="${pt}"><input type="search" name="s" value="${search || ''}" aria-label="${t('list.search')}"><button type="submit" class="button">${t('list.search')}</button></p></form>` : ''}
-  <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t('list.items', { n: view === 'trash' ? trash.length : entries.length })}</span></div></div>
+  <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t.count(view === 'trash' ? trash.length : entries.length)}</span></div></div>
   <table class="wp-list-table widefat fixed striped table-view-list posts coll-${coll}">
     <thead>${head}</thead>
     <tbody>${rows.length ? rows : html`<tr class="no-items"><td colspan="${cols.length}">${view === 'trash' ? t('list.trash.empty') : t('list.empty')}</td></tr>`}</tbody>
@@ -243,6 +243,8 @@ function collField(ctx, f, values, errs) {
 }
 
 export function collectionEdit(ctx, { def, slug, isNew, values, body, errors = [], revCount, visualOff }) {
+  const { label } = ctx.t;
+  def = { ...def, fields: def.fields.map((f) => ({ ...f, label: label(f.label), help: f.help && label(f.help), itemLabel: f.itemLabel && label(f.itemLabel) })) };
   const { t } = ctx;
   const coll = def.key;
   const errs = errorMap(errors);
@@ -317,7 +319,7 @@ export function mediaLibrary(ctx, { images, selected, search }) {
   return html`<h1 class="wp-heading-inline">${t('media.title')}</h1> <a href="#/media-new.php" class="page-title-action js-toggle-uploader">${t('media.add')}</a><hr class="wp-header-end">
   <div class="media-uploader-inline" hidden>${uploader(ctx)}</div>
   <div class="media-toolbar wp-filter"><form class="media-search" data-get="#/upload.php"><input type="search" name="s" value="${search || ''}" placeholder="${t('media.filter')}" class="js-media-filter" aria-label="${t('media.filter')}"></form>
-    <span class="displaying-num">${t('list.items', { n: images.length })}</span></div>
+    <span class="displaying-num">${t.count(images.length)}</span></div>
   <ul class="attachments media-grid">${images.length ? images.map((im) => html`<li class="attachment${selected === im.path ? ' selected' : ''}" data-path="${im.path}"><a href="#/upload.php?item=${encodeURIComponent(im.path)}" title="${im.path}" class="attachment-preview"><img src="${thumbUrl(im.path)}" alt="" loading="lazy"><span class="attachment-name">${im.path}</span>${im.pending ? html`<span class="attachment-pending">${t('media.pending.short')}</span>` : ''}</a></li>`) : html`<li class="no-media">${t('media.empty')}</li>`}</ul>`;
 }
 
@@ -342,7 +344,7 @@ export function mediaDetails(ctx, { image, info, usedOn, alt: defaultAlt }) {
           <p><button type="submit" class="button button-primary">${t('media.save')}</button></p>
         </form>
         <h3>${t('media.usedon')}</h3>
-        ${usedOn.length ? html`<ul class="used-on">${usedOn.map((u) => html`<li>${u.edit ? html`<a href="${editUrl(u.edit)}">${u.title}</a>` : u.title} <span class="description">— ${u.where}${u.alt ? html` · Alt: „${u.alt}“` : ''}</span></li>`)}</ul>` : html`<p class="description">${t('media.unused')}</p>`}
+        ${usedOn.length ? html`<ul class="used-on">${usedOn.map((u) => html`<li>${u.edit ? html`<a href="${editUrl(u.edit)}">${u.title}</a>` : u.title} <span class="description">— ${t.label(u.where)}${u.alt ? html` · Alt: „${u.alt}“` : ''}</span></li>`)}</ul>` : html`<p class="description">${t('media.unused')}</p>`}
         <div class="actions">${usedOn.length ? html`<p class="description">${t('media.delete.used')}</p>` : html`<form data-api="media/delete" data-confirm data-next="#/upload.php?message=mediatrashed"><input type="hidden" name="path" value="${image.path}"><button type="submit" class="button-link link-delete">${t('media.delete')}</button></form>`}</div>
       </div>
     </div></div>`;
@@ -497,7 +499,7 @@ export function anfragenList(ctx, { items, counts, retention, view, cronUrl, cro
   return html`<h1 class="wp-heading-inline">${t('anfragen.title')}</h1><hr class="wp-header-end">
   ${anfragenWarning(ctx, warning)}
   <ul class="subsubsub">${views.map(([href, label, n, key], i) => html`<li><a href="${href}"${view === key ? raw(' class="current" aria-current="page"') : ''}>${label} <span class="count">(${n})</span></a>${i < views.length - 1 ? ' |' : ''}</li>`)}</ul>
-  <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t('list.items', { n: items.length })}</span></div></div>
+  <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t.count(items.length)}</span></div></div>
   <table class="wp-list-table widefat fixed striped table-view-list anfragen">
     <thead><tr><th scope="col" class="column-primary">${t('anfragen.date')}</th><th scope="col">${t('anfragen.form')}</th><th scope="col">${t('users.name')}</th><th scope="col">${t('anfragen.phone')}</th><th scope="col">${t('anfragen.status')}</th><th scope="col" class="column-date">${t('anfragen.deleteat')}</th></tr></thead>
     <tbody>${rows.length ? rows : html`<tr class="no-items"><td colspan="6">${view === 'trash' ? t('list.trash.empty') : t('anfragen.empty')}</td></tr>`}</tbody>

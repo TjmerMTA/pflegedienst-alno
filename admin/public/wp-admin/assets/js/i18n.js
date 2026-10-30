@@ -98,6 +98,7 @@ const de = {
   'list.hidden': 'ausgeblendet',
   'list.empty': 'Keine Einträge gefunden.',
   'list.trash.empty': 'Keine Einträge im Papierkorb gefunden.',
+  'list.item': '1 Eintrag',
   'list.items': '{n} Einträge',
   'list.search': 'Suchen',
   'list.addnew': 'Neu hinzufügen',
@@ -171,6 +172,7 @@ const de = {
   'tb.link.apply': 'Übernehmen',
   'tb.link.remove': 'Link entfernen',
   'notice.saved': 'Seite aktualisiert — die Website ist in 1–2 Minuten auf dem neuen Stand.',
+  'notice.saved.entry': 'Gespeichert — die Website ist in 1–2 Minuten auf dem neuen Stand.',
   'notice.updated': 'Fertig: Die Website ist auf dem neuen Stand.',
   'notice.buildfailed': 'Die Website konnte nicht erstellt werden – die Website wurde nicht verändert. Deine Änderung ist gespeichert; bitte prüfe sie oder wende dich an den Webmaster.',
   'notice.deployfailed': 'Die Website wurde erstellt, aber die Veröffentlichung ist fehlgeschlagen – die Website zeigt noch den alten Stand.',
@@ -442,8 +444,10 @@ const ru = {
   'list.drafts': 'Черновики',
   'list.draft': 'Черновик',
   'list.hidden': 'скрыт',
+  'login.pass': 'Пароль',
   'list.empty': 'Ничего не найдено.',
   'list.trash.empty': 'В корзине пусто.',
+  'list.item': 'Элементов: 1',
   'list.items': 'Элементов: {n}',
   'list.search': 'Найти',
   'list.addnew': 'Добавить',
@@ -517,6 +521,7 @@ const ru = {
   'tb.link.apply': 'Применить',
   'tb.link.remove': 'Убрать ссылку',
   'notice.saved': 'Страница обновлена — через 1–2 минуты изменения появятся на сайте.',
+  'notice.saved.entry': 'Сохранено — через 1–2 минуты изменения появятся на сайте.',
   'notice.updated': 'Готово: сайт обновлён.',
   'notice.buildfailed': 'Сайт не собрался — на сайте ничего не изменилось. Изменение сохранено; проверьте его или напишите вебмастеру.',
   'notice.deployfailed': 'Сайт собрался, но публикация не удалась — на сайте пока старая версия.',
@@ -742,7 +747,53 @@ const ruMessages = [
   [/^Dateiinhalt passt nicht zum Bildformat$/, 'содержимое не совпадает с форматом'],
   [/^Animierte Bilder sind nicht erlaubt$/, 'анимированные картинки нельзя'],
   [/^Das Bild konnte nicht verarbeitet werden$/, 'картинку не удалось обработать'],
+  [/^ungültiger Wert$/, 'неверное значение'],
+  [/^ungültige Liste$/, 'неверный список'],
+  [/^ungültiger Eintrag$/, 'неверный элемент'],
+  [/^Bilder von fremden Websites .*$/, 'картинки с чужих сайтов здесь не показываются: загрузите картинку в медиатеку и вставьте её оттуда'],
+  [/^Ein Bild im Text hat eine Form, .*?: (.*)$/, 'картинка в тексте записана в неподдерживаемой форме. Пишите так: $1'],
+  [/^Das Bild hat zu viele Pixel$/, 'в картинке слишком много пикселей'],
+  [/^Datei zu groß$/, 'файл слишком большой'],
+  [/^WebP wird auf diesem Server nicht unterstützt.*$/, 'этот сервер не поддерживает WebP: используйте JPG или PNG'],
+  [/^Falscher Inhaltstyp$/, 'неверный тип данных'],
+  [/^Anfrage zu groß$/, 'запрос слишком большой'],
+  [/^Ungültige Daten$/, 'неверные данные'],
+  [/^Host nicht erlaubt$/, 'этот адрес не разрешён'],
+  [/^Der Datenordner liegt im Web-Root\..*$/, 'папка данных лежит внутри веб-корня: укажите в ALNO_DATA_DIR папку вне него'],
+  [/^Das Repository ist leer\.$/, 'репозиторий пуст'],
+  [/^Das Repository ist zu groß für eine vollständige Dateiliste\.$/, 'репозиторий слишком большой для полного списка файлов'],
+  [/^GitHub nicht erreichbar(.*)$/, 'GitHub недоступен$1'],
+  [/^Der GitHub-Token ist ungültig oder abgelaufen\.$/, 'токен GitHub неверен или просрочен'],
+  [/^GitHub-Limit erreicht\..*$/, 'достигнут лимит GitHub: повторите через несколько минут'],
+  [/^GitHub-Fehler (.*)$/, 'ошибка GitHub $1'],
+  [/^Branch hat sich geändert$/, 'ветка изменилась'],
+  [/^Die Datei ist nicht in UTF-8 gespeichert$/, 'файл сохранён не в UTF-8'],
+  [/^Die Datei hat keinen gültigen Kopfbereich \(---\)$/, 'в файле нет правильной шапки (---)'],
+  [/^Zeile (\d+): Anführungszeichen nicht geschlossen$/, 'строка $1: кавычка не закрыта'],
+  [/^Zeile (\d+): ungültige Zeichenkette$/, 'строка $1: неверная строка'],
+  [/^Zeile (\d+): nicht unterstütztes YAML$/, 'строка $1: неподдерживаемый YAML'],
+  [/^Zeile (\d+): verschachtelte Listen werden nicht unterstützt$/, 'строка $1: вложенные списки не поддерживаются'],
+  [/^Zeile (\d+): Liste nicht geschlossen$/, 'строка $1: список не закрыт'],
+  [/^Zeile (\d+): Schlüssel „(.*)“ doppelt$/, 'строка $1: ключ «$2» повторяется'],
+  [/^kein Objekt$/, 'не объект'],
+  [/^fehlt$/, 'отсутствует'],
+  [/^fields fehlt$/, 'нет fields'],
+  [/^Feld ohne id$/, 'поле без id'],
+  [/^Feld-id doppelt$/, 'id поля повторяется'],
+  [/^Gruppen-id „(.*)“ doppelt$/, 'id группы «$1» повторяется'],
+  [/^Gruppe ohne id$/, 'группа без id'],
+  [/^unbekannter Typ „(.*)“$/, 'неизвестный тип «$1»'],
+  [/^list ohne fields$/, 'list без fields'],
 ];
+
+// Labels of schema/collections.json and of the server's error list. Page and group labels are German by contract.
+const ruLabels = {
+  'Titel (H1 und Meta Title)': 'Заголовок (H1 и Meta Title)', 'Veröffentlicht am': 'Дата публикации', 'Aktualisiert am': 'Дата обновления',
+  'Entwurf – nicht auf der Website zeigen': 'Черновик — не показывать на сайте', Autor: 'Автор', Schlagwörter: 'Метки', 'Durch Kommas trennen': 'Через запятую',
+  Beitragsbild: 'Изображение записи', 'Name der Leistung': 'Название услуги', 'Kurztext (Karte auf der Startseite)': 'Краткий текст (карточка на главной)', Symbol: 'Значок',
+  Reihenfolge: 'Порядок', 'Wer bezahlt?': 'Кто платит?', Leistungspunkte: 'Пункты услуги', Punkt: 'Пункт', Name: 'Имя', Funktion: 'Должность', Beschreibung: 'Описание',
+  'Auf der Website ausblenden': 'Скрыть на сайте', Foto: 'Фото', Inhalt: 'Содержимое', Permalink: 'Постоянная ссылка', Text: 'Текст', Eintrag: 'Элемент',
+};
 
 const dicts = { de, ru };
 
@@ -759,6 +810,8 @@ export function translator(lang) {
     for (const [re, rep] of ruMessages) if (re.test(m)) return m.replace(re, rep);
     return m;
   };
+  t.label = (s) => (t.lang === 'ru' && ruLabels[s]) || s;
+  t.count = (n) => t(n === 1 ? 'list.item' : 'list.items', { n });
   return t;
 }
 

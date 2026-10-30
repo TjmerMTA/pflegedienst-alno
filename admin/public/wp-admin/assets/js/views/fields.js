@@ -115,7 +115,7 @@ function listItem(ctx, f, { name, id, item, index, errPathBase, errors, key }) {
   return html`<li class="list-item" draggable="true" data-key="${k}">
     <div class="list-item-head">
       <span class="list-handle" title="${t('edit.list.drag')}" aria-hidden="true">⋮⋮</span>
-      <span class="list-item-title">${f.itemLabel || 'Eintrag'} <span class="list-num">${index + 1}</span></span>
+      <span class="list-item-title">${f.itemLabel || t.label('Eintrag')} <span class="list-num">${index + 1}</span></span>
       <span class="list-item-actions">
         <button type="button" class="button-link js-item-up" aria-label="${t('edit.list.up')}" title="${t('edit.list.up')}">▲</button>
         <button type="button" class="button-link js-item-down" aria-label="${t('edit.list.down')}" title="${t('edit.list.down')}">▼</button>
@@ -149,7 +149,7 @@ export function listField(ctx, f, { name, id, value, errPath, errors }) {
     <input type="hidden" name="${name}[_]" value="">
     <ol class="list-items">${items.map((item, i) => listItem(ctx, f, { name, id, item, index: i, errPathBase: errPath, errors }))}</ol>
     <template class="list-template">${tpl}</template>
-    <p class="list-footer"><button type="button" class="button js-item-add">+ ${t('edit.list.add', { item: f.itemLabel || 'Eintrag' })}</button> <span class="description">${limits}</span></p>
+    <p class="list-footer"><button type="button" class="button js-item-add">+ ${t('edit.list.add', { item: f.itemLabel || t.label('Eintrag') })}</button> <span class="description">${limits}</span></p>
     ${f.help ? html`<p class="description">${f.help}</p>` : ''}
     ${fieldError(ctx, errs)}
   </div>`;

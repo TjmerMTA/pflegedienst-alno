@@ -117,7 +117,7 @@ const MESSAGES = {
 function urlNotices(q) {
   const out = [];
   if (MESSAGES[q.message]) out.push({ type: q.message === 'nochange' ? 'info' : 'success', message: t(MESSAGES[q.message]) });
-  if (/^[0-9a-f]{40}$/.test(q.job || '')) out.push({ type: 'info', message: t('notice.saved'), job: q.job });
+  if (/^[0-9a-f]{40}$/.test(q.job || '')) out.push({ type: 'info', message: t(q.post_type === 'page' ? 'notice.saved' : 'notice.saved.entry'), job: q.job });
   return out;
 }
 
@@ -168,7 +168,7 @@ function errorText(e) {
   return t.msg(e.message) || t('err.server');
 }
 
-const errorItems = (errors) => (errors || []).map((x) => `${x.label || x.path}: ${t.msg(x.msg)}`);
+const errorItems = (errors) => (errors || []).map((x) => `${t.label(x.label || x.path)}: ${t.msg(x.msg)}`);
 
 // ---------------- screens ----------------
 
