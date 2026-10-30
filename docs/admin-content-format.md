@@ -55,6 +55,16 @@ all pages (contact data, opening hours, header, footer, cookie banner, CTA band,
 | `image`    | path relative to `src/assets/img/` (e.g. `team.jpg`, `uploads/ab12cd.jpg`) | extra key `"alt"` (required, string) |
 | `list`     | array of objects keyed by the sub-field ids in `fields` | `itemLabel`, `min`, `max`; sub-fields use the same types except `list` |
 
+An `image` sub-field inside a `list` item is stored as an object with the same keys as a top-level image field:
+`item[<id>] = { "value": "<path under src/assets/img>", "alt": "<alt text>" }`. `list()` returns it as
+`{ src: ImageMetadata, alt }` for that key. A missing file or an empty alt fails the build.
+
+```json
+{ "id": "cards", "label": "Karten", "type": "list", "itemLabel": "Karte", "min": 1, "max": 6,
+  "fields": [ { "id": "title", "label": "Titel", "type": "text" }, { "id": "photo", "label": "Foto", "type": "image" } ],
+  "value": [ { "title": "Pflege zu Hause", "photo": { "value": "uploads/ab12cd.jpg", "alt": "Pflegekraft im Gespräch" } } ] }
+```
+
 ### Tokens
 
 Any `text`/`textarea`/`richtext` value may contain `{{key}}`; the site replaces it with the value of
@@ -155,13 +165,18 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
 
 - `text()` — `text`/`textarea` fields; `html()` — `richtext` fields, sanitised; `img()` — `{ src, alt }`, or
   `null` when an optional image is empty; `list()` — items with `text`/`textarea` values tokens replaced and
-  `richtext` values sanitised. Image sub-fields inside a list are not supported yet (section 1 does not say
-  where their alt lives) and fail the build with a clear message.
+  `richtext` values sanitised, `image` values as `{ src, alt }` (alt tokens replaced), or `null` when an optional
+  image is empty: `{ "value": "", "alt": "" }` or no key at all. Render it like a top-level image:
+  `{c.photo && <Image src={c.photo.src} alt={c.photo.alt} … />}`.
 - `textHtml()` — a `text`/`textarea` value as HTML for `set:html`, escaped the way literal markup text is
   (see the next point). `escText(value)` does the same for a value from `list()`.
 - Missing file, group or field, a wrong type, an empty `required` value, an image that is not in
-  `src/assets/img/` → the build fails with `[content] <file>: …`. An unknown `{{token}}` only warns and stays
+  `src/assets/img/`, a list image with an empty alt or stored as a plain path → the build fails with
+  `[content] <file>: …`. An unknown `{{token}}` only warns and stays
   as typed (the admin can save it, so the site must still build).
+
+`npm test` runs the real `content.ts` on a temporary copy with its own fixtures (`test/content-list-image.test.mjs`);
+add a case there when the helper changes.
 
 ### Byte-identity traps (each one cost a diff)
 
