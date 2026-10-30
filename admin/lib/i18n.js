@@ -506,6 +506,7 @@ const ruMessages = [
   [/^Pflichtfeld$/, 'обязательное поле'],
   [/^höchstens (\d+) Zeichen \(jetzt (\d+)\)$/, 'не больше $1 символов (сейчас $2)'],
   [/^HTML ist hier nicht erlaubt$/, 'HTML здесь нельзя'],
+  [/^Die Zeichen < und > sind in den Kontaktdaten nicht erlaubt\.$/, 'В контактных данных нельзя использовать символы < и >.'],
   [/^nur eine Zeile$/, 'только одна строка'],
   [/^nicht erlaubtes HTML$/, 'недопустимый HTML'],
   [/^mindestens (\d+) Einträge$/, 'не меньше $1 элементов'],

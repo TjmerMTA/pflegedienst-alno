@@ -62,6 +62,30 @@ test('sanitising twice changes nothing', () => {
   }
 });
 
+test('looksLikeHtml also spots a tag that is only opened', () => {
+  for (const s of ['Pflegedienst ALNO GmbH</script a', '<img src=x onerror=alert(1) a', '<!-- x', '<?php', '<{{name}}']) assert.equal(looksLikeHtml(s), true, s);
+  for (const s of ['Preis < 5 €', 'a <5', '3 > 2', '<', '>']) assert.equal(looksLikeHtml(s), false, s);
+});
+
+test('hostile markup costs linear time', () => {
+  const n = 1024 * 1024;
+  for (const [name, s] of [['<script ', '<script '], ['<a ', '<a '], ['quote', '<a "'], ['open', '<p>'], ['entity', '&a'], ['comment', '<!-- '], ['lt', '<'], ['closer', '</']]) {
+    const input = s.repeat(n / s.length);
+    const t = performance.now();
+    const out = sanitizeHtml(input);
+    assert.ok(performance.now() - t < 1500, name);
+    assert.doesNotMatch(out, /<(script|a)\b/);
+  }
+  const deep = '<p>'.repeat(100000) + '</li>'.repeat(100000);
+  const t = performance.now();
+  sanitizeHtml(deep);
+  assert.ok(performance.now() - t < 1500, 'deep nesting');
+});
+
+test('a tag that never ends turns the rest into text', () => {
+  assert.equal(sanitizeHtml('<p>a</p><a href="x <b>y</b>'), '<p>a</p>&lt;a href="x &lt;b&gt;y&lt;/b&gt;');
+});
+
 test('looksLikeHtml spots tags, not comparisons', () => {
   assert.equal(looksLikeHtml('<b>x</b>'), true);
   assert.equal(looksLikeHtml('<script>'), true);

@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { applyValues, checkStructure, validateValues, mergeOldValues, structureOf, pageImageRefs, pageLines, tokenKeys, ALT_REQUIRED } from '../lib/pages.js';
-import { applyForm } from '../lib/collections.js';
+import { applyValues, checkStructure, validateValues, mergeOldValues, structureOf, pageImageRefs, pageLines, tokenKeys, ALT_REQUIRED, ANGLE_FORBIDDEN, RICHTEXT_MAX } from '../lib/pages.js';
+import { applyForm, BODY_MAX } from '../lib/collections.js';
 import { FIXTURE } from './helpers.mjs';
 
 const load = (id) => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'src/content/pages', `${id}.json`), 'utf8'));
@@ -161,6 +161,60 @@ test('restoring a version with an old alt on an empty image clears the alt', () 
 test('restoring a revision keeps list images as { value, alt }', () => {
   const m = mergeOldValues(load('index'), load('index'));
   assert.deepEqual(m.groups[2].fields[0].value[0].photo, { value: 'team.jpg', alt: 'Team auf einem Bild' });
+});
+
+test('finding 1: the four values that formed a script across fields are refused', () => {
+  const global = load('_global');
+  const r = applyValues(global, { contact: { phone: 'ALNO GmbH</script a', email: '+49 231 5467686>', hours: '<img src=x onerror=x a', officeHours: 'info@example.org>' } }, ctx);
+  assert.equal(r.errors.length, 4);
+  for (const e of r.errors) assert.equal(e.msg, ANGLE_FORBIDDEN);
+});
+
+test('contact group: no < or > at all, in textareas and list items too', () => {
+  const g = load('_global');
+  assert.match(msgs(applyValues(g, { contact: { hours: '8 < 22' } }, ctx)).join(), /Die Zeichen < und > sind/);
+  assert.match(msgs(applyValues(g, { contact: { hours: '8 > 2' } }, ctx)).join(), /Die Zeichen < und > sind/);
+  assert.match(msgs(applyValues(g, { contact: { officeHours: 'Mo\n<Di' } }, ctx)).join(), /Die Zeichen < und > sind/);
+  const list = applyValues(g, { contact: { hoursList: { a: { time: '9>' } } } }, ctx);
+  assert.equal(list.errors[0].path, 'contact.hoursList[1].time');
+  assert.equal(list.errors[0].msg, ANGLE_FORBIDDEN);
+  assert.deepEqual(msgs(applyValues(g, { contact: { hours: '8–22 Uhr', phone: '+49 (0) 231 12' } }, ctx)), []);
+});
+
+test('other groups keep a harmless < but refuse an opened tag', () => {
+  const page = load('index');
+  assert.deepEqual(msgs(applyValues(page, { hero: { pill: 'Preis < 5 €' } }, ctx)), []);
+  assert.match(msgs(applyValues(page, { hero: { pill: 'x</script a' } }, ctx)).join(), /HTML ist hier nicht erlaubt/);
+  const q = applyValues(page, { hero: { trust: { a: { text: '<img src=x a' } } } }, ctx);
+  assert.match(msgs(q).join(), /hero\.trust\[1\]\.text: HTML ist hier nicht erlaubt/);
+});
+
+test('restoring an old version cannot bring < or > back into contact', () => {
+  const old = load('_global');
+  old.groups[0].fields[0].value = 'a</script b';
+  assert.ok(validateValues(mergeOldValues(load('_global'), old), ctx).some((e) => e.msg === ANGLE_FORBIDDEN));
+});
+
+test('richtext length is limited, and the over-long text is not sanitised', () => {
+  const page = load('index');
+  const ok = applyValues(page, { hero: { lead: `<p>${'a'.repeat(RICHTEXT_MAX - 7)}</p>` } }, ctx);
+  assert.deepEqual(msgs(ok), []);
+  const long = `<p>${'a'.repeat(RICHTEXT_MAX)}</p>`;
+  const r = applyValues(page, { hero: { lead: long } }, ctx);
+  assert.match(msgs(r).join(), new RegExp(`hero\\.lead: höchstens ${RICHTEXT_MAX} Zeichen \\(jetzt ${RICHTEXT_MAX + 7}\\)`));
+  assert.equal(r.page.groups[1].fields[3].value, long, 'the form shows what was typed');
+});
+
+test('tokens may have spaces inside, as on the site', () => {
+  assert.deepEqual(msgs(applyValues(load('index'), { hero: { pill: 'Tel {{ phone }}' } }, { ...ctx, tokens: ['phone', 'hours'] })), []);
+  assert.match(msgs(applyValues(load('index'), { hero: { pill: 'Tel {{ fax }}' } }, { ...ctx, tokens: ['phone', 'hours'] })).join(), /unbekannter Platzhalter/);
+});
+
+test('collections: an opened tag is refused in frontmatter text, the body has a length limit', () => {
+  const r = applyForm('blog', [], { title: 'x</script a', description: 'D', date: '2026-01-01' }, ctx);
+  assert.match(r.errors.map((e) => e.msg).join(), /HTML ist hier nicht erlaubt/);
+  const b = applyForm('blog', [], { title: 'T', description: 'D', date: '2026-01-01', body: 'a'.repeat(BODY_MAX + 1) }, ctx);
+  assert.match(b.errors.map((e) => `${e.path}: ${e.msg}`).join(), new RegExp(`body: höchstens ${BODY_MAX} Zeichen`));
 });
 
 test('broken structures are detected', () => {

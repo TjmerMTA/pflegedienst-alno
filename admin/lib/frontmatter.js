@@ -28,7 +28,8 @@ function scalar(raw, lineNo) {
   const q = unquote(v, lineNo);
   if (q !== null) return q;
   if (/^[|>]/.test(v) || /^[&*!%@`]/.test(v)) throw new FrontmatterError(`Zeile ${lineNo}: nicht unterstütztes YAML`);
-  const plain = v.replace(/\s+#.*$/, '');
+  const comment = v.search(/\s#/);
+  const plain = (comment === -1 ? v : v.slice(0, comment)).trimEnd();
   if (plain === '' || plain === '~' || plain === 'null') return null;
   if (plain === 'true') return true;
   if (plain === 'false') return false;
@@ -119,6 +120,6 @@ export function stringifyFrontmatter(entries, flowKeys = []) {
 }
 
 export function buildMarkdownFile(entries, body, flowKeys) {
-  const b = String(body ?? '').replace(/\r\n?/g, '\n').replace(/^\n+/, '').replace(/\s+$/, '');
+  const b = String(body ?? '').replace(/\r\n?/g, '\n').replace(/^\n+/, '').trimEnd();
   return `---\n${stringifyFrontmatter(entries, flowKeys)}\n---\n${b ? '\n' + b + '\n' : ''}`;
 }

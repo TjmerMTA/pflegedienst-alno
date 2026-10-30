@@ -49,7 +49,9 @@ export function parseNested(pairs) {
   return root;
 }
 
-export async function readForm(req, limit = 4 * 1024 * 1024) {
+export const FORM_MAX_BYTES = 1024 * 1024;
+
+export async function readForm(req, limit = FORM_MAX_BYTES) {
   const type = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
   if (type !== 'application/x-www-form-urlencoded') throw new HttpError(415, 'Falscher Inhaltstyp');
   const buf = await readBody(req, limit);

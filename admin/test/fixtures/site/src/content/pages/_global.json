@@ -10,7 +10,10 @@
         { "id": "phone", "label": "Telefon", "type": "text", "required": true, "value": "0231 000000" },
         { "id": "email", "label": "E-Mail", "type": "text", "required": true, "value": "info@example.org" },
         { "id": "hours", "label": "Erreichbarkeit", "type": "text", "value": "24 Stunden" },
-        { "id": "officeHours", "label": "Bürozeiten", "type": "textarea", "value": "Mo–Fr 9–15 Uhr" }
+        { "id": "officeHours", "label": "Bürozeiten", "type": "textarea", "value": "Mo–Fr 9–15 Uhr" },
+        { "id": "hoursList", "label": "Öffnungszeiten", "type": "list", "itemLabel": "Zeile", "min": 0, "max": 7,
+          "fields": [ { "id": "time", "label": "Zeit", "type": "text" } ],
+          "value": [ { "time": "Mo–Fr 8–16" } ] }
       ]
     },
     {

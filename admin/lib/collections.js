@@ -53,6 +53,7 @@ export const COLLECTIONS = {
 
 export const POST_TYPES = { post: 'blog', leistung: 'leistungen', team: 'team' };
 
+export const BODY_MAX = 200000;
 const IMG_PREFIX = '../../assets/img/';
 const chars = (s) => Array.from(String(s ?? '')).length;
 
@@ -210,7 +211,9 @@ export function applyForm(coll, oldEntries, input, ctx = {}) {
   const order = [...oldEntries.map(([k]) => k)];
   for (const f of def.fields) { if (!order.includes(f.id)) order.push(f.id); if (f.altKey && !order.includes(f.altKey)) order.push(f.altKey); }
   const entries = order.filter((k) => next.has(k)).map((k) => [k, next.get(k)]);
-  const body = def.body ? sanitizeMarkdown(typeof input.body === 'string' ? input.body : '').replace(/\s+$/, '') : '';
+  const rawBody = def.body && typeof input.body === 'string' ? input.body : '';
+  if (chars(rawBody) > BODY_MAX) errors.push({ path: 'body', label: 'Inhalt', msg: `höchstens ${BODY_MAX} Zeichen (jetzt ${chars(rawBody)})` });
+  const body = rawBody.length > BODY_MAX ? rawBody : sanitizeMarkdown(rawBody).trimEnd();
   return { entries, body, errors };
 }
 

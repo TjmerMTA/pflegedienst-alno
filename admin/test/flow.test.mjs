@@ -239,6 +239,47 @@ test('saving is decided by the server: the browser must not block the form silen
   }
 });
 
+test('finding 1: contact values with < or > are refused through the form, nothing is written', async () => {
+  const f = 'src/content/pages/_global.json';
+  const text = read(site, f);
+  const before_ = deploys(site);
+  const { fields } = await c.editForm('/wp-admin/post.php?post_type=page&post=_global');
+  setField(fields, 'f[contact][phone]', 'ALNO GmbH</script a');
+  setField(fields, 'f[contact][email]', 'info@example.org>');
+  const r = await save(fields);
+  assert.equal(r.status, 422);
+  assert.match(r.text_, /Die Zeichen &lt; und &gt; sind in den Kontaktdaten nicht erlaubt\./);
+  assert.equal(read(site, f), text);
+  await srv.app.publisher.idle();
+  assert.equal(deploys(site), before_);
+});
+
+test('a body over 1 MB is refused before anything is parsed', async () => {
+  const text = read(site, INDEX);
+  const r = await c.post('/wp-admin/post.php', { _wpnonce: await c.nonce(), action: 'editpost', post_type: 'page', post: 'index', pad: 'a'.repeat(1024 * 1024 + 1) });
+  assert.equal(r.status, 413);
+  assert.match(r.text_, /Anfrage zu groß/);
+  assert.equal(read(site, INDEX), text);
+  assert.equal((await c.get('/wp-admin/')).status, 200, 'the server keeps working');
+});
+
+test('login and logout accept only small bodies', async () => {
+  const fresh = new Client(srv.base);
+  const r = await fresh.post('/wp-login.php', { pad: 'a'.repeat(70 * 1024) });
+  assert.equal(r.status, 413);
+});
+
+test('hostile content does not stall other requests', async () => {
+  const url = '/wp-admin/post.php?post_type=post&post=zweiter-beitrag';
+  const { fields } = await c.editForm(url);
+  setField(fields, 'body', '\n'.repeat(150000) + '<a '.repeat(10000) + 'Ende');
+  const t = performance.now();
+  const r = await save(fields);
+  assert.equal(r.status, 303);
+  assert.ok((await c.get(r.headers.get('location'))).status === 200);
+  assert.ok(performance.now() - t < 3000, 'save and reopen stay fast');
+});
+
 test('blog: edit keeps the Markdown body and the unknown keys', async () => {
   const url = '/wp-admin/post.php?post_type=post&post=erster-beitrag';
   const original = read(site, 'src/content/blog/erster-beitrag.md');

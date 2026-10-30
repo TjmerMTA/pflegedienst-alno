@@ -11,6 +11,8 @@ export const IMAGE_RE = /\.(jpe?g|png|webp)$/i;
 
 const chars = (s) => Array.from(String(s ?? '')).length;
 
+export const RICHTEXT_MAX = 50000;
+export const ANGLE_FORBIDDEN = 'Die Zeichen < und > sind in den Kontaktdaten nicht erlaubt.';
 export const ALT_REQUIRED = 'Alternativtext fehlt: Ist ein Bild gesetzt, muss der Alternativtext ausgefüllt sein.';
 
 export class ValidationError extends Error {
@@ -120,6 +122,9 @@ export function applyValues(page, input, ctx = {}) {
   return { page: out, errors };
 }
 
+// Text over the limit is kept as typed, for the form to show again; the check refuses it unsanitised.
+const richValue = (v) => (v.length > RICHTEXT_MAX ? v : sanitizeHtml(v, PAGE_TAGS));
+
 function normText(v, multiline) {
   let s = typeof v === 'string' ? v : '';
   s = s.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '');
@@ -135,7 +140,7 @@ function setFieldValue(f, v, p, errors) {
       return;
     case 'richtext':
       if (typeof v !== 'string') { errors.push({ path: p, msg: 'ungültiger Wert' }); return; }
-      f.value = sanitizeHtml(v, PAGE_TAGS);
+      f.value = richValue(v);
       return;
     case 'image': {
       const o = typeof v === 'string' ? { value: v } : v;
@@ -159,7 +164,7 @@ function setFieldValue(f, v, p, errors) {
             const value = normText(o.value ?? '', false);
             res[sub.id] = { value, alt: value ? normText(o.alt ?? '', false) : '' };
           } else if (sub.type === 'richtext') {
-            res[sub.id] = sanitizeHtml(typeof sv === 'string' ? sv : '', PAGE_TAGS);
+            res[sub.id] = richValue(typeof sv === 'string' ? sv : '');
           } else {
             res[sub.id] = normText(sv, sub.type === 'textarea');
           }
@@ -171,7 +176,8 @@ function setFieldValue(f, v, p, errors) {
   }
 }
 
-function checkValue(f, value, alt, p, ctx, errors, label = f.label) {
+// `contact`: values of the group contact end up in JSON-LD and, as tokens, on every page.
+function checkValue(f, value, alt, p, ctx, errors, label = f.label, contact = false) {
   const err = (msg) => errors.push({ path: p, msg, label });
   if (f.type === 'image') {
     if (typeof value !== 'string') return err('ungültiger Wert');
@@ -183,14 +189,18 @@ function checkValue(f, value, alt, p, ctx, errors, label = f.label) {
     return;
   }
   if (typeof value !== 'string') return err('ungültiger Wert');
+  if (f.type === 'richtext' && chars(value) > RICHTEXT_MAX) return err(`höchstens ${RICHTEXT_MAX} Zeichen (jetzt ${chars(value)})`);
   const plain = f.type === 'richtext' ? value.replace(/<[^>]*>/g, '').trim() : value.trim();
   if (f.required && !plain) err('Pflichtfeld');
   if (f.max && (f.type === 'text' || f.type === 'textarea') && chars(value) > f.max) err(`höchstens ${f.max} Zeichen (jetzt ${chars(value)})`);
-  if ((f.type === 'text' || f.type === 'textarea') && looksLikeHtml(value)) err('HTML ist hier nicht erlaubt');
+  if (f.type === 'text' || f.type === 'textarea') {
+    if (contact && /[<>]/.test(value)) err(ANGLE_FORBIDDEN);
+    else if (looksLikeHtml(value)) err('HTML ist hier nicht erlaubt');
+  }
   if (f.type === 'text' && value.includes('\n')) err('nur eine Zeile');
   if (f.type === 'richtext' && sanitizeHtml(value, PAGE_TAGS) !== value.trim()) err('nicht erlaubtes HTML');
   if (ctx.tokens?.length) {
-    for (const m of value.matchAll(/\{\{([^{}]*)\}\}/g)) if (!ctx.tokens.includes(m[1])) err(`unbekannter Platzhalter {{${m[1]}}}`);
+    for (const m of value.matchAll(/\{\{([^{}]*)\}\}/g)) if (!ctx.tokens.includes(m[1].trim())) err(`unbekannter Platzhalter {{${m[1]}}}`);
   }
 }
 
@@ -203,6 +213,7 @@ export function isImagePath(v) {
 export function validateValues(page, ctx = {}) {
   const errors = [];
   for (const g of page.groups || []) {
+    const contact = g.id === 'contact';
     for (const f of g.fields || []) {
       const p = `${g.id}.${f.id}`;
       if (f.type === 'list') {
@@ -217,12 +228,12 @@ export function validateValues(page, ctx = {}) {
             if (sub.type === 'image') {
               const im = itemImage(item, sub);
               checkValue(sub, im.value, im.alt, sp, ctx, errors, label);
-            } else checkValue(sub, item?.[sub.id] ?? '', null, sp, ctx, errors, label);
+            } else checkValue(sub, item?.[sub.id] ?? '', null, sp, ctx, errors, label, contact);
           }
         });
         continue;
       }
-      checkValue(f, f.value ?? '', f.alt, p, ctx, errors);
+      checkValue(f, f.value ?? '', f.alt, p, ctx, errors, f.label, contact);
     }
   }
   return errors;

@@ -11,13 +11,36 @@ const escAttr = (s) => escText(s).replace(/"/g, '&quot;');
 export function unsupportedMarkdown(md) {
   const s = String(md || '');
   const found = [];
-  if (/^\s*\|.*\|\s*$/m.test(s)) found.push('Tabelle');
-  if (/!\[[^\]]*\]\(/.test(s)) found.push('Bild im Text');
-  if (/^\s*(```|~~~)/m.test(s)) found.push('Codeblock');
-  if (/<\/?[a-zA-Z][^>]*>/.test(s.replace(/`[^`]*`/g, ''))) found.push('HTML');
-  if (/^\s*\[[^\]]+\]:\s*\S/m.test(s)) found.push('Referenz-Link');
-  if (/^(=+|-+)\s*$/m.test(s.replace(/^---$/gm, '')) && /\S\n(=+|-+)\s*$/m.test(s)) found.push('Setext-Überschrift');
+  if (/^[ \t]*\|.*\|[ \t]*$/m.test(s)) found.push('Tabelle');
+  if (hasInlineImage(s)) found.push('Bild im Text');
+  if (/^[ \t]*(```|~~~)/m.test(s)) found.push('Codeblock');
+  if (/<[a-zA-Z/!?]/.test(s.replace(/`[^`\n]*`/g, ''))) found.push('HTML');
+  if (/^[ \t]*\[[^\]\n]+\]:[ \t]*\S/m.test(s)) found.push('Referenz-Link');
+  if (hasSetextHeading(s)) found.push('Setext-Überschrift');
   return found;
+}
+
+// A line of = or - directly under a line of text. `---` after a blank line is a rule, and after a
+// list item it is not a heading the site uses.
+function hasSetextHeading(s) {
+  const lines = s.split('\n');
+  for (let i = 1; i < lines.length; i++) {
+    if (!/^(=+|-+)[ \t]*$/.test(lines[i])) continue;
+    const prev = lines[i - 1].trimStart();
+    if (prev && !/^[|>#*+-]/.test(prev)) return true;
+  }
+  return false;
+}
+
+function hasInlineImage(s) {
+  let i = 0;
+  while ((i = s.indexOf('![', i)) !== -1) {
+    const close = s.indexOf(']', i);
+    if (close === -1) return false;
+    if (s[close + 1] === '(') return true;
+    i = close;
+  }
+  return false;
 }
 
 // ---------- Markdown -> HTML ----------
@@ -256,17 +279,32 @@ export function htmlToMarkdown(htmlStr) {
 
 // ---------- sanitising Markdown bodies ----------
 
-// Raw HTML in Markdown would be rendered by Astro as-is; strip tags (outside inline code) and
-// neutralise unsafe link targets.
+// Removes tags in one linear pass.
+function stripTags(s) {
+  let out = '';
+  let pos = 0;
+  while (pos < s.length) {
+    const lt = s.indexOf('<', pos);
+    if (lt === -1) { out += s.slice(pos); break; }
+    if (!/[a-zA-Z/]/.test(s[lt + 1] || '')) { out += s.slice(pos, lt + 1); pos = lt + 1; continue; }
+    const gt = s.indexOf('>', lt);
+    if (gt === -1) { out += s.slice(pos); break; }
+    out += s.slice(pos, lt);
+    pos = gt + 1;
+  }
+  return out;
+}
+
+// Raw HTML in Markdown would be rendered by Astro as-is: strip tags (outside inline code), turn any
+// `<` that could still open one into an entity (removing a tag can join two halves into a new one),
+// and neutralise unsafe link targets.
 export function sanitizeMarkdown(md) {
-  let s = String(md ?? '').replace(/\r\n?/g, '\n');
+  let s = String(md ?? '').replace(/\r\n?/g, '\n').replace(/\u0000/g, '');
   const codes = [];
   s = s.replace(/`[^`\n]*`/g, (m) => { codes.push(m); return `\u0000C${codes.length - 1}\u0000`; });
   s = s.replace(/<!--[\s\S]*?(-->|$)/g, '');
-  let prev;
-  do { prev = s; s = s.replace(/<\/?[a-zA-Z][^>]*>/g, ''); } while (s !== prev);
+  s = stripTags(s).replace(/<(?=[a-zA-Z/!?])/g, '&lt;');
   s = s.replace(/(\]\(\s*<?)([^)\s>]*)/g, (m, a, url) => (safeHref(url) ? m : `${a}#`));
-  s = s.replace(/^(\s*\[[^\]]+\]:\s*)(\S+)/gm, (m, a, url) => (safeHref(url) ? m : `${a}#`));
-  s = s.replace(/\u0000C(\d+)\u0000/g, (m, i) => codes[i]);
-  return s.replace(/\u0000/g, '');
+  s = s.replace(/^([ \t]*\[[^\]\n]+\]:[ \t]*)(\S+)/gm, (m, a, url) => (safeHref(url) ? m : `${a}#`));
+  return s.replace(/\u0000C(\d+)\u0000/g, (m, i) => codes[i]);
 }

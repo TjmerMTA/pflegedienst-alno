@@ -59,6 +59,34 @@ test('sanitizeMarkdown keeps normal Markdown and comparisons', () => {
   assert.equal(sanitizeMarkdown(md), md);
 });
 
+test('sanitizeMarkdown: removing a tag cannot leave a new one behind', () => {
+  for (const s of ['<<b>script>alert(1)<</b>/script>', '<scr<x>ipt>alert(1)', '<<<<b>b>b>img src=x onerror=1>', '<!doctype html>', '<a href=x', '<![CDATA[x]]>']) {
+    const out = sanitizeMarkdown(s);
+    assert.doesNotMatch(out, /<[a-zA-Z/!?]/, `${s} → ${out}`);
+    assert.doesNotMatch(markdownToHtml(out), /<(script|img|a)\b/, `${s} → ${out}`);
+  }
+});
+
+test('sanitizeMarkdown keeps inline code as it is', () => {
+  assert.equal(sanitizeMarkdown('nutze `<div>` hier'), 'nutze `<div>` hier');
+});
+
+test('Markdown checks cost linear time on hostile input', () => {
+  const n = 1024 * 1024;
+  const inputs = { lt: '<a '.repeat(n / 3), newlines: '\n'.repeat(n), nest: '<'.repeat(n / 2) + 'b>'.repeat(n / 4), img: '!['.repeat(n / 2), refs: '[a'.repeat(n / 2), spaces: `a${' '.repeat(n)}b`, ticks: '` '.repeat(n / 2), dashes: '-\n'.repeat(n / 2) };
+  for (const [name, s] of Object.entries(inputs)) {
+    let t = performance.now(); sanitizeMarkdown(s);
+    assert.ok(performance.now() - t < 1500, `sanitizeMarkdown ${name}`);
+    t = performance.now(); unsupportedMarkdown(s);
+    assert.ok(performance.now() - t < 1500, `unsupportedMarkdown ${name}`);
+    t = performance.now(); buildMarkdownFile([['a', 'b']], s);
+    assert.ok(performance.now() - t < 1500, `buildMarkdownFile ${name}`);
+  }
+  const t = performance.now();
+  parseFrontmatter(`a: x${' '.repeat(n)}y`);
+  assert.ok(performance.now() - t < 1500, 'parseFrontmatter');
+});
+
 test('unsupported constructs switch the Visuell tab off', () => {
   assert.deepEqual(unsupportedMarkdown('## ok\n\n- a\n'), []);
   assert.ok(unsupportedMarkdown('| a | b |\n|---|---|\n').includes('Tabelle'));
