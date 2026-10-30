@@ -92,7 +92,7 @@ const p = getPage('pflege-rechner');
         <div class="res-top">
           <div class="ring-wrap">
             <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="c-bg" cx="60" cy="60" r="50" fill="none" stroke-width="12"/><circle class="c-fg" id="ring" cx="60" cy="60" r="50" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg>
-            <div class="ring-center"><b id="ring-pct">0 %</b><small id="ring-lbl" set:html={p.text('ergebnis.ringUsed').replace('\u00AD', '&shy;')} /></div>
+            <div class="ring-center"><b id="ring-pct">0 %</b><small id="ring-lbl" set:html={p.textHtml('ergebnis.ringUsed').replace('\u00AD', '&shy;')} /></div>
           </div>
           <div>
             <div class="big good" id="big-pay"><div class="ki" data-i="euro"></div><div><div class="l" id="pay-l">{p.text('ergebnis.payPlain')}</div><div class="v" id="r-payout">0 €</div></div></div>
