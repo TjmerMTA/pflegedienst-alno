@@ -52,7 +52,11 @@ const osm = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.012}
   declare const __KONTAKT_MAP_TITLE__: string;
   document.querySelectorAll<HTMLElement>('[data-map]').forEach((m) => {
     m.querySelector('button')?.addEventListener('click', () => {
-      m.innerHTML = `<iframe src="${m.dataset.map}" title="${__KONTAKT_MAP_TITLE__}" loading="lazy"></iframe>`;
+      const frame = document.createElement('iframe');
+      frame.src = m.dataset.map!;
+      frame.title = __KONTAKT_MAP_TITLE__;
+      frame.loading = 'lazy';
+      m.replaceChildren(frame);
     });
   });
 </script>

@@ -8,6 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "test": "node --test test/*.test.mjs",
+    "test:browser": "node --test --test-concurrency=1 test/browser/*.test.mjs",
     "test:anfrage": "php test/anfrage-test.php",
     "admin": "php admin/tests/dev.php",
     "test:admin": "php admin/tests/run.php && node --test admin/tests/*.test.mjs"
