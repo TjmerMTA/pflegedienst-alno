@@ -39,6 +39,7 @@ final class Rules
     const MSG_ALT_REQUIRED = 'Alternativtext fehlt: Ist ein Bild gesetzt, muss der Alternativtext ausgefüllt sein.';
     const MSG_ALT_TOO_LONG = 'Alternativtext zu lang';
     const MSG_BAD_IMAGE = 'ungültiger Bildpfad';
+    const MSG_IMAGE_EXTERNAL = 'Bilder von fremden Websites werden hier nicht angezeigt. Bitte das Bild in die Mediathek hochladen und von dort einsetzen.';
     const MSG_UNKNOWN_GROUP = 'unbekannte Gruppe';
     const MSG_UNKNOWN_FIELD = 'unbekanntes Feld';
     const MSG_BAD_LIST = 'ungültige Liste';
@@ -52,6 +53,7 @@ final class Rules
     const MSG_SLUG_INVALID = 'Ungültiger Permalink: nur a–z, 0–9 und Bindestriche.';
     const MSG_SLUG_TAKEN = 'Unter diesem Namen gibt es bereits einen Eintrag.';
     const MSG_BODY_IMAGE_PREFIX = 'Bild im Text nicht gefunden: ';
+    const MSG_BODY_IMAGE_FORM = 'Ein Bild im Text hat eine Form, die hier nicht geht. Bitte so schreiben: ![Beschreibung](../../assets/img/datei.jpg)';
     const MSG_UNSAFE_LINK = 'Der Text enthält eine unsichere Link-Adresse. Erlaubt sind http, https, mailto, tel und Pfade der Website.';
 
     public static function msgTooLong(int $max, int $now): string { return "höchstens $max Zeichen (jetzt $now)"; }
@@ -62,7 +64,7 @@ final class Rules
 
     public static function msgImageMissing(string $p): string { return "Bild „{$p}“ nicht gefunden"; }
     public static function msgBadToken(string $t): string { return 'unbekannter Platzhalter {{' . $t . '}}'; }
-    public static function msgMinItems(int $n): string { return "mindestens $n Einträge"; }
+    public static function msgMinItems(int $n): string { return $n === 1 ? self::MSG_MIN_ONE : "mindestens $n Einträge"; }
     public static function msgMaxItems(int $n): string { return "höchstens $n Einträge"; }
 
     public static function chars(string $s): int { return mb_strlen($s, 'UTF-8'); }
@@ -366,21 +368,62 @@ final class Rules
         return false;
     }
 
-    /** Targets of the Markdown images in a body. */
+    /**
+     * The image form the admin understands: alt text with line breaks and one level of brackets, no
+     * code span and no link in it, a target and at most a quoted title. The renderer knows more forms,
+     * and a form misread here breaks the build or is left out of the commit, so this list is closed:
+     * whatever could still be an image once these are taken out is refused, see hasOddImage.
+     */
+    private const MD_IMAGE = '/!\[(?:[^\[\]\\\\`]++|\\\\.|\[(?:[^\[\]\\\\`]++|\\\\.)*+\](?!\())*+\]\([ \t]*+(?:\n[ \t>]*+)?(?:<([^<>\n\\\\]*+)>|((?:[^\s()\\\\]++|\\\\.|\((?:[^\s()\\\\]++|\\\\.)*+\))*+))(?:[ \t]*+(?:\n[ \t>]*+)?(?:"[^"\n]*+"|\'[^\'\n]*+\'))?[ \t]*+(?:\n[ \t>]*+)?\)/s';
+
+    /** Targets of the Markdown images in a body, in the form MD_IMAGE knows. */
     public static function bodyImages(string $md): array
     {
-        preg_match_all('/!\[(?:[^\]\\\\\n]|\\\\.)*\]\([ \t]*<?([^)\s>]*)/', $md, $m);
-        return $m[1];
+        preg_match_all(self::MD_IMAGE, $md, $m, PREG_SET_ORDER);
+        return array_map(static fn (array $x): string => ($x[2] ?? '') !== '' ? $x[2] : $x[1], $m);
+    }
+
+    /** The CSP of the site allows images from its own origin only: a foreign one would stay blank. */
+    public static function isExternalImage(string $src): bool
+    {
+        return preg_match('/^[ \t]*(?:https?:|\/\/)/i', $src) === 1;
+    }
+
+    /** `![` that is no image in the known form, with a `](` after it or a reference definition anywhere. */
+    private static function hasOddImage(string $md): bool
+    {
+        $rest = preg_replace(self::MD_IMAGE, ' ', $md);
+        if ($rest === null) return true;
+        $p = strpos($rest, '![');
+        return $p !== false && (strpos($rest, '](', $p) !== false || strpos($rest, ']:') !== false);
+    }
+
+    /** The build runs decodeURI over every image address, and a malformed one stops it. */
+    private static function decodesAsUri(string $url): bool
+    {
+        return !preg_match('/%(?![0-9a-f]{2})/i', $url) && preg_match('//u', rawurldecode($url)) === 1;
+    }
+
+    /** Why an address cannot be an image in a body, or null. */
+    private static function bodyImageError(string $src, callable $exists): ?string
+    {
+        if (self::isExternalImage($src)) return self::MSG_IMAGE_EXTERNAL;
+        $missing = self::MSG_BODY_IMAGE_PREFIX . $src;
+        // Escapes and entities would change the address the renderer sees; an image address needs neither.
+        if ($src === '' || preg_match('/\\\\|&#?[a-z0-9]+;/i', $src)) return $missing;
+        if ($src[0] === '/') return self::decodesAsUri($src) ? null : $missing;
+        $p = strncmp($src, self::IMG_PREFIX, strlen(self::IMG_PREFIX)) === 0 ? substr($src, strlen(self::IMG_PREFIX)) : '';
+        return self::isImagePath($p) && $exists($p) ? null : $missing;
     }
 
     /** A local image the build cannot find fails the whole site. */
     public static function missingBodyImages(string $md, callable $exists): array
     {
         $out = [];
+        if (self::hasOddImage($md)) $out[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::MSG_BODY_IMAGE_FORM];
         foreach (self::bodyImages($md) as $src) {
-            if ($src !== '' && ($src[0] === '/' || preg_match('/^https?:/i', $src))) continue;
-            $p = strncmp($src, self::IMG_PREFIX, strlen(self::IMG_PREFIX)) === 0 ? substr($src, strlen(self::IMG_PREFIX)) : '';
-            if (!self::isImagePath($p) || !$exists($p)) $out[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::MSG_BODY_IMAGE_PREFIX . $src];
+            $msg = self::bodyImageError($src, $exists);
+            if ($msg !== null) $out[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => $msg];
         }
         return $out;
     }
@@ -503,7 +546,7 @@ final class Rules
         if ($f['type'] === 'image') {
             if (!is_string($value)) { $err(self::MSG_INVALID); return; }
             if ($value === '') { if (!empty($f['required'])) $err(self::MSG_REQUIRED); return; }
-            if (!self::isImagePath($value)) { $err(self::MSG_BAD_IMAGE); return; }
+            if (!self::isImagePath($value)) { $err(self::isExternalImage($value) ? self::MSG_IMAGE_EXTERNAL : self::MSG_BAD_IMAGE); return; }
             if (isset($ctx['imageExists']) && !$ctx['imageExists']($value)) { $err(self::msgImageMissing($value)); return; }
             if (!is_string($alt) || self::trim($alt) === '') { $err(self::MSG_ALT_REQUIRED); return; }
             if (self::chars($alt) > self::ALT_MAX) $err(self::MSG_ALT_TOO_LONG);
@@ -672,7 +715,7 @@ final class Rules
                         if (!empty($f['altKey'])) $set($f['altKey'], null);
                         break;
                     }
-                    if (!self::isImagePath($v)) { $err($f, self::MSG_BAD_IMAGE); break; }
+                    if (!self::isImagePath($v)) { $err($f, self::isExternalImage($v) ? self::MSG_IMAGE_EXTERNAL : self::MSG_BAD_IMAGE); break; }
                     if (isset($ctx['imageExists']) && !$ctx['imageExists']($v)) { $err($f, self::msgImageMissing($v)); break; }
                     $set($f['id'], self::IMG_PREFIX . $v);
                     if (!empty($f['altKey'])) {

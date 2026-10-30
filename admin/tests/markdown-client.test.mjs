@@ -59,6 +59,7 @@ test('unsupported constructs switch the Visuell tab off', () => {
   assert.deepEqual(unsupportedMarkdown('## ok\n\n- a\n'), []);
   assert.ok(unsupportedMarkdown('| a | b |\n|---|---|\n').includes('Tabelle'));
   assert.ok(unsupportedMarkdown('![x](y.jpg)').includes('Bild im Text'));
+  for (const md of ['![[a]](y.jpg)', '![a\nb](y.jpg)', '![`]`](y.jpg)']) assert.ok(unsupportedMarkdown(md).includes('Bild im Text'), md);
   assert.ok(unsupportedMarkdown('a <div>b</div>').includes('HTML'));
 });
 

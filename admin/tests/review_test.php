@@ -91,7 +91,7 @@ test('a missing image in the text is refused: the build would fail', function ()
     eq($r['status'], 422, $r['body']);
     has($r['body'], 'Bild im Text nicht gefunden');
     foreach (['![a](foo.jpg)', '![a](../x.png)', '![a](../../assets/img/../x.jpg)'] as $body) eq($save($d, [], $body)['status'], 422, $body);
-    $r = $save($d, [], "Text\n\n![Bild](../../assets/img/team.jpg)\n\n![b](https://example.org/x.jpg)\n");
+    $r = $save($d, [], "Text\n\n![Bild](../../assets/img/team.jpg)\n\n![b](/favicon.png)\n");
     eq($r['status'], 200, $r['body']);
 });
 test('untrash is refused when an image of the entry has gone', function () use ($admin, $e) {

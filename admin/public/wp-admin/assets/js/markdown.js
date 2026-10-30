@@ -35,15 +35,10 @@ function hasSetextHeading(s) {
   return false;
 }
 
+// Alt texts may hold brackets and line breaks, so any `![` with a `](` after it counts.
 function hasInlineImage(s) {
-  let i = 0;
-  while ((i = s.indexOf('![', i)) !== -1) {
-    const close = s.indexOf(']', i);
-    if (close === -1) return false;
-    if (s[close + 1] === '(') return true;
-    i = close;
-  }
-  return false;
+  const open = s.indexOf('![');
+  return open !== -1 && s.includes('](', open);
 }
 
 // ---------- Markdown -> HTML ----------

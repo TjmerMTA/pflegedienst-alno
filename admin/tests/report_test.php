@@ -71,6 +71,53 @@ test('A2: on restore of an entry too', function () use ($admin, $e) {
     ok(!is_file("$e->data/pending/$name"));
 });
 
+foreach (['nested brackets' => '![[a]](../../assets/img/%s)', 'a line break' => "![a\nb](../../assets/img/%s)"] as $name => $form) {
+    test("A4: $name in the alt text: a missing image is refused", function () use ($new, $form) {
+        $r = $new('a4-weg-' . md5($form), 'Bild', sprintf($form, 'gibt-es-nicht.jpg'));
+        eq($r['status'], 422, $r['body']);
+        has($r['body'], 'Bild im Text nicht gefunden');
+    });
+    test("A4: $name in the alt text: a staged image lands in the commit", function () use ($admin, $e, $new, $form) {
+        $p = $admin->upload(jpeg(), 'a.jpg', '&stage=1')['json']['files'][0]['path'];
+        $r = $new('a4-' . md5($form), 'Bild', sprintf($form, $p) . "\n");
+        eq($r['status'], 200, $r['body']);
+        ok($e->git->read("src/assets/img/$p") !== null, 'image missing from the commit');
+        ok(!is_file("$e->data/pending/" . basename($p)), 'pending file left');
+    });
+}
+test('A4: what could still be an image is refused with a message that says how to write it', function () use ($new) {
+    $forms = ['![a ![b](../../assets/img/team.jpg) c](../../assets/img/nein.jpg)', '![`]`](../../assets/img/nein.jpg)', "![a][r]\n\n[r]: ../../assets/img/team.jpg", '![a](../../assets/img/team.jpg (Titel))'];
+    foreach ($forms as $i => $body) {
+        $r = $new("a4-form-$i", 'Bild', $body);
+        eq($r['status'], 422, $body);
+        has($r['body'], 'Bitte so schreiben');
+    }
+});
+test('an address the build cannot decode is refused', function () use ($new) {
+    foreach (['/%zz.jpg', '/%ff.jpg', '/&percnt;zz.jpg', '/\\%zz.jpg'] as $i => $src) eq($new("uri-$i", 'Bild', "![a]($src)")['status'], 422, $src);
+    eq($new('uri-ok', 'Bild', '![a](/foto%20eins.jpg)')['status'], 200);
+});
+test('S1: a foreign image is refused in a body and in an image field, and says what to do', function () use ($admin, $new) {
+    foreach (['https://example.org/x.jpg', 'http://example.org/x.jpg', 'HTTPS://example.org/x.jpg', '//example.org/x.jpg'] as $i => $src) {
+        $r = $new("fremd-$i", 'Bild', "![a]($src)");
+        eq($r['status'], 422, $src);
+        has($r['body'], 'Mediathek');
+    }
+    $d = $admin->get('entry/new', ['type' => 'post'])['json'];
+    $r = $admin->post('entry', ['type' => 'post', 'id' => '', 'slug' => 'fremd-feld', 'values' => ['title' => 'Feld', 'description' => 'd', 'image' => ['value' => 'https://example.org/x.jpg', 'alt' => 'x']] + $d['values'], 'body' => 'x']);
+    eq($r['status'], 422, $r['body']);
+    has($r['body'], 'Mediathek');
+    $page = ['groups' => [['id' => 'g', 'fields' => [['id' => 'b', 'label' => 'Bild', 'type' => 'image', 'value' => 'https://example.org/x.jpg', 'alt' => 'x']]]]];
+    eq(Rules::validatePageValues($page)[0]['msg'] ?? '', Rules::MSG_IMAGE_EXTERNAL);
+});
+test('a long body with many odd brackets stays fast', function () {
+    foreach ([str_repeat('![', 40000), str_repeat('![a](', 20000), str_repeat('![[a]', 20000), str_repeat('](', 40000), '![' . str_repeat('a', 80000), str_repeat('![a](x ', 15000)] as $s) {
+        $t = microtime(true);
+        Rules::missingBodyImages($s, static fn () => true);
+        ok(microtime(true) - $t < 1, 'too slow: ' . substr($s, 0, 12));
+    }
+});
+
 test('password change: five wrong current passwords lock the check, also for the right one', function () use ($e) {
     (new Auth($e->store))->addUser('stolen', $e->password);
     $c = $e->as('stolen');

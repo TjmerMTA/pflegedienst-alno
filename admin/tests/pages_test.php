@@ -104,7 +104,7 @@ test('lists keep submitted order and respect min/max', function () use ($apply, 
     $r = $apply($page, ['hero' => ['trust' => [['text' => 'zwei'], ['text' => 'eins']]]]);
     eq($r['errors'], []);
     eq($r['page']['groups'][1]['fields'][5]['value'], [['text' => 'zwei'], ['text' => 'eins']]);
-    has($msgs($apply($page, ['hero' => ['trust' => []]])), 'mindestens 1 Einträge');
+    has($msgs($apply($page, ['hero' => ['trust' => []]])), 'mindestens ein Eintrag');
     $five = array_map(static fn ($i) => ['text' => "t$i"], range(1, 5));
     has($msgs($apply($page, ['hero' => ['trust' => $five]])), 'höchstens 4 Einträge');
 });
