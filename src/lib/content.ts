@@ -5,6 +5,8 @@ import type { ImageMetadata } from 'astro';
 // Только картинки, названные в страницах: см. src/lib/content-images.mjs
 import images from 'virtual:content-images';
 
+import { safeScheme } from './safe-url.mjs';
+
 export { jsonForScript } from './json-for-script.mjs';
 
 type FieldType = 'text' | 'textarea' | 'richtext' | 'image' | 'list';
@@ -55,8 +57,7 @@ function safeHref(attrs: string): string {
     .replace(/&#(\d+);?/g, (_, d) => fromCode(Number(d)))
     .replace(/&colon;/gi, ':')
     .replace(/[\u0000- ]|&tab;|&newline;/gi, '');
-  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(plain)?.[1].toLowerCase();
-  if (!href || (scheme && !['http', 'https', 'mailto', 'tel'].includes(scheme))) return '';
+  if (!href || !safeScheme(plain)) return '';
   return href.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
