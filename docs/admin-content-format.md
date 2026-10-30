@@ -134,6 +134,13 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
 - **Contact values inside texts** → tokens, only where the text is exactly that value:
   `{{phone}}`, `{{email}}`, `{{street}}`, `{{name}}`, `{{hours}}` (8–22 Uhr), `{{officeHours}}` (Mo–Fr 8–16 Uhr).
   Phone numbers in markup keep using `SITE.phone` / `SITE.phoneHref` (from `src/config/site.ts`).
+- **Text in a browser `<script>`**: the script cannot read JSON, and `data-` attributes would change the HTML, so
+  `src/lib/client-texts.mjs` puts the values into the code at build time. Fixed texts go through `vite.define`
+  (form messages). Sentences with runtime values use the Pflege-Rechner macros, which expand to plain literals:
+  `__T('group.field', { betrag: eur(x) })` for `textContent`, `__H(…)` for `innerHTML`, `__N('group.field')` for an
+  amount. The value keeps the whole sentence with a placeholder: `Der Plan übersteigt das Budget um {betrag}.`
+  The `help` of such a field says the placeholder must stay. An unknown `{name}` is shown as typed, a removed one
+  is simply not shown. Amounts are `text` fields (`1497`, `7,08`); a value that is no number warns and becomes 0.
 - **Shared blocks** (used on several pages) go to `_global.json`, page-specific headings around them stay
   in the page file (e.g. `testimonials.h2` is in `index.json`, the testimonials themselves in `_global.json`).
 
@@ -159,7 +166,8 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
 2. **A new `import` in an `.astro` file can reorder the `<style>` blocks** of every page that uses it: Astro
    sorts inlined CSS by import position (`cssOrder` in `astro/dist/core/build/runtime.js`). So:
    - in a page, put `import { getPage } from '../lib/content'` where the removed image imports were
-     (after the component imports), so the components keep their positions;
+     (after the component imports), so the components keep their positions; a page that had no such imports
+     uses the dynamic import from the last point below;
    - in a component that already imports `../config/site`, take `getGlobal` from there
      (`import { SITE, getGlobal } from '../config/site'`) instead of adding an import;
    - in a component that imports nothing from config, use `const { getGlobal } = await import('../lib/content');`
@@ -168,5 +176,10 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
    bundler emits identical bytes once, under whichever name it meets first. `team.jpg` (a copy of
    `blog-antrag.jpg`) renamed the blog image in the output and was removed. If `_astro/` file names change,
    compare the images with `md5`.
-4. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a
+4. **Scoped `<style>` marks every element of the template with `data-astro-cid-…`, but not the HTML from `set:html`.**
+   So on a page with its own `<style>` a `<p>`, `<b>` or `<a>` must stay in the markup: split the sentence into
+   `…Before` / `…Bold` / `…After` text fields instead of a richtext. The admin trims values, so the spaces between
+   them belong in the markup. Pages without `<style>` (`impressum`, `datenschutz`, `is:global` like the Rechner) can
+   use richtext. Stored richtext must survive the admin's sanitizer unchanged: `<br>`, not `<br />`.
+5. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a
    `.map()` produce the same bytes — no need to imitate the old line breaks.
