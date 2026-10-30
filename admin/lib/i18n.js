@@ -128,7 +128,7 @@ const de = {
   'edit.status.draft': 'Entwurf',
   'edit.status.new': 'Neu',
   'edit.modified': 'Zuletzt geändert:',
-  'edit.revisions': '{n} Revisionen',
+  'edit.revisions': 'Revisionen: {n}',
   'edit.update': 'Aktualisieren',
   'edit.publishbtn': 'Veröffentlichen',
   'edit.totrash': 'In den Papierkorb verschieben',
@@ -503,7 +503,6 @@ const ru = {
 
 // Messages produced in German by the validators, for Russian users.
 const ruMessages = [
-  [/^Pflichtfeld, wenn ein Bild gesetzt ist$/, 'обязательно, если выбрана картинка'],
   [/^Pflichtfeld$/, 'обязательное поле'],
   [/^höchstens (\d+) Zeichen \(jetzt (\d+)\)$/, 'не больше $1 символов (сейчас $2)'],
   [/^HTML ist hier nicht erlaubt$/, 'HTML здесь нельзя'],
@@ -512,7 +511,7 @@ const ruMessages = [
   [/^mindestens (\d+) Einträge$/, 'не меньше $1 элементов'],
   [/^höchstens (\d+) Einträge$/, 'не больше $1 элементов'],
   [/^mindestens ein Eintrag$/, 'нужен хотя бы один элемент'],
-  [/^Alternativtext fehlt$/, 'нет альтернативного текста'],
+  [/^Alternativtext fehlt: .*$/, 'нет альтернативного текста: если картинка выбрана, он обязателен'],
   [/^Alternativtext zu lang$/, 'альтернативный текст слишком длинный'],
   [/^unbekannter Platzhalter (.*)$/, 'неизвестная подстановка $1'],
   [/^ungültiger Bildpfad$/, 'неверный путь картинки'],

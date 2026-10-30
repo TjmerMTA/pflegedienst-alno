@@ -104,7 +104,7 @@ input.big { font-size: 1.6em; line-height: 1.4; padding: 3px 8px; }
 .js-job .notice-text::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border: 2px solid #c3c4c7; border-top-color: #2271b1; border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .field-error { color: #d63638; margin: 4px 0 0; font-weight: 500; }
-.has-error > input, .has-error input.large-text, .has-error textarea, .has-error .wp-editor-container { border-color: #d63638 !important; }
+.has-error > input, .has-error input.large-text, .has-error textarea, .has-error .wp-editor-container, .has-error .js-image-alt { border-color: #d63638 !important; }
 
 /* ---------- postboxes ---------- */
 #poststuff { padding-top: 10px; min-width: 763px; }

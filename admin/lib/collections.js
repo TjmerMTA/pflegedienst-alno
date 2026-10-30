@@ -5,7 +5,7 @@ import path from 'node:path';
 import { splitFrontmatter, parseFrontmatter, buildMarkdownFile } from './frontmatter.js';
 import { sanitizeMarkdown } from './markdown.js';
 import { looksLikeHtml } from './sanitize.js';
-import { isImagePath } from './pages.js';
+import { isImagePath, ALT_REQUIRED } from './pages.js';
 import { SLUG_RE, sha } from './fsutil.js';
 
 export const ICONS = ['heart', 'shield', 'hands', 'cross', 'home', 'calendar', 'users', 'euro', 'check', 'arrow', 'chat', 'award', 'clipboard', 'star', 'car', 'info', 'phone', 'mail', 'pin', 'clock'];
@@ -199,7 +199,7 @@ export function applyForm(coll, oldEntries, input, ctx = {}) {
         set(f.id, IMG_PREFIX + v);
         if (f.altKey) {
           const alt = clean(o.alt ?? '');
-          if (!alt) err({ id: f.altKey, label: `${f.label}: Alternativtext` }, 'Pflichtfeld, wenn ein Bild gesetzt ist');
+          if (!alt) err({ id: f.altKey, label: f.label }, ALT_REQUIRED);
           set(f.altKey, alt || undefined);
         }
         break;

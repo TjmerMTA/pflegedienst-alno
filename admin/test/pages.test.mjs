@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { applyValues, checkStructure, validateValues, mergeOldValues, structureOf, pageImageRefs, tokenKeys } from '../lib/pages.js';
+import { applyValues, checkStructure, validateValues, mergeOldValues, structureOf, pageImageRefs, tokenKeys, ALT_REQUIRED } from '../lib/pages.js';
 import { applyForm } from '../lib/collections.js';
 import { FIXTURE } from './helpers.mjs';
 
@@ -123,6 +123,41 @@ test('an image sub-field needs a valid path and an alt text', () => {
   assert.match(msgs(applyValues(page, item({ value: 'fehlt.jpg', alt: 'a' }), ctx)).join(), /nicht gefunden/);
 });
 
+test('no image means value "" with alt "", top-level and in lists', () => {
+  const page = load('index');
+  const top = applyValues(page, { hero: { image: { value: '', alt: 'steht noch im Formular' } } }, ctx);
+  assert.deepEqual(top.errors, []);
+  assert.equal(top.page.groups[1].fields[4].value, '');
+  assert.equal(top.page.groups[1].fields[4].alt, '');
+  const list = applyValues(page, { cards: { items: { a: { title: 'T', text: '', photo: { value: '', alt: 'alt' } } } } }, ctx);
+  assert.deepEqual(list.errors, []);
+  assert.deepEqual(list.page.groups[2].fields[0].value[0].photo, { value: '', alt: '' });
+});
+
+test('a set image needs a non-empty alt: the message says so and names the item', () => {
+  const page = load('index');
+  const top = applyValues(page, { hero: { image: { value: 'team.jpg', alt: '   ' } } }, ctx);
+  assert.equal(top.errors.length, 1);
+  assert.equal(top.errors[0].label, 'Bild');
+  assert.equal(top.errors[0].msg, ALT_REQUIRED);
+  assert.match(ALT_REQUIRED, /Ist ein Bild gesetzt, muss der Alternativtext ausgefüllt sein/);
+  const items = { a: { title: 'A', text: '', photo: { value: '', alt: '' } }, b: { title: 'B', text: '', photo: { value: 'team.jpg', alt: '' } } };
+  const list = applyValues(page, { cards: { items } }, ctx);
+  assert.equal(list.errors.length, 1);
+  assert.equal(list.errors[0].path, 'cards.items[2].photo');
+  assert.equal(list.errors[0].label, 'Karte 2 › Bild');
+});
+
+test('restoring a version with an old alt on an empty image clears the alt', () => {
+  const old = load('index');
+  old.groups[1].fields[4].value = '';
+  old.groups[1].fields[4].alt = 'alt';
+  old.groups[2].fields[0].value[0].photo = { value: '', alt: 'alt' };
+  const m = mergeOldValues(load('index'), old);
+  assert.equal(m.groups[1].fields[4].alt, '');
+  assert.deepEqual(m.groups[2].fields[0].value[0].photo, { value: '', alt: '' });
+});
+
 test('restoring a revision keeps list images as { value, alt }', () => {
   const m = mergeOldValues(load('index'), load('index'));
   assert.deepEqual(m.groups[2].fields[0].value[0].photo, { value: 'team.jpg', alt: 'Team auf einem Bild' });
@@ -158,7 +193,7 @@ test('collections: required, max, dates, numbers, images', () => {
   assert.match(m, /title: Pflichtfeld/);
   assert.match(m, /description: höchstens 170/);
   assert.match(m, /date: ungültiges Datum/);
-  assert.match(m, /imageAlt: Pflichtfeld/);
+  assert.match(m, /imageAlt: Alternativtext fehlt/);
   const t = applyForm('team', [], { name: 'N', role: 'R', order: 'abc' }, ctx);
   assert.match(t.errors.map((e) => e.msg).join(), /keine Zahl/);
   const l = applyForm('leistungen', [], { title: 'a', metaTitle: 'b', description: 'c', teaser: 'd', icon: 'virus', order: '1', payer: 'e', highlights: { _: '' } }, ctx);

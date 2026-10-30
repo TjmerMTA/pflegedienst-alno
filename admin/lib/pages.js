@@ -11,6 +11,8 @@ export const IMAGE_RE = /\.(jpe?g|png|webp)$/i;
 
 const chars = (s) => Array.from(String(s ?? '')).length;
 
+export const ALT_REQUIRED = 'Alternativtext fehlt: Ist ein Bild gesetzt, muss der Alternativtext ausgefüllt sein.';
+
 export class ValidationError extends Error {
   constructor(errors) {
     super(errors.map((e) => `${e.path}: ${e.msg}`).join('; '));
@@ -86,10 +88,11 @@ export function structureOf(page) {
 }
 
 // An image sub-field of a list item is stored as item[id] = { value, alt }: the same keys as a
-// top-level image field.
+// top-level image field. «No image» is value "" with alt "", wherever the image sits.
 function itemImage(item, sub) {
   const v = item?.[sub.id];
-  return { value: v?.value ?? '', alt: v?.alt ?? '' };
+  const value = v?.value ?? '';
+  return { value, alt: value ? (v?.alt ?? '') : '' };
 }
 
 export function readItemImage(item, sub) { return itemImage(item, sub); }
@@ -138,7 +141,7 @@ function setFieldValue(f, v, p, errors) {
       const o = typeof v === 'string' ? { value: v } : v;
       if (!o || typeof o !== 'object') { errors.push({ path: p, msg: 'ungültiger Wert' }); return; }
       f.value = normText(o.value ?? '', false);
-      f.alt = normText(o.alt ?? f.alt ?? '', false);
+      f.alt = f.value ? normText(o.alt ?? f.alt ?? '', false) : '';
       return;
     }
     case 'list': {
@@ -153,7 +156,8 @@ function setFieldValue(f, v, p, errors) {
           const sv = item[sub.id];
           if (sub.type === 'image') {
             const o = typeof sv === 'string' ? { value: sv } : (sv || {});
-            res[sub.id] = { value: normText(o.value ?? '', false), alt: normText(o.alt ?? '', false) };
+            const value = normText(o.value ?? '', false);
+            res[sub.id] = { value, alt: value ? normText(o.alt ?? '', false) : '' };
           } else if (sub.type === 'richtext') {
             res[sub.id] = sanitizeHtml(typeof sv === 'string' ? sv : '', PAGE_TAGS);
           } else {
@@ -167,14 +171,14 @@ function setFieldValue(f, v, p, errors) {
   }
 }
 
-function checkValue(f, value, alt, p, ctx, errors) {
-  const err = (msg) => errors.push({ path: p, msg, label: f.label });
+function checkValue(f, value, alt, p, ctx, errors, label = f.label) {
+  const err = (msg) => errors.push({ path: p, msg, label });
   if (f.type === 'image') {
     if (typeof value !== 'string') return err('ungültiger Wert');
     if (!value) { if (f.required) err('Pflichtfeld'); return; }
     if (!isImagePath(value)) return err('ungültiger Bildpfad');
     if (ctx.imageExists && !ctx.imageExists(value)) return err(`Bild „${value}“ nicht gefunden`);
-    if (typeof alt !== 'string' || !alt.trim()) return err('Alternativtext fehlt');
+    if (typeof alt !== 'string' || !alt.trim()) return err(ALT_REQUIRED);
     if (chars(alt) > 300) err('Alternativtext zu lang');
     return;
   }
@@ -209,10 +213,11 @@ export function validateValues(page, ctx = {}) {
         items.forEach((item, i) => {
           for (const sub of f.fields || []) {
             const sp = `${p}[${i + 1}].${sub.id}`;
+            const label = `${f.itemLabel || f.label} ${i + 1} › ${sub.label}`;
             if (sub.type === 'image') {
               const im = itemImage(item, sub);
-              checkValue(sub, im.value, im.alt, sp, ctx, errors);
-            } else checkValue(sub, item?.[sub.id] ?? '', null, sp, ctx, errors);
+              checkValue(sub, im.value, im.alt, sp, ctx, errors, label);
+            } else checkValue(sub, item?.[sub.id] ?? '', null, sp, ctx, errors, label);
           }
         });
         continue;
@@ -238,7 +243,7 @@ export function mergeOldValues(current, old) {
         f.value = of.value.map((item) => Object.fromEntries(f.fields.map((s) => [s.id, s.type === 'image' ? itemImage(item, s) : (item?.[s.id] ?? '')])));
       } else {
         f.value = of.value;
-        if (f.type === 'image') f.alt = of.alt ?? '';
+        if (f.type === 'image') f.alt = of.value ? (of.alt ?? '') : '';
       }
     }
   }

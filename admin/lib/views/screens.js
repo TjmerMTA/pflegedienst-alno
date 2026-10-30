@@ -138,7 +138,7 @@ export function pageEdit(ctx, { id, page, errors = [], hash, modified, revCount,
   }));
   const revUrl = `/wp-admin/revision.php?file=${encodeURIComponent(`src/content/pages/${id}.json`)}`;
   return html`<h1 class="wp-heading-inline">${heading}</h1>${view}<hr class="wp-header-end">
-  <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form">
+  <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form" novalidate>
     ${nonce(ctx)}<input type="hidden" name="action" value="editpost"><input type="hidden" name="post_type" value="page">
     <input type="hidden" name="post" value="${id}"><input type="hidden" name="_hash" value="${hash}">
     <div id="poststuff"><div id="post-body" class="metabox-holder columns-2">
@@ -267,7 +267,7 @@ export function collectionEdit(ctx, { coll, slug, isNew, values, body, errors = 
   const relFile = `src/content/${def.dir}/${slug}.md`;
   return html`<h1 class="wp-heading-inline">${heading}</h1>${!isNew && url && !(coll === 'blog' && values.draft) ? html` <a class="page-title-action" href="${ctx.cfg.siteUrl}${url}" target="_blank" rel="noopener">${t('edit.view')}</a>` : ''}
   <hr class="wp-header-end">
-  <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form">
+  <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form" novalidate>
     ${nonce(ctx)}<input type="hidden" name="action" value="editpost"><input type="hidden" name="post_type" value="${pt}">
     <input type="hidden" name="post" value="${isNew ? '' : slug}"><input type="hidden" name="_hash" value="${hash || ''}">
     <div id="poststuff"><div id="post-body" class="metabox-holder columns-2">

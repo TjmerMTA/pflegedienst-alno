@@ -248,7 +248,11 @@ function setImage(field, im) {
   $('.js-image-remove', field).hidden = !im;
   $('.image-actions .sep', field).hidden = !im;
   const alt = $('.js-image-alt', field);
-  if (alt && im && !alt.value.trim() && im.alt) alt.value = im.alt;
+  if (alt) {
+    $('.image-alt', field).hidden = !im;
+    if (!im) alt.value = ''; // no image = value "" and alt ""
+    else if (!alt.value.trim() && im.alt) alt.value = im.alt;
+  }
 }
 
 if (modal) {

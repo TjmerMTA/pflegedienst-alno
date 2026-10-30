@@ -206,6 +206,39 @@ test('image and alt per list item through the form', async () => {
   assert.match(media.text_, /Anderes Bild/);
 });
 
+test('removing an image saves value "" and alt "", even if the alt was still in the form', async () => {
+  const { fields } = await c.editForm(editUrl);
+  setField(fields, 'f[hero][image][value]', '');
+  assert.ok(fields.find(([k]) => k === 'f[hero][image][alt]')[1], 'the old alt is still sent');
+  assert.equal((await save(fields)).status, 303);
+  const f = JSON.parse(read(site, INDEX)).groups[1].fields[4];
+  assert.equal(f.value, '');
+  assert.equal(f.alt, '');
+  const back = await c.editForm(editUrl);
+  setField(back.fields, 'f[hero][image][value]', 'team.jpg');
+  setField(back.fields, 'f[hero][image][alt]', 'Wieder da');
+  assert.equal((await save(back.fields)).status, 303);
+});
+
+test('an image without alt is refused with a clear message, naming the list item', async () => {
+  const text = read(site, INDEX);
+  const { fields } = await c.editForm(editUrl);
+  const name = fields.find(([k]) => /^f\[cards\]\[items\]\[[^_].*\]\[photo\]\[alt\]$/.test(k))[0];
+  setField(fields, name, '  ');
+  const r = await save(fields);
+  assert.equal(r.status, 422);
+  assert.match(r.text_, /Karte 1 › Bild: Alternativtext fehlt: Ist ein Bild gesetzt, muss der Alternativtext ausgefüllt sein\./);
+  assert.equal(read(site, INDEX), text);
+});
+
+test('saving is decided by the server: the browser must not block the form silently', async () => {
+  for (const p of [editUrl, '/wp-admin/post.php?post_type=post&post=erster-beitrag', '/wp-admin/post-new.php?post_type=post', '/wp-admin/post.php?post_type=team&post=erika-beispiel']) {
+    const r = await c.get(p);
+    assert.match(r.text_, /<form[^>]*id="post"[^>]*\bnovalidate\b/, p);
+    assert.doesNotMatch(r.text_, /type="url"/, p);
+  }
+});
+
 test('blog: edit keeps the Markdown body and the unknown keys', async () => {
   const url = '/wp-admin/post.php?post_type=post&post=erster-beitrag';
   const original = read(site, 'src/content/blog/erster-beitrag.md');
