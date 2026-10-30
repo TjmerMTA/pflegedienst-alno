@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { intlPhone } from '../src/lib/phone.mjs';
 
@@ -20,4 +21,14 @@ test('номер для tel: выводится из показанного', ()
 
 test('без цифр номера нет: ссылка не ведёт на пустой +49', () => {
   for (const shown of ['', null, undefined, 'auf Anfrage']) assert.equal(intlPhone(shown), '', String(shown));
+});
+
+test('поле «Telefon» ведёт все ссылки: второе поле пусто и не обязательно, а сайт берёт номер из показанного', () => {
+  const contact = JSON.parse(readFileSync('src/content/pages/_global.json', 'utf8')).groups.find((g) => g.id === 'contact').fields;
+  const intl = contact.find((f) => f.id === 'phoneIntl');
+  assert.equal(intl.value, '');
+  assert.ok(!intl.required);
+  const site = readFileSync('src/config/site.ts', 'utf8');
+  assert.match(site, /phoneHref: `tel:\$\{intlPhone\(c\('phoneIntl'\) \|\| c\('phone'\)\)\}`/);
+  assert.match(site, /phoneIntl: c\('phoneIntl'\) \|\| intlPhone\(c\('phone'\)\)/);
 });

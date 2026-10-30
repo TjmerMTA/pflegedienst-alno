@@ -1,7 +1,7 @@
 // Browser behaviour of the screens: metaboxes, counters, classic editor, media modal, lists, uploads,
 // status polling. Document listeners are installed once; mount() wires up each freshly rendered screen.
-import { sanitizeHtml, safeHref, slugify, PAGE_TAGS, MD_TAGS } from './rules.js';
-import { markdownToHtml, htmlToMarkdown } from './markdown.js';
+import { sanitizeHtml, safeHref, slugify, PAGE_TAGS, MD_TAGS, MD_VISUAL_TAGS } from './rules.js';
+import { markdownToHtml, htmlToMarkdown, bodyImagePath, imageMarkdown } from './markdown.js';
 import { thumbUrl } from './views/fields.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -46,7 +46,8 @@ function initEditor(wrap) {
   let linkMode = null;
 
   const toVisual = () => {
-    visual.innerHTML = format === 'markdown' ? sanitizeHtml(markdownToHtml(area.value), MD_TAGS) : sanitizeHtml(area.value, PAGE_TAGS);
+    visual.innerHTML = format === 'markdown' ? sanitizeHtml(markdownToHtml(area.value), MD_VISUAL_TAGS) : sanitizeHtml(area.value, PAGE_TAGS);
+    $$('img[data-md]', visual).forEach(showImage);
   };
   const fromVisual = () => {
     const raw = visual.innerHTML.replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>').replace(/&nbsp;| /g, ' ');
@@ -54,6 +55,45 @@ function initEditor(wrap) {
     area.dispatchEvent(new Event('change', { bubbles: true }));
   };
   const mode = () => (wrap.classList.contains('tmce-active') ? 'visual' : 'text');
+  const showImage = (img) => { const p = bodyImagePath(img.dataset.md); if (p) img.src = thumbUrl(p); };
+  // The modal takes the focus away; this is where the cursor was.
+  let cursor = null;
+  const rememberCursor = () => {
+    const sel = getSelection();
+    if (sel.rangeCount && visual.contains(sel.anchorNode)) cursor = sel.getRangeAt(0).cloneRange();
+  };
+  ['keyup', 'mouseup', 'input'].forEach((ev) => visual.addEventListener(ev, rememberCursor));
+  function insertImage(im, alt) {
+    const md = imageMarkdown(im.path, alt);
+    if (mode() === 'text') {
+      area.setRangeText(md, area.selectionStart, area.selectionEnd, 'end');
+      area.focus();
+      area.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+    const img = document.createElement('img');
+    img.dataset.md = md;
+    img.alt = alt;
+    showImage(img);
+    if (cursor && visual.contains(cursor.startContainer) && cursor.startContainer !== visual) {
+      cursor.deleteContents();
+      cursor.insertNode(img);
+    } else {
+      const p = document.createElement('p');
+      p.append(img);
+      visual.append(p);
+    }
+    visual.focus();
+    const after = document.createRange();
+    after.setStartAfter(img);
+    after.collapse(true);
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(after);
+    cursor = after.cloneRange();
+    fromVisual();
+  }
+  $('.js-add-media', wrap)?.addEventListener('click', () => openModal(null, insertImage));
   const setMode = (m) => {
     if (m === 'visual' && wrap.dataset.visual === 'off') return;
     if (m === mode()) return;
@@ -170,6 +210,7 @@ function initEditor(wrap) {
 // ---------------- image fields + media modal ----------------
 let modal = null;
 let modalTarget = null;
+let modalInsert = null; // from the editor: what to do with the chosen image and its alt text
 let modalSelected = null;
 let mediaCache = null;
 
@@ -181,7 +222,7 @@ async function loadMedia(force) {
 
 function renderModalGrid(filter = '') {
   const grid = $('.modal-grid', modal);
-  const list = (mediaCache || []).filter((i) => i.path.toLowerCase().includes(filter.toLowerCase()));
+  const list = (mediaCache || []).filter((i) => `${i.path} ${i.title || ''}`.toLowerCase().includes(filter.toLowerCase()));
   grid.replaceChildren(...list.map((im) => {
     const li = document.createElement('li');
     li.className = 'attachment' + (modalSelected && modalSelected.path === im.path ? ' selected' : '');
@@ -189,7 +230,7 @@ function renderModalGrid(filter = '') {
     li.dataset.path = im.path;
     li.setAttribute('role', 'option');
     const img = document.createElement('img'); img.src = thumbUrl(im.path); img.alt = ''; img.loading = 'lazy';
-    const name = document.createElement('span'); name.className = 'attachment-name'; name.textContent = im.path;
+    const name = document.createElement('span'); name.className = 'attachment-name'; name.textContent = im.title || im.path;
     li.append(img, name);
     return li;
   }));
@@ -204,8 +245,10 @@ function selectInModal(path) {
   if (!modalSelected) { side.hidden = true; return; }
   side.hidden = false;
   $('.sidebar-thumb', side).src = thumbUrl(modalSelected.path);
-  $('.sidebar-name', side).textContent = modalSelected.path;
+  $('.sidebar-name', side).textContent = modalSelected.title || modalSelected.path;
   $('.sidebar-meta', side).textContent = `${Math.round(modalSelected.size / 1024)} KB${modalSelected.alt ? ' · Alt: ' + modalSelected.alt : ''}`;
+  $('.js-modal-alt', side).value = modalSelected.alt || '';
+  $('.js-modal-alt-error', side).hidden = true;
 }
 
 function modalTab(tab) {
@@ -214,9 +257,13 @@ function modalTab(tab) {
   $('.media-tab-library', modal).hidden = tab !== 'library';
 }
 
-async function openModal(field) {
+async function openModal(field, insert = null) {
   if (!modal) return;
   modalTarget = field;
+  modalInsert = insert;
+  $('#media-modal-title', modal).textContent = opts.t(insert ? 'modal.insert.title' : 'modal.title');
+  $('.js-modal-choose', modal).textContent = opts.t(insert ? 'modal.insert.choose' : 'modal.choose');
+  $('.media-alt', modal).hidden = !insert;
   modal.hidden = false;
   document.body.classList.add('modal-open');
   modalTab('library');
@@ -232,6 +279,7 @@ function closeModal() {
   document.body.classList.remove('modal-open');
   const btn = modalTarget && $('.js-image-choose', modalTarget);
   modalTarget = null;
+  modalInsert = null;
   btn?.focus();
 }
 function setImage(field, im) {
@@ -253,6 +301,19 @@ function setImage(field, im) {
   }
 }
 
+function useSelected() {
+  if (!modalSelected) return;
+  if (modalInsert) {
+    const input = $('.js-modal-alt', modal);
+    const alt = input.value.trim();
+    $('.js-modal-alt-error', modal).hidden = !!alt;
+    if (!alt) { input.focus(); return; }
+    modalInsert(modalSelected, alt);
+  } else if (modalTarget) setImage(modalTarget, modalSelected);
+  else return;
+  closeModal();
+}
+
 function initModal(el) {
   modal = el;
   modalTarget = null;
@@ -264,11 +325,11 @@ function initModal(el) {
     if (e.target.closest('.js-modal-close')) return closeModal();
     const tab = e.target.closest('.media-menu-item'); if (tab) return modalTab(tab.dataset.tab);
     const li = e.target.closest('.modal-grid .attachment'); if (li) return selectInModal(li.dataset.path);
-    if (e.target.closest('.js-modal-choose') && modalSelected && modalTarget) { setImage(modalTarget, modalSelected); closeModal(); }
+    if (e.target.closest('.js-modal-choose')) useSelected();
   });
   modal.addEventListener('dblclick', (e) => {
     const li = e.target.closest('.modal-grid .attachment');
-    if (li && modalTarget) { selectInModal(li.dataset.path); setImage(modalTarget, modalSelected); closeModal(); }
+    if (li) { selectInModal(li.dataset.path); if (!modalInsert) useSelected(); }
   });
   modal.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
@@ -474,7 +535,7 @@ function installOnce() {
     if (e.target.matches('.js-count')) updateCounter(e.target);
     if (e.target.matches('.js-media-filter')) {
       const q = e.target.value.toLowerCase();
-      $$('.media-grid .attachment').forEach((li) => { li.hidden = !li.dataset.path.toLowerCase().includes(q); });
+      $$('.media-grid .attachment').forEach((li) => { li.hidden = !`${li.dataset.path} ${li.dataset.title}`.toLowerCase().includes(q); });
     }
   });
   document.addEventListener('keydown', (e) => {

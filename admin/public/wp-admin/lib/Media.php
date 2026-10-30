@@ -29,10 +29,22 @@ final class Media
     }
 
     /** Checks and re-encodes an upload. Returns [bytes, ext, width, height]. */
+    public static function msgTooLarge(int $maxBytes): string
+    {
+        return 'Datei zu groß (höchstens ' . (int) round($maxBytes / 1048576) . ' MB). Bitte das Foto verkleinern und noch einmal hochladen.';
+    }
+
+    /** The name the file had on the user's computer, as a title to find it by. It never names a file here. */
+    public static function titleOf(string $name): string
+    {
+        $base = (string) preg_replace('~^.*[/\\\\]~', '', $name);
+        return mb_substr(Rules::cleanText($base), 0, 120, 'UTF-8');
+    }
+
     public static function process(string $buf, int $maxBytes = self::MAX_BYTES): array
     {
         if ($buf === '') throw new UploadError('Leere Datei');
-        if (strlen($buf) > $maxBytes) throw new UploadError('Datei zu groß (höchstens ' . (int) round($maxBytes / 1048576) . ' MB)');
+        if (strlen($buf) > $maxBytes) throw new UploadError(self::msgTooLarge($maxBytes));
         $head = strtolower(ltrim(substr($buf, 0, 512)));
         if (strncmp($head, '<svg', 4) === 0 || strncmp($head, '<?xml', 5) === 0 || strpos($head, '<svg') !== false) throw new UploadError('SVG ist nicht erlaubt');
         $type = Rules::sniffImage($buf);

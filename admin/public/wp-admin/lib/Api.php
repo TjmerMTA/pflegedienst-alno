@@ -704,10 +704,12 @@ final class Api
     private function getMedia(): void
     {
         $search = mb_strtolower(Rules::trim((string) ($_GET['s'] ?? '')), 'UTF-8');
-        $alts = $this->mediaAlts();
+        $meta = $this->mediaAlts();
         $out = [];
         foreach ($this->site->listImages() as $i) {
-            if ($search === '' || strpos(mb_strtolower($i['path'], 'UTF-8'), $search) !== false) $out[] = $i + ['alt' => $alts[$i['path']]['alt'] ?? ''];
+            $alt = $meta[$i['path']]['alt'] ?? '';
+            $title = $meta[$i['path']]['title'] ?? '';
+            if ($search === '' || strpos(mb_strtolower("{$i['path']} $title $alt", 'UTF-8'), $search) !== false) $out[] = $i + ['alt' => $alt, 'title' => $title];
         }
         self::json(200, ['images' => $out]);
     }
@@ -719,6 +721,7 @@ final class Api
         if ($bytes === null) throw new HttpError(404, 'not_found');
         $info = @getimagesizefromstring($bytes);
         $image = ['path' => $item, 'name' => basename($item), 'size' => strlen($bytes), 'pending' => isset($this->site->pending()[$item])];
+        $image['title'] = $this->mediaAlts()[$item]['title'] ?? '';
         self::json(200, ['image' => $image, 'info' => $info ? ['width' => $info[0], 'height' => $info[1]] : (object) [], 'usedOn' => $this->site->usages($item), 'alt' => $this->mediaAlts()[$item]['alt'] ?? '']);
     }
 
@@ -726,13 +729,19 @@ final class Api
     {
         $item = (string) ($b['path'] ?? '');
         if (!$this->site->imageExists($item)) throw new HttpError(404, 'not_found');
-        $this->store->withLock('media', function () use ($item, $b) {
-            $alts = $this->mediaAlts();
-            $alt = mb_substr(Rules::cleanText((string) ($b['alt'] ?? '')), 0, Rules::ALT_MAX, 'UTF-8');
-            if ($alt !== '') $alts[$item] = ['alt' => $alt]; else unset($alts[$item]);
-            $this->store->writeJson('media.json', $alts);
-        });
+        $this->saveMediaEntry($item, ['alt' => mb_substr(Rules::cleanText((string) ($b['alt'] ?? '')), 0, Rules::ALT_MAX, 'UTF-8')]);
         self::json(200, ['ok' => true]);
+    }
+
+    /** Alt text and original file name of an image. An empty value removes it; null the whole entry. */
+    private function saveMediaEntry(string $item, ?array $values): void
+    {
+        $this->store->withLock('media', function () use ($item, $values) {
+            $meta = $this->mediaAlts();
+            $entry = $values === null ? [] : array_filter($values + ($meta[$item] ?? []), static fn ($v) => $v !== '');
+            if ($entry) $meta[$item] = $entry; else unset($meta[$item]);
+            $this->store->writeJson('media.json', $meta);
+        });
     }
 
     private function deleteMedia(array $b): void
@@ -750,6 +759,7 @@ final class Api
                 $this->gh->commit([$path => null], "Admin: Bild gelöscht – $item [skip ci]", $this->user['name'], [$path => $this->gh->tree()[$path]['sha']]);
                 $this->store->write('trash/media/' . time() . '-' . str_replace('/', '__', $item), $bytes);
             }
+            $this->saveMediaEntry($item, null);
             $this->store->log(['event' => 'media-delete', 'user' => $this->user['name'], 'file' => $item]);
             self::json(200, ['ok' => true]);
         });
@@ -762,14 +772,14 @@ final class Api
      */
     private function upload(): void
     {
-        if (!$_FILES && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > self::bytes((string) ini_get('post_max_size'))) throw new HttpError(413, 'too_large', 'Datei zu groß');
+        if (!$_FILES && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > self::bytes((string) ini_get('post_max_size'))) throw new HttpError(413, 'too_large', Media::msgTooLarge(self::uploadMax()));
         $f = $_FILES['file'] ?? null;
         $errors = [];
         $done = [];
         if (!is_array($f) || !is_string($f['tmp_name'] ?? null)) {
             $errors[] = ['file' => '', 'msg' => 'Leere Datei'];
         } elseif ($f['error'] === UPLOAD_ERR_INI_SIZE || $f['error'] === UPLOAD_ERR_FORM_SIZE) {
-            $errors[] = ['file' => (string) $f['name'], 'msg' => 'Datei zu groß (höchstens ' . (int) round(self::uploadMax() / 1048576) . ' MB)'];
+            $errors[] = ['file' => (string) $f['name'], 'msg' => Media::msgTooLarge(self::uploadMax())];
         } elseif ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
             $errors[] = ['file' => (string) $f['name'], 'msg' => 'Leere Datei'];
         } else {
@@ -786,8 +796,10 @@ final class Api
                         $this->gh->commit([Site::IMG . $p => $bytes], "Admin: Bild hochgeladen – uploads/$name [skip ci]", $this->user['name'], [Site::IMG . $p => null]);
                     });
                 }
+                $title = Media::titleOf((string) $f['name']);
+                $this->saveMediaEntry($p, ['title' => $title]);
                 $this->store->log(['event' => 'upload', 'user' => $this->user['name'], 'file' => $p, 'original' => mb_substr((string) $f['name'], 0, 80), 'bytes' => strlen($bytes)]);
-                $done[] = ['path' => $p, 'name' => $name, 'width' => $w, 'height' => $h, 'size' => strlen($bytes), 'alt' => ''];
+                $done[] = ['path' => $p, 'name' => $name, 'title' => $title, 'width' => $w, 'height' => $h, 'size' => strlen($bytes), 'alt' => ''];
             } catch (UploadError $e) {
                 $errors[] = ['file' => mb_substr((string) $f['name'], 0, 120), 'msg' => $e->getMessage()];
             }

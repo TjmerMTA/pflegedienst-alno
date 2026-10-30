@@ -51,9 +51,12 @@ export function editor(ctx, { name, id, label, value, format = 'html', required,
   return html`<div class="field field-editor${errs?.length ? ' has-error' : ''}">
     ${label ? html`<label for="${id}" class="editor-label">${label}${required ? raw(' <span class="req">*</span>') : ''}</label>` : ''}
     <div class="wp-editor-wrap ${visual ? 'tmce-active' : 'html-active'}${tall ? ' tall' : ''}" data-format="${format}" data-visual="${visual ? 'on' : 'off'}">
-      <div class="wp-editor-tabs" role="tablist">
-        <button type="button" class="wp-switch-editor switch-tmce" data-mode="visual" role="tab"${visual ? '' : raw(' disabled')}>${t('edit.visual')}</button>
-        <button type="button" class="wp-switch-editor switch-html" data-mode="text" role="tab">${t('edit.text')}</button>
+      <div class="wp-editor-tools">
+        ${format === 'markdown' ? html`<button type="button" class="button js-add-media"><svg viewBox="0 0 20 20" class="ed-icon" aria-hidden="true"><path d="M3 4h14v12H3zM5 6v6l3-3 3 3 2-2 2 2V6z" fill="currentColor" fill-rule="evenodd"/></svg> ${t('edit.addmedia')}</button>` : ''}
+        <div class="wp-editor-tabs" role="tablist">
+          <button type="button" class="wp-switch-editor switch-tmce" data-mode="visual" role="tab"${visual ? '' : raw(' disabled')}>${t('edit.visual')}</button>
+          <button type="button" class="wp-switch-editor switch-html" data-mode="text" role="tab">${t('edit.text')}</button>
+        </div>
       </div>
       <div class="wp-editor-container">
         <div class="wp-editor-toolbar" role="toolbar">

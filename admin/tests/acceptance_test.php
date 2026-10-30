@@ -67,4 +67,53 @@ test('a newly chosen favicon that is too small or not square is refused, with th
     $r = $setFavicon($good);
     eq($r['status'], 200, $r['body']);
 });
+
+test('the path Medien shows works in a text and is stored as the one the build needs', function () use ($admin, $e) {
+    $d = $admin->get('entry/new', ['type' => 'post'])['json'];
+    $p = $admin->upload(picture(40, 30), 'a.png', '&stage=1')['json']['files'][0]['path'];
+    $body = "Vor ![Foto]($p) nach.\n\n![Team](team.jpg \"Titel\")\n\n`uploads/x.jpg` bleibt\n";
+    $r = $admin->post('entry', ['type' => 'post', 'id' => '', 'slug' => 'medien-pfad', 'values' => ['title' => 'Medien', 'description' => 'd'] + $d['values'], 'body' => $body]);
+    eq($r['status'], 200, $r['body']);
+    $text = (string) $e->git->read('src/content/blog/medien-pfad.md');
+    has($text, "Vor ![Foto](../../assets/img/$p) nach.");
+    has($text, '![Team](../../assets/img/team.jpg "Titel")');
+    has($text, '`uploads/x.jpg` bleibt');
+    ok($e->git->read("src/assets/img/$p") !== null, 'staged image not carried');
+});
+test('a path that is no image of the library stays refused, and nothing else is rewritten', function () {
+    eq(Rules::normalizeBodyImages('![a](uploads/nein.jpg)', static fn () => false), '![a](uploads/nein.jpg)');
+    eq(Rules::normalizeBodyImages('![a](../../assets/img/a.jpg)', static fn () => true), '![a](../../assets/img/a.jpg)');
+    eq(Rules::normalizeBodyImages('![a](/a.jpg)', static fn () => true), '![a](/a.jpg)');
+    eq(Rules::normalizeBodyImages('![a](<a.jpg> "t") und [b](a.jpg)', static fn () => true), '![a](<../../assets/img/a.jpg> "t") und [b](a.jpg)');
+    eq(Rules::normalizeBodyImages('ohne Bild', static fn () => true), 'ohne Bild');
+});
+
+test('an upload keeps its file name as a title to search by, not as a file name', function () use ($admin) {
+    $r = $admin->upload(picture(40, 30), 'abnahme-hero Ü.png')['json']['files'][0];
+    eq($r['title'], 'abnahme-hero Ü.png');
+    ok(strpos($r['path'], 'abnahme') === false, 'random file name');
+    $found = $admin->get('media', ['s' => 'ABNAHME'])['json']['images'];
+    eq(array_column($found, 'path'), [$r['path']]);
+    eq($found[0]['title'], 'abnahme-hero Ü.png');
+    eq($admin->get('media/item', ['path' => $r['path']])['json']['image']['title'], 'abnahme-hero Ü.png');
+});
+test('saving the alt text keeps the title, deleting the image forgets both', function () use ($admin, $e) {
+    $r = $admin->upload(picture(40, 30), 'bleibt.png')['json']['files'][0];
+    eq($admin->post('media/meta', ['path' => $r['path'], 'alt' => 'Beschreibung'])['status'], 200);
+    $i = $admin->get('media/item', ['path' => $r['path']])['json'];
+    eq([$i['alt'], $i['image']['title']], ['Beschreibung', 'bleibt.png']);
+    eq($admin->post('media/meta', ['path' => $r['path'], 'alt' => ''])['status'], 200);
+    eq($admin->get('media/item', ['path' => $r['path']])['json']['image']['title'], 'bleibt.png');
+    eq($admin->post('media/delete', ['path' => $r['path']])['status'], 200);
+    ok(!isset($e->store->readJson('media.json', [])[$r['path']]), 'entry left');
+});
+test('a file name is reduced to a harmless title', function () {
+    eq(Media::titleOf('C:\\Users\\x\\foto.jpg'), 'foto.jpg');
+    eq(Media::titleOf('../../etc/passwd'), 'passwd');
+    eq(Media::titleOf("a\x00b\n.jpg"), 'ab .jpg');
+    eq(mb_strlen(Media::titleOf(str_repeat('ä', 300) . '.jpg')), 120);
+});
+test('a file over the limit gets a message that says what to do', function () {
+    eq(Media::msgTooLarge(10 * 1048576), 'Datei zu groß (höchstens 10 MB). Bitte das Foto verkleinern und noch einmal hochladen.');
+});
 finish();

@@ -63,8 +63,10 @@ const api = {
   }),
   // Upload errors are part of the answer: the screen shows them per file.
   upload: async (formData, stage) => {
+    const tooLarge = () => t.msg(`Datei zu groß (höchstens ${Math.round(session.uploadMaxBytes / 1048576)} MB). Bitte das Foto verkleinern und noch einmal hochladen.`);
+    if (formData.get('file')?.size > session.uploadMaxBytes) return { message: tooLarge() };
     const r = await fetch(query('media/upload', { stage: stage ? 1 : undefined }), { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-WP-Nonce': session?.nonce || '' } });
-    const data = await r.json().catch(() => ({ message: `HTTP ${r.status}` }));
+    const data = await r.json().catch(() => ({ message: r.status === 413 ? tooLarge() : t('err.server') }));
     if (r.status === 401) { session = null; afterLogin = location.hash; go('#/login?expired=1'); }
     return data;
   },

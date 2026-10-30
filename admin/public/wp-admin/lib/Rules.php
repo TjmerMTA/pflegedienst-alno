@@ -393,6 +393,16 @@ final class Rules
         return preg_match('/^[ \t]*(?:https?:|\/\/)/i', $src) === 1;
     }
 
+    /** Medien shows `uploads/x.jpg`: an image written with that path gets the one the build needs. */
+    public static function normalizeBodyImages(string $md, callable $exists): string
+    {
+        return preg_replace_callback(self::MD_IMAGE, static function (array $m) use ($exists): string {
+            [$src, $at] = ($m[2][0] ?? '') !== '' ? $m[2] : $m[1];
+            if (!self::isImagePath($src) || !$exists($src)) return $m[0][0];
+            return substr_replace($m[0][0], self::IMG_PREFIX . $src, $at - $m[0][1], strlen($src));
+        }, $md, -1, $count, PREG_OFFSET_CAPTURE) ?? $md;
+    }
+
     /** `![` that is no image in the known form, with a `](` after it or a reference definition anywhere. */
     private static function hasOddImage(string $md): bool
     {
@@ -751,6 +761,7 @@ final class Rules
         $body = $ctx['oldBody'] ?? '';
         if (!empty($def['body'])) {
             $body = rtrim(self::sanitizeMarkdown($input['body'] ?? ''), " \t\n");
+            if (isset($ctx['imageExists'])) $body = self::normalizeBodyImages($body, $ctx['imageExists']);
             $n = self::chars($body);
             if ($n > self::BODY_MAX) $errors[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::msgTooLong(self::BODY_MAX, $n)];
             if (self::hasUnsafeLink($body)) $errors[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::MSG_UNSAFE_LINK];

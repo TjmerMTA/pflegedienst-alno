@@ -36,6 +36,14 @@ Geht beim Erstellen etwas schief, erscheint eine Fehlermeldung und **die Website
 
 Unter **Medien** oder direkt am Bildfeld mit „Bild ersetzen“. Erlaubt sind JPG, PNG und WebP. Zu große Bilder werden automatisch verkleinert. Wer ein Bild einsetzt, muss einen Alternativtext ausfüllen: Das ist die Beschreibung für Menschen, die das Bild nicht sehen können.
 
+**Bild im Text:** Im Editor von Beiträgen und Leistungen über **Dateien hinzufügen** ein Bild hochladen oder aus der Mediathek wählen, den Alternativtext eintragen, fertig: Das Bild steht an der Stelle des Cursors, in den Tabs Visuell und Text. Im Tab Text geht auch der Pfad aus den Medien, etwa `![Beschreibung](uploads/abc.jpg)`.
+
+**Logo, Favicon, Bild beim Teilen:** unter Einstellungen im ersten Kasten. Die nötige Mindestgröße steht jeweils am Feld.
+
+**Suchen:** In den Medien findet die Suche auch den ursprünglichen Dateinamen.
+
+**Telefonnummer ändern:** Nur das Feld **Telefon** in den Einstellungen ändern, alle Anruf-Links folgen. WhatsApp ist ein eigenes Feld.
+
 ### Anfragen
 
 Unter **Anfragen** stehen die Eingänge aus den Formularen der Website. Die Liste zeigt Datum, Formular, Name und Telefon. Alles Weitere steht nur in der Ansicht einer Anfrage.
@@ -87,6 +95,14 @@ Ein Administrator vergibt unter **Benutzer** ein neues Passwort. Hat kein Admini
 ### Картинки
 
 В разделе **Медиафайлы** или прямо в поле картинки кнопкой «Заменить картинку». Подходят JPG, PNG и WebP. Слишком большие картинки уменьшаются сами. Если картинка выбрана, нужно заполнить альтернативный текст: это описание для тех, кто её не видит.
+
+**Картинка в тексте:** в редакторе записей и услуг кнопка **Добавить файлы**: загрузите картинку или выберите из библиотеки, заполните альтернативный текст, и картинка встанет туда, где был курсор, во вкладках «Визуально» и «Текст». Во вкладке «Текст» подходит и путь из библиотеки, например `![Описание](uploads/abc.jpg)`.
+
+**Логотип, фавикон, картинка для соцсетей:** в настройках, первый блок. Минимальный размер указан у каждого поля.
+
+**Поиск:** в медиатеке находятся и исходные имена файлов.
+
+**Смена телефона:** достаточно поля **Telefon** в настройках, все ссылки для звонка изменятся сами. WhatsApp настраивается отдельным полем.
 
 ### Заявки
 
@@ -149,6 +165,8 @@ rm alno_sftp known_hosts
 Without `SFTP_KNOWN_HOSTS` the workflow warns and trusts whatever key answers that day. Pushing `deploy.yml` itself needs a token with the `workflow` right. The admin's token never touches it.
 
 **2. Subdomain.** In konsoleH point `admin.pflegedienst-alno.de` at `public_html/admin-alno` and give it a TLS certificate: konsoleH allows a subdomain only inside `public_html`, so the admin's docroot lies inside the site's. If the folder has another name, change `ADMIN_ROOT` and `ADMIN_DIR` in `deploy.yml` and the name in both `.htaccess` files. The first deploy creates it, if konsoleH needs it earlier create it empty.
+
+Russian labels of the page files and the schema are in `wp-admin/assets/labels-ru.json`: key = the exact German `label`, `help` or `itemLabel`, German where a key is missing. `admin/tests/labels_ru_check.mjs` runs with the admin tests, so a new German label without Russian fails them.
 
 The nesting has three consequences, all handled: `public_html/.htaccess` is inherited by the admin folder, so its redirect and headers apply only to `pflegedienst-alno.de` and `www.`; `pflegedienst-alno.de/admin-alno/…` is refused in both `.htaccess` files, on top of the admin's own host check; and the site's deploy neither uploads to nor deletes from that folder. A data folder inside `public_html` is refused by the setup screen. The `index.htm` Hetzner puts in `public_html` does not get in the way, because the site's `.htaccess` sets `DirectoryIndex index.html`, but it stays reachable under its own name: delete it by hand.
 

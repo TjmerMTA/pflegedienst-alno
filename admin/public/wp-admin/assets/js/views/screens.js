@@ -318,7 +318,7 @@ export function mediaLibrary(ctx, { images, selected, search }) {
   <div class="media-uploader-inline" hidden>${uploader(ctx)}</div>
   <div class="media-toolbar wp-filter"><form class="media-search" data-get="#/upload.php"><input type="search" name="s" value="${search || ''}" placeholder="${t('media.filter')}" class="js-media-filter" aria-label="${t('media.filter')}"></form>
     <span class="displaying-num">${t.count(images.length)}</span></div>
-  <ul class="attachments media-grid">${images.length ? images.map((im) => html`<li class="attachment${selected === im.path ? ' selected' : ''}" data-path="${im.path}"><a href="#/upload.php?item=${encodeURIComponent(im.path)}" title="${im.path}" class="attachment-preview"><img src="${thumbUrl(im.path)}" alt="" loading="lazy"><span class="attachment-name">${im.path}</span>${im.pending ? html`<span class="attachment-pending">${t('media.pending.short')}</span>` : ''}</a></li>`) : html`<li class="no-media">${t('media.empty')}</li>`}</ul>`;
+  <ul class="attachments media-grid">${images.length ? images.map((im) => html`<li class="attachment${selected === im.path ? ' selected' : ''}" data-path="${im.path}" data-title="${im.title || ''}"><a href="#/upload.php?item=${encodeURIComponent(im.path)}" title="${im.title || im.path}" class="attachment-preview"><img src="${thumbUrl(im.path)}" alt="" loading="lazy"><span class="attachment-name">${im.title || im.path}</span>${im.pending ? html`<span class="attachment-pending">${t('media.pending.short')}</span>` : ''}</a></li>`) : html`<li class="no-media">${t('media.empty')}</li>`}</ul>`;
 }
 
 export function mediaDetails(ctx, { image, info, usedOn, alt: defaultAlt }) {
@@ -330,6 +330,7 @@ export function mediaDetails(ctx, { image, info, usedOn, alt: defaultAlt }) {
       <div class="attachment-info">
         <div class="details">
           <p><strong>${t('media.file')}:</strong> ${image.name}</p>
+          ${image.title ? html`<p><strong>${t('media.original')}:</strong> ${image.title}</p>` : ''}
           <p><strong>${t('media.path')}:</strong> <code>${image.path}</code></p>
           <p><strong>${t('media.size')}:</strong> ${fmtSize(image.size)}</p>
           ${info.width ? html`<p><strong>${t('media.dims')}:</strong> ${info.width} × ${info.height} px</p>` : ''}
@@ -365,7 +366,8 @@ export function mediaModal(ctx) {
         <div class="media-tab media-tab-library">
           <div class="media-toolbar"><input type="search" class="js-modal-filter" placeholder="${t('media.filter')}" aria-label="${t('media.filter')}"></div>
           <div class="media-library-wrap"><ul class="attachments modal-grid"></ul>
-            <aside class="media-sidebar"><div class="media-sidebar-inner" hidden><img alt="" class="sidebar-thumb"><p class="sidebar-name"></p><p class="sidebar-meta description"></p></div></aside></div>
+            <aside class="media-sidebar"><div class="media-sidebar-inner" hidden><img alt="" class="sidebar-thumb"><p class="sidebar-name"></p><p class="sidebar-meta description"></p>
+              <div class="media-alt" hidden><label for="media-alt-input">${t('modal.alt')} <span class="req">*</span></label><input type="text" id="media-alt-input" class="js-modal-alt" maxlength="300"><p class="description">${t('modal.alt.help')}</p><p class="field-error js-modal-alt-error" hidden>${t('modal.alt.missing')}</p></div></div></aside></div>
         </div>
       </div>
       <div class="media-frame-toolbar"><button type="button" class="button button-primary button-large js-modal-choose" disabled>${t('modal.choose')}</button></div>

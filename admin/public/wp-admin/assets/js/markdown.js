@@ -2,7 +2,7 @@
 // Covers what the site's Markdown uses: headings (##–####), paragraphs, bold/italic, links, inline code,
 // bullet and numbered lists (nested), blockquotes, horizontal rules, hard line breaks.
 // Runs in the browser only; what gets stored is decided by rules.js on the server.
-import { sanitizeHtml, safeHref, decodeEntities, MD_TAGS } from './rules.js';
+import { sanitizeHtml, safeHref, decodeEntities, MD_VISUAL_TAGS } from './rules.js';
 
 const escText = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escAttr = (s) => escText(s).replace(/"/g, '&quot;');
@@ -12,7 +12,7 @@ export function unsupportedMarkdown(md) {
   const s = String(md || '');
   const found = [];
   if (/^[ \t]*\|.*\|[ \t]*$/m.test(s)) found.push('Tabelle');
-  if (hasInlineImage(s)) found.push('Bild im Text');
+  if (hasOddImage(s)) found.push('Bild im Text');
   if (/^[ \t]*(```|~~~)/m.test(s)) found.push('Codeblock');
   if (/<[a-zA-Z/!?]/.test(s.replace(/`[^`\n]*`/g, ''))) found.push('HTML');
   if (/^[ \t]*\[[^\]\n]+\]:[ \t]*\S/m.test(s)) found.push('Referenz-Link');
@@ -35,10 +35,29 @@ function hasSetextHeading(s) {
   return false;
 }
 
-// Alt texts may hold brackets and line breaks, so any `![` with a `](` after it counts.
-function hasInlineImage(s) {
-  const open = s.indexOf('![');
-  return open !== -1 && s.includes('](', open);
+// The closed form of Rules::MD_IMAGE: what the server takes as an image is what the Visuell tab shows as one.
+const MD_IMAGE = /!\[(?:[^\[\]\\`]|\\[\s\S]|\[(?:[^\[\]\\`]|\\[\s\S])*\](?!\())*\]\([ \t]*(?:\n[ \t>]*)?(?:<([^<>\n\\]*)>|((?:[^\s()\\]|\\[\s\S]|\((?:[^\s()\\]|\\[\s\S])*\))*))(?:[ \t]*(?:\n[ \t>]*)?(?:"[^"\n]*"|'[^'\n]*'))?[ \t]*(?:\n[ \t>]*)?\)/g;
+const IMG_PREFIX = '../../assets/img/';
+
+export const bodyImages = (s) => [...String(s).matchAll(MD_IMAGE)].map((m) => m[2] || m[1] || '');
+
+// An image of the library, as a path of the library; null for anything else.
+export function bodyImagePath(md) {
+  const [src = ''] = bodyImages(md);
+  return src.startsWith(IMG_PREFIX) ? src.slice(IMG_PREFIX.length) : null;
+}
+
+// The Markdown of a chosen image. Alt text keeps to what the closed form allows.
+export function imageMarkdown(path, alt) {
+  const src = IMG_PREFIX + path;
+  return `![${String(alt).replace(/[[\]`\\]/g, '').replace(/\s+/g, ' ').trim()}](${/[\s()]/.test(src) ? `<${src}>` : src})`;
+}
+
+// What the server refuses as well, so it can only be a file written by hand.
+function hasOddImage(s) {
+  const rest = s.replace(MD_IMAGE, ' ');
+  const open = rest.indexOf('![');
+  return open !== -1 && rest.includes('](', open);
 }
 
 // ---------- Markdown -> HTML ----------
@@ -47,6 +66,8 @@ function inline(src) {
   let s = String(src);
   const codes = [];
   s = s.replace(/`([^`]+)`/g, (m, c) => { codes.push(c); return `\u0000C${codes.length - 1}\u0000`; });
+  const images = [];
+  s = s.replace(MD_IMAGE, (m) => { images.push(m); return `\u0000I${images.length - 1}\u0000`; });
   const links = [];
   s = s.replace(/\[([^\]]*)\]\(\s*<?([^)\s>]*)>?(?:\s+"[^"]*")?\s*\)/g, (m, text, url) => {
     links.push({ text, url }); return `\u0000L${links.length - 1}\u0000`;
@@ -64,9 +85,17 @@ function inline(src) {
     const inner = inline(text);
     return href ? `<a href="${escAttr(href)}">${inner}</a>` : inner;
   });
+  // Nested in a link the image belongs to the outer call, which replaces it after the link.
+  s = s.replace(/\u0000I(\d+)\u0000/g, (m, i) => (images[i] === undefined ? m : imageHtml(images[i])));
   s = s.replace(/\u0000C(\d+)\u0000/g, (m, i) => `<code>${escText(codes[i])}</code>`);
   s = s.replace(/\u0000E(\d+)\u0000/g, (m, c) => escText(String.fromCharCode(Number(c))));
   return s;
+}
+
+// The element keeps the Markdown as it was written, so an image comes back to the byte.
+function imageHtml(md) {
+  const alt = md.slice(2, md.lastIndexOf('](')).replace(/\\(.)/g, '$1').replace(/\s+/g, ' ');
+  return `<img data-md="${escAttr(md)}" alt="${escAttr(alt)}">`;
 }
 
 const LIST_RE = /^( *)([-*+]|\d{1,9}[.)])\s+(.*)$/;
@@ -152,7 +181,7 @@ export function markdownToHtml(md) {
 function parseTree(htmlStr) {
   const root = { tag: '#root', children: [] };
   const stack = [root];
-  const re = /<(\/?)([a-z0-9]+)((?:\s+href="[^"]*")?)\s*\/?>|([^<]+)/gi;
+  const re = /<(\/?)([a-z0-9]+)((?:\s+[a-z-]+="[^"]*")*)\s*\/?>|([^<]+)/gi;
   let m;
   while ((m = re.exec(htmlStr))) {
     const top = stack[stack.length - 1];
@@ -165,8 +194,9 @@ function parseTree(htmlStr) {
     }
     const node = { tag, children: [] };
     if (tag === 'a') { const h = /href="([^"]*)"/.exec(m[3]); node.href = h ? decodeEntities(h[1]) : ''; }
+    if (tag === 'img') { const h = /data-md="([^"]*)"/.exec(m[3]); node.md = h ? decodeEntities(h[1]) : ''; }
     top.children.push(node);
-    if (tag !== 'br' && tag !== 'hr') stack.push(node);
+    if (tag !== 'br' && tag !== 'hr' && tag !== 'img') stack.push(node);
   }
   return root;
 }
@@ -191,6 +221,7 @@ function inlineMd(nodes) {
       case 'code': s += '`' + textOf(n).replace(/`/g, '') + '`'; break;
       case 'a': s += n.href ? `[${inner}](${n.href.replace(/[()\s]/g, encodeURIComponent)})` : inner; break;
       case 'br': s += '  \n'; break;
+      case 'img': s += n.md; break;
       default: s += inner;
     }
   }
@@ -269,7 +300,7 @@ function listMd(n, depth) {
 }
 
 export function htmlToMarkdown(htmlStr) {
-  const clean = sanitizeHtml(String(htmlStr ?? '').replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>'), MD_TAGS);
+  const clean = sanitizeHtml(String(htmlStr ?? '').replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>'), MD_VISUAL_TAGS);
   const out = [];
   blocksMd(parseTree(clean).children, out);
   return out.join('\n\n') + (out.length ? '\n' : '');

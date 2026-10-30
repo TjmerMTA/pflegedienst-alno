@@ -34,7 +34,7 @@ test('every message of the server has a Russian text', () => {
 
 test('the long messages with a variable part translate as a whole', () => {
   assert.match(t.msg('Das Wort „abc“ ist mit 31 Zeichen zu lang (höchstens 30): Auf schmalen Bildschirmen passt es nicht in die Zeile. Bitte mit einem Bindestrich oder Leerzeichen trennen.'), /^слово «abc»/);
-  assert.equal(t.msg('Datei zu groß (höchstens 10 MB)'), 'файл слишком большой (максимум 10 МБ)');
+  assert.equal(t.msg('Datei zu groß (höchstens 10 MB). Bitte das Foto verkleinern und noch einmal hochladen.'), 'файл слишком большой (максимум 10 МБ). Уменьшите фото и загрузите снова.');
   assert.equal(t.msg('Zeile 7: Schlüssel „title“ doppelt'), 'строка 7: ключ «title» повторяется');
   assert.equal(t.msg('GitHub-Fehler 500: boom'), 'ошибка GitHub 500: boom');
 });

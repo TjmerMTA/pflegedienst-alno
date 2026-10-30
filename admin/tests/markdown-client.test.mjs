@@ -6,7 +6,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { markdownToHtml, htmlToMarkdown, unsupportedMarkdown } from '../public/wp-admin/assets/js/markdown.js';
+import { markdownToHtml, htmlToMarkdown, unsupportedMarkdown, bodyImagePath, imageMarkdown, bodyImages } from '../public/wp-admin/assets/js/markdown.js';
+import { sanitizeHtml, MD_VISUAL_TAGS, MD_TAGS } from '../public/wp-admin/assets/js/rules.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const body = (file) => file.replace(/^---\n[\s\S]*?\n---\n+/, '').replace(/\n+$/, '');
@@ -58,8 +59,9 @@ test('text that looks like Markdown is escaped, not turned into formatting', () 
 test('unsupported constructs switch the Visuell tab off', () => {
   assert.deepEqual(unsupportedMarkdown('## ok\n\n- a\n'), []);
   assert.ok(unsupportedMarkdown('| a | b |\n|---|---|\n').includes('Tabelle'));
-  assert.ok(unsupportedMarkdown('![x](y.jpg)').includes('Bild im Text'));
-  for (const md of ['![[a]](y.jpg)', '![a\nb](y.jpg)', '![`]`](y.jpg)']) assert.ok(unsupportedMarkdown(md).includes('Bild im Text'), md);
+  // Only what the server refuses as well locks the tab: such a file was written by hand.
+  for (const md of ['![x](y.jpg)', '![[a]](y.jpg)', '![a\nb](y.jpg)', '![a](y.jpg "Titel")', '[![a](y.jpg)](/x/)']) assert.ok(!unsupportedMarkdown(md).includes('Bild im Text'), md);
+  for (const md of ['![`]`](y.jpg)', '![a ![b](c.jpg) d](e.jpg)', '![a](y.jpg (Titel))']) assert.ok(unsupportedMarkdown(md).includes('Bild im Text'), md);
   assert.ok(unsupportedMarkdown('a <div>b</div>').includes('HTML'));
 });
 
@@ -72,4 +74,32 @@ test('round trip is lossless for the fixtures and the real blog and Leistungen f
     if (unsupportedMarkdown(md).length) continue;
     assert.equal(htmlToMarkdown(markdownToHtml(md)).trim(), md.trim(), name);
   }
+});
+
+// What the Visuell tab does with a body: sanitised HTML in, and back out through the DOM's innerHTML.
+const throughVisual = (md) => htmlToMarkdown(sanitizeHtml(markdownToHtml(md), MD_VISUAL_TAGS));
+
+test('an image comes back from the Visuell tab to the byte, whatever way it was written', () => {
+  for (const md of ['Text\n\n![Foto](../../assets/img/a.jpg)\n', 'Vor ![a](../../assets/img/a.jpg) nach dem Bild.\n', '![Foto [2026]](../../assets/img/a.jpg)\n',
+    '![a\nb](../../assets/img/a.jpg)\n', '![a](../../assets/img/a.jpg "Titel")\n', '![a](<../../assets/img/a.jpg>)\n', '[![a](../../assets/img/a.jpg)](https://a.de/)\n', '- ![a](../../assets/img/a.jpg)\n',
+    '> ![a](../../assets/img/a.jpg)\n', '![a & b](../../assets/img/a.jpg?x=1&y=2)\n', '![](../../assets/img/a.jpg)\n', '## Titel\n\n![a](/bild.png)\n\nText mit **fett**.\n']) {
+    assert.equal(throughVisual(md), md, md);
+  }
+});
+
+test('the Visuell tab takes no src from a body, and a pasted image is dropped', () => {
+  const html = sanitizeHtml(markdownToHtml('![a" onerror="alert(1)](../../assets/img/a.jpg)'), MD_VISUAL_TAGS);
+  assert.doesNotMatch(html, /\ssrc=/);
+  assert.doesNotMatch(html, /"\s+onerror=/, 'the quote stays inside the attribute');
+  assert.equal(sanitizeHtml('<img src="https://evil.example/x.png" onerror="alert(1)">', MD_VISUAL_TAGS), '');
+  assert.equal(sanitizeHtml('<img src=x data-md="![a](b.jpg)" onerror=alert(1)>', MD_VISUAL_TAGS), '<img data-md="![a](b.jpg)" alt="">');
+  assert.equal(sanitizeHtml('<img data-md="![a](b.jpg)">', MD_TAGS), '', 'a page field has no images');
+});
+
+test('an image from the media modal is written in the closed form, whatever the alt text holds', () => {
+  assert.equal(imageMarkdown('uploads/a.jpg', 'Foto'), '![Foto](../../assets/img/uploads/a.jpg)');
+  assert.equal(imageMarkdown('a.jpg', ' Foto [2026] `x` \\ \n zwei '), '![Foto 2026 x zwei](../../assets/img/a.jpg)');
+  assert.equal(bodyImagePath(imageMarkdown('uploads/a.jpg', 'Foto')), 'uploads/a.jpg');
+  assert.equal(bodyImagePath('![a](/bild.png)'), null);
+  assert.deepEqual(bodyImages(imageMarkdown('team/a b.jpg', 'x')).length, 1);
 });
