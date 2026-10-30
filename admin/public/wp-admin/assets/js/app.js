@@ -163,6 +163,7 @@ function errorText(e) {
     too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server', data_dir: 'err.datadir',
   };
   if (code === 'forbidden' && e.message !== 'csrf') return t('err.denied');
+  if (code === 'locked') return t('err.locked', { n: e.data.retryMinutes });
   if (map[code]) return t(map[code], { n: 10 });
   return t.msg(e.message) || t('err.server');
 }

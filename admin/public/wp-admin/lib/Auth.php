@@ -111,6 +111,31 @@ final class Auth
         });
     }
 
+    /**
+     * The current password before a change. A stolen session must not be able to guess it: five
+     * failures lock this check, counted before the hash. Returns true, or the seconds locked (0: wrong).
+     */
+    public function checkCurrent(string $name, string $password)
+    {
+        $key = 'p:' . sha1($name);
+        $left = $this->store->withLock('lockout', function () use ($key) {
+            $t = $this->store->readJson('lockout.json', []);
+            $left = $this->lockedFor($t, $key);
+            if ($left) return $left;
+            $this->recordFail($t, $key, self::MAX_FAILS);
+            $this->store->writeJson('lockout.json', $t);
+            return 0;
+        });
+        if ($left) return $left;
+        if (!$this->checkPassword($name, $password)) return 0;
+        $this->store->withLock('lockout', function () use ($key) {
+            $t = $this->store->readJson('lockout.json', []);
+            unset($t[$key]);
+            $this->store->writeJson('lockout.json', $t);
+        });
+        return true;
+    }
+
     public function checkPassword(string $name, string $password): bool
     {
         $u = $this->users()[$name] ?? null;

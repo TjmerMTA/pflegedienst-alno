@@ -603,7 +603,7 @@ final class Api
             if ($entry && $out === $entry['text']) { self::json(200, ['ok' => true, 'id' => $slug, 'unchanged' => true]); return; }
             $title = '';
             foreach ($r['entries'] as [$k, $v]) if ($k === ($coll === 'team' ? 'name' : 'title')) $title = (string) $v;
-            $extra = $this->site->pendingFiles($this->site->entryImageRefs($coll, $r['entries']));
+            $extra = $this->site->pendingFiles(array_merge($this->site->entryImageRefs($coll, $r['entries']), Site::bodyImageRefs($r['body'])));
             $commit = $this->gh->commit([$path => $out] + $extra, 'Admin: ' . ($isNew ? 'neu' : 'aktualisiert') . ' – ' . Site::commitLabel($title) . " ({$def['dir']}/$slug.md)", $this->user['name'], [$path => $entry['hash'] ?? null]);
             $this->site->clearPending($extra);
             $this->store->log(['event' => $isNew ? 'create' : 'save', 'user' => $this->user['name'], 'file' => $path, 'commit' => $commit]);
@@ -659,8 +659,9 @@ final class Api
             if (isset($this->gh->tree()[$path])) throw new HttpError(409, 'exists', Rules::MSG_SLUG_TAKEN);
             $content = $this->store->read("$dir/$id.md");
             if ($content === null) throw new HttpError(404, 'not_found');
-            $this->refuseMissingImages($coll, $content);
-            $commit = $this->gh->commit([$path => $content], "Admin: aus dem Papierkorb wiederhergestellt – {$def['dir']}/{$meta['slug']}.md", $this->user['name'], [$path => null]);
+            $extra = $this->site->pendingFiles($this->imagesOf($coll, $content));
+            $commit = $this->gh->commit([$path => $content] + $extra, "Admin: aus dem Papierkorb wiederhergestellt – {$def['dir']}/{$meta['slug']}.md", $this->user['name'], [$path => null]);
+            $this->site->clearPending($extra);
             $this->store->delete("$dir/$id.md");
             $this->store->delete("$dir/$id.json");
             $this->store->log(['event' => 'untrash', 'user' => $this->user['name'], 'file' => $path, 'commit' => $commit]);
@@ -668,21 +669,26 @@ final class Api
         });
     }
 
-    /** Its images may have gone while an entry lay in the trash; the build would fail on them. */
-    private function refuseMissingImages(string $coll, string $content): void
+    /**
+     * The images an entry's file needs. Refuses one that has gone while it lay in the trash: the
+     * build would fail on it. One still waiting in pending/ goes into the same commit.
+     */
+    private function imagesOf(string $coll, string $content): array
     {
         try {
             $parts = Frontmatter::split($content);
             $entries = Frontmatter::parse($parts['fm']);
         } catch (FrontmatterError $e) {
-            return;
+            return [];
         }
         $exists = fn ($p) => $this->site->imageExists($p);
         $errors = Rules::missingBodyImages($parts['body'], $exists);
-        foreach ($this->site->entryImageRefs($coll, $entries) as $r) {
+        $refs = $this->site->entryImageRefs($coll, $entries);
+        foreach ($refs as $r) {
             if (!$exists($r['path'])) $errors[] = ['path' => 'image', 'label' => $r['where'], 'msg' => Rules::msgImageMissing($r['path'])];
         }
         if ($errors) throw new HttpError(422, 'validation', '', ['errors' => $errors]);
+        return array_merge($refs, Site::bodyImageRefs($parts['body']));
     }
 
     // ---------------- media ----------------
@@ -769,6 +775,8 @@ final class Api
                 $name = Media::randomName($ext);
                 $p = "uploads/$name";
                 if (($_GET['stage'] ?? '') === '1') {
+                    Media::prunePending($this->store);
+                    if (count(glob($this->store->path('pending/*')) ?: []) >= Media::PENDING_MAX) throw new UploadError('Zu viele Bilder warten auf das Speichern');
                     $this->store->write("pending/$name", $bytes);
                 } else {
                     $this->writeLock(function () use ($p, $bytes, $name) {
@@ -886,6 +894,7 @@ final class Api
                 $errors = Rules::validatePageValues($merged, $this->ctx() + ['tokens' => $this->site->tokens()]);
                 if ($errors) $refuse($errors);
                 $out = Site::serializePage($merged);
+                $extra = $this->site->pendingFiles(Site::pageImageRefs($merged));
             } else {
                 $coll = explode('/', $file)[2];
                 $def = $this->site->collections()[$coll];
@@ -905,9 +914,11 @@ final class Api
                 }
                 if ($r['errors']) $refuse($r['errors']);
                 $out = $this->site->serializeEntry($coll, $r['entries'], $r['body']);
+                $extra = $this->site->pendingFiles(array_merge($this->site->entryImageRefs($coll, $r['entries']), Site::bodyImageRefs($r['body'])));
             }
             $short = substr($rev, 0, 7);
             $commit = $this->gh->commit([$file => $out] + $extra, "Admin: Revision $short wiederhergestellt – $file", $this->user['name'], [$file => $current['sha'] ?? null]);
+            $this->site->clearPending($extra);
             $this->store->log(['event' => 'restore', 'user' => $this->user['name'], 'file' => $file, 'rev' => $rev, 'commit' => $commit]);
             self::json(200, ['ok' => true, 'job' => $commit, 'edit' => $this->editTarget($file)]);
         });
@@ -926,7 +937,11 @@ final class Api
     private function setPassword(array $b): void
     {
         $name = $this->user['name'];
-        if (!$this->auth->checkPassword($name, (string) ($b['current'] ?? ''))) throw new HttpError(422, 'wrong_password');
+        $check = $this->auth->checkCurrent($name, (string) ($b['current'] ?? ''));
+        if ($check !== true) {
+            if ($check > 0) throw new HttpError(429, 'locked', '', ['retryMinutes' => (int) ceil($check / 60)]);
+            throw new HttpError(422, 'wrong_password');
+        }
         $password = (string) ($b['password'] ?? '');
         $problem = Auth::passwordProblem($password);
         if ($problem) throw new HttpError(422, $problem);

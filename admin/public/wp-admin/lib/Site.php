@@ -83,10 +83,13 @@ final class Site
         ];
     }
 
-    /** Editors' words in a commit message must not switch off the build. */
+    /**
+     * Editors' words in a commit message must not switch off the build. Every skip marker needs a
+     * bracket or an asterisk, so those go: removing the markers themselves can leave a new one behind.
+     */
     public static function commitLabel(string $s): string
     {
-        return Rules::trim((string) preg_replace('/\[\s*(?:skip\s+ci|ci\s+skip|no\s+ci|skip\s+actions|actions\s+skip)\s*\]|\*\*\*NO_CI\*\*\*/i', '', str_replace("\n", ' ', $s)));
+        return Rules::trim(str_replace(['[', ']', '*', "\n"], ['', '', '', ' '], $s));
     }
 
     public static function serializePage(array $page): string
@@ -259,6 +262,17 @@ final class Site
         $flow = [];
         foreach ($this->collections[$coll]['fields'] as $f) if ($f['type'] === 'tags') $flow[] = $f['id'];
         return Frontmatter::build($entries, $body, $flow);
+    }
+
+    /** Images of a Markdown body, as paths in the library. */
+    public static function bodyImageRefs(string $body): array
+    {
+        $out = [];
+        foreach (Rules::bodyImages($body) as $src) {
+            $n = strlen(Rules::IMG_PREFIX);
+            if (strncmp($src, Rules::IMG_PREFIX, $n) === 0) $out[] = ['path' => substr($src, $n), 'alt' => '', 'where' => 'Text'];
+        }
+        return $out;
     }
 
     public function entryImageRefs(string $coll, array $entries): array

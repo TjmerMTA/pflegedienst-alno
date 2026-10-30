@@ -68,7 +68,7 @@ revision, for one). Then the message is «nicht erlaubtes HTML».
 renderer, wherever it thinks a code span starts. In running text the reader sees the characters that were typed; inside a code span the reader sees `&lt;`. Trailing whitespace goes.
 
 **Unsafe links are refused, never rewritten.** After decoding entities and removing backslashes and line breaks, the text must not hold `javascript:` or `vbscript:`,
-whatever follows them, unless a letter, digit, `+`, `.` or `-` comes right before. The same goes for `data:` followed by anything but a typed space: «data: 5» in a sentence is fine.
+whatever follows them, unless a letter, digit, `+`, `.` or `-` comes right before. So a sentence «JavaScript: Eine Einführung» is refused too: the renderer cannot be told from a sentence safely. The same goes for `data:` followed by anything but a typed space: «data: 5» in a sentence is fine. A link target (`](x:…` or `[r]: x:…`) may only have the schemes `http`, `https`, `mailto` and `tel`, like richtext links.
 
 **Images in the text** must be `http(s)`, start with `/`, or be `../../assets/img/<file>` of an existing image: any other local image fails the build of the whole site. A reference-style image (`![a][r]`) is not checked.
 
@@ -114,7 +114,7 @@ Frontmatter is parsed and written by `Frontmatter.php`. A file it does not under
 - The slug comes from the Permalink field or the title: lower case, `ä ö ü ß` to `ae oe ue ss`, accents removed, anything else to `-`. A taken slug is refused.
 - Trash: the commit that removes the file comes first; only then is the copy written to the data folder. Restoring from the trash is refused if one of the entry's images has gone.
 - A restored revision goes through the same rules as a save. Page values are poured into the current structure, and a value that no longer passes refuses the restore. An image outside the library is refused, and a file of a collection without «create» cannot come back once it is gone.
-- Commit messages drop `[skip ci]` and its variants from titles: an editor's words must not switch off the build.
+- Commit messages drop `[`, `]` and `*` from titles, so no skip marker can arise: an editor's words must not switch off the build.
 
 ## Uploads
 
@@ -125,6 +125,7 @@ Frontmatter is parsed and written by `Frontmatter.php`. A file it does not under
 5. Must decode, at most 40 million pixels (a 256 MB PHP cannot decode more).
 6. Re-encoded through GD (Imagick where there is no GD): JPEG 84, PNG 9, WebP 84. EXIF orientation is applied, metadata does not survive. Longest side at most 2400 px.
 7. Stored as `uploads/<16 hex>.<ext>`. The original name goes to the log only.
+8. From the media modal the image waits in `pending/` and goes into the commit of the save that uses it, as a field image or in a Markdown body, also on untrash and restore. At most 200 wait; unused ones go after 7 days.
 
 ## Requests
 
@@ -136,6 +137,7 @@ Frontmatter is parsed and written by `Frontmatter.php`. A file it does not under
 - JSON bodies need `Content-Type: application/json`.
 - Login: 5 failures per name and network, 20 per network, within 15 minutes lock for 15 minutes. A network is the IPv4 address or the IPv6 /64. The attempt is counted before the slow hash, under a file lock, so parallel guesses cannot pass the check together. Locked attempts are not logged. A stranger cannot lock someone else out from another network.
 - Per account, over all networks: two failures are free, then the next attempt waits 2, 4, 8 … seconds, at most 300; a login or a day without failures resets it. During the wait the answer is 429 `slow`, before the hash and without counting, for unknown names too. A browser that has logged in before (a 90-day cookie, hashed on the server, forgotten by a password change) skips this wait, not the lock.
+- The current password in a password change: 5 failures lock that check for 15 minutes, counted before the hash.
 - Reads of Anfragen go to `logs/access.log`, which only logged-in users can fill.
 - Saves carry the blob id they were based on. Another id answers 409 and the input stays on the screen.
 - Anfragen: rules in `docs/anfragen-format.md`, section 4.

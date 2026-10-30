@@ -8,6 +8,8 @@ final class UploadError extends RuntimeException {}
 final class Media
 {
     const MAX_BYTES = 10485760;
+    const PENDING_MAX = 200;
+    const PENDING_DAYS = 7;
 
     public static function engine(): ?string
     {
@@ -99,6 +101,15 @@ final class Media
             return [$im->getImageBlob(), $type === 'jpeg' ? 'jpg' : $type, $im->getImageWidth(), $im->getImageHeight()];
         } catch (ImagickException $e) {
             throw new UploadError('Das Bild konnte nicht verarbeitet werden');
+        }
+    }
+
+    /** Images staged for a save that never came. */
+    public static function prunePending(Store $store, ?int $now = null): void
+    {
+        $limit = ($now ?? time()) - self::PENDING_DAYS * 86400;
+        foreach (glob($store->path('pending/*')) ?: [] as $f) {
+            if ((int) @filemtime($f) < $limit) @unlink($f);
         }
     }
 

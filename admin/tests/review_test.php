@@ -155,8 +155,8 @@ test('restore: control characters go, a foreign image and a Leistung that is gon
     hasNot((string) $e->git->read('src/content/pages/ueber-uns.json'), "\u{2028}");
 });
 test('words in a title cannot switch off the build', function () {
-    eq(Site::commitLabel('Sommerfest [skip ci]'), 'Sommerfest');
-    eq(Site::commitLabel('A [CI SKIP] B [no ci] C [skip actions] D ***NO_CI***'), 'A  B  C  D');
+    eq(Site::commitLabel('Sommerfest [skip ci]'), 'Sommerfest skip ci');
+    eq(Site::commitLabel('A [CI SKIP] B [no ci] C [skip actions] D ***NO_CI***'), 'A CI SKIP B no ci C skip actions D NO_CI');
 });
 test('a cut-off tree listing is refused, GitHub limits have a clear message', function () use ($e) {
     $e->git->setControl(['failRoute' => ['GET /git/ref' => 429]]);

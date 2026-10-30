@@ -409,7 +409,12 @@ function finishJob(el, j) {
 }
 
 async function pollJob(el, g, n = 0) {
-  if (g !== generation || n > POLL_MAX) return;
+  if (g !== generation) return;
+  if (n > POLL_MAX) { // a commit without a run stays queued for ever
+    el.className = 'notice notice-warning';
+    $('.notice-text', el).textContent = opts.t('notice.norun');
+    return;
+  }
   try {
     const j = await opts.api.get('status', { commit: el.dataset.job });
     if (g !== generation) return;

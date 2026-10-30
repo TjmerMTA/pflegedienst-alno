@@ -52,7 +52,7 @@ final class Rules
     const MSG_SLUG_INVALID = 'Ungültiger Permalink: nur a–z, 0–9 und Bindestriche.';
     const MSG_SLUG_TAKEN = 'Unter diesem Namen gibt es bereits einen Eintrag.';
     const MSG_BODY_IMAGE_PREFIX = 'Bild im Text nicht gefunden: ';
-    const MSG_UNSAFE_LINK = 'Der Text enthält eine unsichere Link-Adresse (javascript:, vbscript: oder data:).';
+    const MSG_UNSAFE_LINK = 'Der Text enthält eine unsichere Link-Adresse. Erlaubt sind http, https, mailto, tel und Pfade der Website.';
 
     public static function msgTooLong(int $max, int $now): string { return "höchstens $max Zeichen (jetzt $now)"; }
     public static function msgLongWord(string $w, int $n): string
@@ -337,7 +337,8 @@ final class Rules
     /**
      * Nothing is deleted from a Markdown body: raw HTML needs a literal `<` before a letter, `/`, `!`
      * or `?`, so turning exactly those into `&lt;` leaves no raw HTML at all, wherever the renderer
-     * thinks code spans begin. The reader sees the characters that were typed.
+     * thinks code spans begin. In running text the reader sees the characters that were typed; inside
+     * a code span the renderer shows `&lt;` literally, which is the price of not trusting code spans.
      */
     public static function sanitizeMarkdown($md): string
     {
@@ -356,7 +357,13 @@ final class Rules
         $decoded = str_replace(['\\', "\n", "\r", "\t"], '', self::decodeEntities($md));
         if (preg_match('/(?:^|[^a-z0-9+.-])(?:javascript|vbscript):/iu', $decoded)) return true;
         if (preg_match('/(?:^|[^a-z0-9+.-])data:&/i', str_replace('\\', '', $md))) return true;
-        return preg_match('/(?:^|[^a-z0-9+.-])data:(?=[^ \n\t])/iu', $decoded) === 1;
+        if (preg_match('/(?:^|[^a-z0-9+.-])data:(?=[^ \n\t])/iu', $decoded)) return true;
+        // Link targets follow the list richtext links have: blob:, ftp: and the like have no place here.
+        preg_match_all('/\]\([ \t]*<?([a-z][a-z0-9+.-]*):(?=\S)|^[ \t]*\[[^\]\n]+\]:[ \t]*<?([a-z][a-z0-9+.-]*):(?=\S)/im', self::decodeEntities($md), $m, PREG_SET_ORDER);
+        foreach ($m as $target) {
+            if (!in_array(strtolower($target[2] ?? '' ?: $target[1]), ['http', 'https', 'mailto', 'tel'], true)) return true;
+        }
+        return false;
     }
 
     /** Targets of the Markdown images in a body. */

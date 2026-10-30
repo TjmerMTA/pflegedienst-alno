@@ -15,4 +15,5 @@ if (isset($_SERVER['REMOTE_ADDR']) && (!$config || !hash_equals((string) ($confi
 }
 header('Content-Type: text/plain; charset=utf-8');
 echo 'deleted: ' . (new Anfragen($store))->purge() . "\n";
+Media::prunePending($store);
 $store->write('cron-last', gmdate('c'));
