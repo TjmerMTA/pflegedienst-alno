@@ -89,6 +89,7 @@ async function loadSession() {
 // ---------------- navigation ----------------
 
 function go(hash) {
+  dirty = false; // only a click on a link asks; the app navigates after it has saved
   if (hash === location.hash) { render(); return; }
   location.hash = hash;
 }
@@ -159,6 +160,7 @@ function errorText(e) {
     network: 'err.network', forbidden: 'err.forbidden', not_found: 'err.notfound', too_large: 'err.toolarge', conflict: 'notice.conflict', exists: 'notice.exists', in_use: 'media.delete.used',
     too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server',
   };
+  if (code === 'forbidden' && e.message !== 'csrf') return t('err.denied');
   if (map[code]) return t(map[code], { n: 10 });
   return t.msg(e.message) || t('err.server');
 }
@@ -313,7 +315,7 @@ function collect(form) {
     else node[last] = el.value;
   }
   const lists = (v) => {
-    if (v === null || typeof v !== 'object') return v;
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) return v;
     if ('_' in v) return Object.entries(v).filter(([k]) => k !== '_').map(([, x]) => lists(x));
     return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, lists(x)]));
   };
