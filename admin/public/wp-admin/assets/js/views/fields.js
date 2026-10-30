@@ -58,7 +58,7 @@ export function editor(ctx, { name, id, label, value, format = 'html', required,
       <div class="wp-editor-container">
         <div class="wp-editor-toolbar" role="toolbar">
           ${tb.map(([cmd, txt, title]) => html`<button type="button" class="ed-btn ed-${cmd}" data-cmd="${cmd}" title="${title}" aria-label="${title}">${cmd === 'link' ? raw('<svg viewBox="0 0 20 20" class="ed-icon" aria-hidden="true"><path d="M8.6 11.4a3 3 0 0 0 4.2 0l3-3a3 3 0 0 0-4.2-4.2l-1.2 1.2 1 1 1.2-1.2a1.6 1.6 0 0 1 2.2 2.2l-3 3a1.6 1.6 0 0 1-2.2 0zm2.8-2.8a3 3 0 0 0-4.2 0l-3 3a3 3 0 0 0 4.2 4.2l1.2-1.2-1-1-1.2 1.2a1.6 1.6 0 0 1-2.2-2.2l3-3a1.6 1.6 0 0 1 2.2 0z"/></svg>') : txt}</button>`)}
-          <span class="ed-link-pop" hidden><input type="text" class="ed-link-url" placeholder="https://… oder /kontakt/" aria-label="${t('tb.link.url')}"><button type="button" class="button ed-link-apply">${t('tb.link.apply')}</button><button type="button" class="button-link ed-link-remove">${t('tb.link.remove')}</button></span>
+          <span class="ed-link-pop" hidden><input type="text" class="ed-link-url" placeholder="${t('tb.link.ph')}" aria-label="${t('tb.link.url')}"><button type="button" class="button ed-link-apply">${t('tb.link.apply')}</button><button type="button" class="button-link ed-link-remove">${t('tb.link.remove')}</button></span>
         </div>
         <div class="wp-editor-visual" contenteditable="true" role="textbox" aria-multiline="true" aria-label="${label || t('edit.body')}"></div>
         <textarea class="wp-editor-area" id="${id}" name="${name}" rows="${tall ? 18 : 6}" spellcheck="true">${value ?? ''}</textarea>

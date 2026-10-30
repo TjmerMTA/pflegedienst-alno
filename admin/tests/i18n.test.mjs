@@ -44,8 +44,9 @@ test('every label of the post, Leistung and team forms has a Russian text', () =
   assert.equal(translator('de').label('Titel (H1 und Meta Title)'), 'Titel (H1 und Meta Title)');
 });
 
-test('the password label of a new user is Russian, and one entry is one entry', () => {
+test('the password label and the link placeholder are Russian, and one entry is one entry', () => {
   assert.equal(t('login.pass'), 'Пароль');
+  assert.equal(t('tb.link.ph'), 'https://… или /kontakt/');
   assert.equal(translator('de').count(1), '1 Eintrag');
   assert.equal(translator('de').count(2), '2 Einträge');
 });
