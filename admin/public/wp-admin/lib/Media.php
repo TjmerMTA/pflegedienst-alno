@@ -23,7 +23,7 @@ final class Media
 
     private static function isAnimatedWebp(string $bytes): bool
     {
-        return strncmp($bytes, 'RIFF', 4) === 0 && strpos(substr($bytes, 12, 4096), 'ANIM') !== false;
+        return substr($bytes, 12, 4) === 'VP8X' && (ord($bytes[20] ?? "\0") & 0x02) !== 0;
     }
 
     /** Checks and re-encodes an upload. Returns [bytes, ext, width, height]. */
