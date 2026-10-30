@@ -154,8 +154,8 @@ final class Auth
         $users = $this->users();
         $u = preg_match(Rules::USERNAME_RE, $uname) ? ($users[$uname] ?? null) : null;
         // A hash of the same cost for unknown users, so they answer as slowly as known ones.
-        $hash = $u['hash'] ?? self::hashPassword(bin2hex(random_bytes(8)));
-        $good = password_verify(is_string($password) ? $password : '', $hash) && $u !== null;
+        if ($u === null) self::hashPassword(bin2hex(random_bytes(8)));
+        $good = $u !== null && password_verify(is_string($password) ? $password : '', $u['hash']);
         return $this->store->withLock('lockout', function () use ($good, $uname, $ukey, $ikey) {
             $t = $this->store->readJson('lockout.json', []);
             if (!$good) {

@@ -13,6 +13,14 @@ final class Store
         if (!is_dir($this->dir)) @mkdir($this->dir, 0700, true);
     }
 
+    /** Whether the data folder is $root or lies below it. */
+    public function isInside(string $root): bool
+    {
+        $base = $root !== '' ? realpath($root) : false;
+        $dir = realpath($this->dir);
+        return $base !== false && $dir !== false && strncmp("$dir/", "$base/", strlen($base) + 1) === 0;
+    }
+
     public function path(string $rel): string
     {
         return $this->dir . '/' . $rel;

@@ -132,7 +132,9 @@ final class Api
     /** Loads the user of the session cookie, without keeping the session locked. */
     private function loadSession(): void
     {
-        if (empty($_COOKIE[self::SESSION_COOKIE])) return;
+        // Only a session this server made: PHP would answer a made-up id with a new file.
+        $sid = (string) ($_COOKIE[self::SESSION_COOKIE] ?? '');
+        if (!preg_match('/^[a-zA-Z0-9,-]{22,256}$/D', $sid) || !$this->store->exists("sessions/sess_$sid")) return;
         $this->sessionSetup();
         session_start(['read_and_close' => true]);
         $s = $_SESSION;
@@ -267,8 +269,17 @@ final class Api
 
     // ---------------- setup, login ----------------
 
+    /** The data folder holds the token and the submissions: no URL may reach it. */
+    private function dataExposed(): bool
+    {
+        foreach ([(string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), dirname(__DIR__, 2)] as $root) {
+            if ($this->store->isInside($root)) return true;
+        }
+        return false;
+    }
+
     /** What the host offers, so that a missing extension is seen before anything fails. */
-    private static function checks(): array
+    private function checks(): array
     {
         $engine = Media::engine();
         return [
@@ -276,6 +287,7 @@ final class Api
             'curl' => function_exists('curl_init') || (bool) ini_get('allow_url_fopen'), 'mbstring' => extension_loaded('mbstring'),
             'fileinfo' => class_exists('finfo'), 'imageEngine' => $engine, 'webp' => Media::supportsWebp(),
             'uploadMax' => ini_get('upload_max_filesize'), 'postMax' => ini_get('post_max_size'), 'memory' => ini_get('memory_limit'),
+            'dataOutside' => !$this->dataExposed(),
         ];
     }
 
@@ -294,7 +306,7 @@ final class Api
 
     private function sessionInfo(): void
     {
-        if (!$this->config) { self::json(401, ['error' => 'setup', 'loginNonce' => $this->loginNonce(), 'checks' => self::checks()]); return; }
+        if (!$this->config) { self::json(401, ['error' => 'setup', 'loginNonce' => $this->loginNonce(), 'checks' => $this->checks()]); return; }
         if (!$this->user) { self::json(401, ['error' => 'login', 'loginNonce' => $this->loginNonce()]); return; }
         $u = $this->user;
         $status = ['state' => 'idle', 'failed' => false];
@@ -331,6 +343,7 @@ final class Api
     private function setup(): void
     {
         $this->checkLoginNonce();
+        if ($this->dataExposed()) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Root. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb setzen.');
         $b = self::readJson(65536);
         $token = trim((string) ($b['token'] ?? ''));
         $name = strtolower(trim((string) ($b['user'] ?? '')));
