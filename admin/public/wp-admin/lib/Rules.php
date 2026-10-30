@@ -79,8 +79,8 @@ final class Rules
         return self::trim($multiline ? $s : (string) preg_replace('/\n+/', ' ', $s));
     }
 
-    // What JavaScript's \s means. PCRE's \s stops at ASCII.
-    const WS_CLASS = '\s\x{A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
+    // What JavaScript's \s means. PCRE's \s differs from it, with and without the u flag.
+    const WS_CLASS = ' \t\n\x0B\f\r\x{A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
 
     // PHP's trim() knows ASCII only; texts also come with no-break and typographic spaces.
     private const WS = ["\u{A0}" => 1, "\u{1680}" => 1, "\u{2000}" => 1, "\u{2001}" => 1, "\u{2002}" => 1, "\u{2003}" => 1, "\u{2004}" => 1, "\u{2005}" => 1,

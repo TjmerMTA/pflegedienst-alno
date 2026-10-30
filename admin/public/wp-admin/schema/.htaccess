@@ -1,0 +1,2 @@
+# PHP code is only ever included, never called.
+Require all denied
