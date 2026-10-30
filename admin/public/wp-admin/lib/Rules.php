@@ -13,6 +13,7 @@ final class Rules
     const ALT_MAX = 300;
     const TAG_MAX = 60;
     const SLUG_MAX = 80;
+    const WORD_MAX = 30; // an unbroken word: buttons do not wrap, and a heading breaks only where it can
     const IMAGE_MAX_SIDE = 2400;
     const IMAGE_MAX_PIXELS = 40000000; // a 256 MB PHP cannot decode more
     const PASSWORD_MIN = 10;
@@ -54,6 +55,11 @@ final class Rules
     const MSG_UNSAFE_LINK = 'Der Text enthält eine unsichere Link-Adresse (javascript:, vbscript: oder data:).';
 
     public static function msgTooLong(int $max, int $now): string { return "höchstens $max Zeichen (jetzt $now)"; }
+    public static function msgLongWord(string $w, int $n): string
+    {
+        return "Das Wort „{$w}“ ist mit $n Zeichen zu lang (höchstens " . self::WORD_MAX . '): Auf schmalen Bildschirmen passt es nicht in die Zeile. Bitte mit einem Bindestrich oder Leerzeichen trennen.';
+    }
+
     public static function msgImageMissing(string $p): string { return "Bild „{$p}“ nicht gefunden"; }
     public static function msgBadToken(string $t): string { return 'unbekannter Platzhalter {{' . $t . '}}'; }
     public static function msgMinItems(int $n): string { return "mindestens $n Einträge"; }
@@ -114,6 +120,21 @@ final class Rules
     public static function looksLikeHtml(string $s): bool
     {
         return preg_match('/<[a-zA-Z\/!?{]/', $s) === 1;
+    }
+
+    /**
+     * The first word of a one-line text the browser cannot break, or null. A word ends where a line
+     * may end: spaces (not the no-break ones), hyphens, dashes, slashes, soft hyphens. Tokens are
+     * filled in by the site, and addresses are not text a reader has to fit on a line.
+     */
+    public static function longWord(string $s): ?string
+    {
+        if (preg_match('/^(https?:|mailto:|tel:|\/)/i', self::trim($s))) return null;
+        $s = (string) preg_replace('/\{\{[^{}]*\}\}/', ' ', $s);
+        foreach (preg_split('/[ \t\n\x{1680}\x{2000}-\x{2006}\x{2008}-\x{200B}\x{205F}\x{3000}\x{AD}\/\x{2010}\x{2013}\x{2014}-]+/u', $s) ?: [] as $word) {
+            if (self::chars($word) > self::WORD_MAX && strpos($word, '@') === false) return $word;
+        }
+        return null;
     }
 
     // ---------------- names and paths ----------------
@@ -493,6 +514,7 @@ final class Rules
             elseif (self::looksLikeHtml($value)) $err(self::MSG_NO_HTML);
         }
         if ($f['type'] === 'text' && strpos($value, "\n") !== false) $err(self::MSG_ONE_LINE);
+        if ($f['type'] === 'text' && ($w = self::longWord($value)) !== null) $err(self::msgLongWord($w, self::chars($w)));
         if ($f['type'] === 'richtext' && self::sanitizeHtml($value) !== self::trim($value)) $err(self::MSG_BAD_HTML);
         if (!empty($ctx['tokens']) && preg_match_all('/\{\{([^{}]*)\}\}/', $value, $m)) {
             foreach ($m[1] as $t) {
@@ -596,6 +618,7 @@ final class Rules
                     if (!empty($f['required']) && $v === '') { $err($f, self::MSG_REQUIRED); break; }
                     if (!empty($f['max']) && self::chars($v) > $f['max']) $err($f, self::msgTooLong((int) $f['max'], self::chars($v)));
                     if (self::looksLikeHtml($v)) $err($f, self::MSG_NO_HTML);
+                    if ($f['type'] === 'text' && ($w = self::longWord($v)) !== null) $err($f, self::msgLongWord($w, self::chars($w)));
                     if ($f['type'] === 'select' && $v !== '' && !in_array($v, $f['options'], true)) $err($f, self::MSG_BAD_CHOICE);
                     $set($f['id'], $v !== '' ? $v : null);
                     break;
@@ -620,6 +643,7 @@ final class Rules
                     $uniq = array_values(array_unique($list));
                     foreach ($uniq as $t) {
                         if (self::looksLikeHtml($t) || self::chars($t) > self::TAG_MAX) { $err($f, self::MSG_BAD_TAG); break; }
+                        if (($w = self::longWord($t)) !== null) { $err($f, self::msgLongWord($w, self::chars($w))); break; }
                     }
                     $set($f['id'], $uniq || array_key_exists($f['id'], $next) ? $uniq : null);
                     break;

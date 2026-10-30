@@ -16,6 +16,7 @@ Length is counted in Unicode code points, not bytes. German messages are in `Rul
 | Markdown body | 200,000 characters |
 | Alt text | 300 characters |
 | Tag | 60 characters |
+| Unbroken word in a one-line text | 30 characters |
 | Slug | 80 characters, `^[a-z0-9]+(-[a-z0-9]+)*$` |
 | Page id | as a slug, with an optional leading `_` |
 | User name | `^[a-z][a-z0-9._-]{1,31}$` |
@@ -31,6 +32,8 @@ Length is counted in Unicode code points, not bytes. German messages are in `Rul
 **Trim** removes whitespace as JavaScript's `\s` defines it, including no-break and typographic spaces.
 
 **`text`:** clean, line breaks become one space, trim. Must not hold a line break afterwards. Up to `max` if the field has one.
+
+**Long words:** in `text` fields and tags no unbroken word may have more than 30 characters: buttons do not wrap, and a heading breaks only where it can. A word ends at a space (not a no-break space), a hyphen, a dash, `/` or a soft hyphen. `{{tokens}}` do not count, and neither do values that are addresses (`http:`, `https:`, `mailto:`, `tel:`, a leading `/`) or words with `@`.
 
 **`textarea`:** clean, trim, line breaks stay. Up to `max`.
 

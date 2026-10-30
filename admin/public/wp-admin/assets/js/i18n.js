@@ -716,6 +716,7 @@ const ruMessages = [
   [/^Der Text enthält eine unsichere Link-Adresse .*$/, 'в тексте небезопасная ссылка (javascript:, vbscript: или data:)'],
   [/^Alternativtext fehlt: .*$/, 'нет альтернативного текста: если картинка выбрана, он обязателен'],
   [/^Bild im Text nicht gefunden: (.*)$/, 'картинка в тексте не найдена: $1'],
+  [/^Das Wort „(.*)“ ist mit (\d+) Zeichen zu lang \(höchstens (\d+)\).*$/, 'слово «$1» слишком длинное: $2 символов (максимум $3), на узких экранах оно не поместится в строку. Разделите его дефисом или пробелом.'],
   [/^Alternativtext zu lang$/, 'альтернативный текст слишком длинный'],
   [/^unbekannter Platzhalter (.*)$/, 'неизвестная подстановка $1'],
   [/^ungültiger Bildpfad$/, 'неверный путь картинки'],
