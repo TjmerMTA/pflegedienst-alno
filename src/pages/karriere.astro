@@ -11,7 +11,7 @@ import { getPage } from '../lib/content';
 // TODO: Beispielstellen — Klient ersetzt sie durch die tatsächlich offenen Stellen (Titel, Text, Eckdaten).
 // TODO: Leistungen/Konditionen (Gehalt, Fahrzeug, Urlaub) vom Klienten bestätigen lassen.
 const p = getPage('karriere');
-const img = p.img('why.image')!;
+const img = p.img('why.image');
 const why = p.list<{ icon: string; title: string; text: string }>('benefits.items');
 // Eckdaten: одна строка textarea — один пункт (вложенные списки контракт не допускает)
 const jobs = p.list<{ title: string; text: string; tags: string }>('jobs.items').map((j) => ({ ...j, tags: j.tags.split('\n').map((t) => t.trim()).filter(Boolean) }));
@@ -28,7 +28,7 @@ const steps = p.list<{ title: string; text: string }>('steps.items');
 
   <section class="section">
     <div class="wrap split">
-      <Image src={img.src} alt={img.alt} widths={[424, 848]} sizes="(max-width: 900px) 100vw, 520px" class="img" />
+      {img && <Image src={img.src} alt={img.alt} widths={[424, 848]} sizes="(max-width: 900px) 100vw, 520px" class="img" />}
       <div>
         <span class="eyebrow">{p.text('why.eyebrow')}</span>
         <h2>{p.text('why.h2')}</h2>

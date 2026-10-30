@@ -15,8 +15,8 @@ import { getPage } from '../lib/content';
 
 // Тексты и картинки — в src/content/pages/index.json (правятся в админке)
 const p = getPage('index');
-const heroImg = p.img('hero.image')!;
-const homeImg = p.img('why.image')!;
+const heroImg = p.img('hero.image');
+const homeImg = p.img('why.image');
 const leistungen = (await getCollection('leistungen')).sort((a, b) => a.data.order - b.data.order);
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => +b.data.date - +a.data.date).slice(0, 3);
 ---
@@ -38,7 +38,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
       </div>
       <div class="hero-vis">
         <div class="ring"></div>
-        <Image src={heroImg.src} alt={heroImg.alt} widths={[480, 960]} sizes="(max-width: 900px) 80vw, 480px" loading="eager" fetchpriority="high" class="hero-img" />
+        {heroImg && <Image src={heroImg.src} alt={heroImg.alt} widths={[480, 960]} sizes="(max-width: 900px) 80vw, 480px" loading="eager" fetchpriority="high" class="hero-img" />}
         <div class="float f1"><span class="ico ico--green"><Icon name="check" /></span><span><b>{p.text('hero.badgeTitle')}</b><small>{p.text('hero.badgeText')}</small></span></div>
         <div class="float f2"><b>{p.text('hero.hoursTitle')}</b><small>{p.text('hero.hoursText')}</small></div>
       </div>
@@ -88,7 +88,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section section--soft">
     <div class="wrap split">
       <div class="media">
-        <Image src={homeImg.src} alt={homeImg.alt} widths={[424]} />
+        {homeImg && <Image src={homeImg.src} alt={homeImg.alt} widths={[424]} />}
         <div class="stat"><b>{p.text('why.statValue')}</b><span>{p.text('why.statText')}</span></div>
       </div>
       <div>

@@ -4,6 +4,7 @@ import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createServer } from 'vite';
+import { contentImages } from '../src/lib/content-images.mjs';
 
 const page = (label, groups) => JSON.stringify({ label, url: null, order: 0, groups });
 const contact = { id: 'contact', label: 'Kontakt', fields: [{ id: 'street', label: 'Straße', type: 'text', value: 'Teststraße 1' }] };
@@ -21,7 +22,7 @@ export async function loadContent(pages = {}, images = []) {
   write('src/content/pages/_global.json', page('Allgemein', [contact]));
   for (const [id, data] of Object.entries(pages)) write(`src/content/pages/${id}.json`, typeof data === 'string' ? data : page(id, data));
   const server = await createServer({
-    root, configFile: false, logLevel: 'silent', appType: 'custom',
+    root, configFile: false, logLevel: 'silent', appType: 'custom', plugins: [contentImages()],
     server: { middlewareMode: true, watch: null, ws: false }, optimizeDeps: { noDiscovery: true },
   });
   return {

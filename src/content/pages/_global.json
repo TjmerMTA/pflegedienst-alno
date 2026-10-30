@@ -61,6 +61,7 @@
           "label": "Breitengrad des Büros",
           "type": "text",
           "help": "Für Karte und Google, z. B. 51.4786",
+          "required": true,
           "value": "51.4786"
         },
         {
@@ -68,6 +69,7 @@
           "label": "Längengrad des Büros",
           "type": "text",
           "help": "Für Karte und Google, z. B. 7.5186",
+          "required": true,
           "value": "7.5186"
         },
         {

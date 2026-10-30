@@ -2,6 +2,8 @@
 // Читается при сборке. Нет файла или поля — сборка падает с понятной ошибкой: структуру держит код,
 // значения правит админка, и сайт обязан собраться с любым значением, которое она может сохранить.
 import type { ImageMetadata } from 'astro';
+// Только картинки, названные в страницах: см. src/lib/content-images.mjs
+import images from 'virtual:content-images';
 
 export { jsonForScript } from './json-for-script.mjs';
 
@@ -28,8 +30,6 @@ export interface Page {
 }
 
 const files = import.meta.glob<PageFile>('/src/content/pages/*.json', { eager: true, import: 'default' });
-// Библиотека картинок: всё, что лежит в src/assets/img/ (в JSON — путь относительно этой папки)
-const images = import.meta.glob<ImageMetadata>('/src/assets/img/**/*.{jpg,jpeg,png,webp}', { eager: true, import: 'default' });
 
 const fail = (msg: string): never => { throw new Error(`[content] ${msg}`); };
 

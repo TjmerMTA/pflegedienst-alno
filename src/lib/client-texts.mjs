@@ -2,10 +2,12 @@
 // а data-атрибуты изменили бы HTML, поэтому astro.config.mjs подставляет значения при сборке
 // через vite.define — в код они попадают обычными литералами. Токены {{key}} — как в content.ts.
 // В astro dev значения читаются при старте: после правки JSON сервер нужно перезапустить.
-import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { breakScriptTags, jsonForScript } from './json-for-script.mjs';
+import { readPage } from './page-files.mjs';
 
-const read = (id) => JSON.parse(readFileSync(new URL(`../content/pages/${id}.json`, import.meta.url), 'utf8'));
+const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const read = (id) => readPage(ROOT, id);
 
 // Читатель полей группы: нет группы или поля — та же понятная ошибка сборки, что в content.ts
 function reader(id, groupId, tokens) {
