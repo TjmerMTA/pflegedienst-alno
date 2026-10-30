@@ -1,0 +1,223 @@
+{
+  "label": "Datenschutz",
+  "url": "/datenschutz/",
+  "order": 91,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Datenschutzerklärung"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Datenschutzerklärung des Pflegedienstes ALNO GmbH gemäß DSGVO: Hosting, Kontaktformular, WhatsApp, Karten und Ihre Rechte."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Seitenkopf",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Datenschutzerklärung"
+        },
+        {
+          "id": "crumb",
+          "label": "Name in der Brotkrumen-Navigation",
+          "type": "text",
+          "value": "Datenschutz"
+        }
+      ]
+    },
+    {
+      "id": "hinweis",
+      "label": "Hinweis über dem Text",
+      "fields": [
+        {
+          "id": "note",
+          "label": "Graue Zeile",
+          "type": "text",
+          "value": "Entwurf – vor Livegang juristisch prüfen lassen. Stand: September 2026."
+        }
+      ]
+    },
+    {
+      "id": "verantwortlicher",
+      "label": "1. Verantwortlicher",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "1. Verantwortlicher"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>{{name}}, {{street}}, {{zip}} {{city}}<br>Vertreten durch: {{ceo}}<br>Telefon: {{phone}} · E-Mail: <a href=\"mailto:{{email}}\">{{email}}</a></p>"
+        }
+      ]
+    },
+    {
+      "id": "rechte",
+      "label": "2. Ihre Rechte",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "2. Ihre Rechte"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Sie haben jederzeit das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21). Eine erteilte Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3). Zudem steht Ihnen ein Beschwerderecht bei einer Aufsichtsbehörde zu, z. B. bei der Landesbeauftragten für Datenschutz und Informationsfreiheit Nordrhein-Westfalen (LDI NRW).</p>"
+        }
+      ]
+    },
+    {
+      "id": "hosting",
+      "label": "3. Hosting und Server-Logfiles",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "3. Hosting und Server-Logfiles"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Diese Website wird bei einem externen Dienstleister gehostet. [Hosting-Anbieter und Sitz beim Livegang ergänzen.] Beim Aufruf werden technisch notwendige Daten verarbeitet (IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Betriebssystem). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse an einer sicheren und stabilen Bereitstellung. Mit dem Hoster besteht ein Vertrag über Auftragsverarbeitung.</p>"
+        }
+      ]
+    },
+    {
+      "id": "schriften",
+      "label": "4. Schriftarten",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "4. Schriftarten"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Die verwendeten Schriftarten werden lokal von unserem Server geladen. Es findet keine Verbindung zu Servern von Google oder anderen Drittanbietern statt.</p>"
+        }
+      ]
+    },
+    {
+      "id": "formular",
+      "label": "5. Kontaktformular, E-Mail und Telefon",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "5. Kontaktformular, E-Mail und Telefon"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Wenn Sie uns über das Formular, per E-Mail oder telefonisch kontaktieren, verarbeiten wir Ihre Angaben (Name, Telefonnummer, ggf. E-Mail, Stadtteil, Wunschtermin und Nachricht), um Ihre Anfrage zu beantworten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen) sowie Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO. Angaben zur Gesundheit machen Sie freiwillig; deren Verarbeitung erfolgt auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a DSGVO). Die Daten werden gelöscht, sobald die Anfrage abschließend bearbeitet ist und keine gesetzlichen Aufbewahrungspflichten bestehen. [Formular-Dienstleister beim Livegang ergänzen.]</p>"
+        }
+      ]
+    },
+    {
+      "id": "whatsapp",
+      "label": "6. WhatsApp",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "6. WhatsApp"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Wenn Sie den WhatsApp-Button nutzen, werden Sie zu WhatsApp (WhatsApp Ireland Ltd., Dublin) weitergeleitet. Erst dann werden Daten an WhatsApp übertragen; dabei ist eine Übermittlung in die USA möglich. Die Nutzung ist freiwillig – alternativ erreichen Sie uns jederzeit per Telefon oder E-Mail.</p>"
+        }
+      ]
+    },
+    {
+      "id": "karte",
+      "label": "7. Karte (OpenStreetMap)",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "7. Karte (OpenStreetMap)"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Auf der Kontaktseite binden wir eine Karte von OpenStreetMap (OpenStreetMap Foundation, Cambridge, UK) ein. Die Karte wird erst geladen, wenn Sie auf „Karte laden“ klicken (Art. 6 Abs. 1 lit. a DSGVO). Dabei wird Ihre IP-Adresse an OpenStreetMap übertragen.</p>"
+        }
+      ]
+    },
+    {
+      "id": "cookies",
+      "label": "8. Cookies und Analyse",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "8. Cookies und Analyse"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Diese Website verwendet derzeit keine Cookies und keine Tracking-Dienste. Sollte künftig Google Analytics eingesetzt werden, geschieht dies ausschließlich nach Ihrer ausdrücklichen Einwilligung über ein Einwilligungs-Banner (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Ohne Einwilligung werden keine Analyse-Skripte geladen. Ihre Auswahl speichern wir lokal in Ihrem Browser; Sie können sie jederzeit über „Cookie-Einstellungen“ im Seitenfuß ändern.</p>"
+        }
+      ]
+    },
+    {
+      "id": "ssl",
+      "label": "9. SSL-/TLS-Verschlüsselung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "9. SSL-/TLS-Verschlüsselung"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Diese Seite nutzt aus Sicherheitsgründen eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie an „https://“ in der Adresszeile.</p>"
+        }
+      ]
+    }
+  ]
+}

@@ -5,11 +5,16 @@ import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import Icon from '../../components/Icon.astro';
 import CtaBand from '../../components/CtaBand.astro';
+
+// Тексты страницы — в src/content/pages/blog.json, карточки — из коллекции blog
+// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
+const { getPage } = await import('../../lib/content');
+const page = getPage('blog');
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => +b.data.date - +a.data.date);
 const fmt = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
 ---
-<Base title="Pflege-Ratgeber für Angehörige" description="Ratgeber des Pflegedienstes ALNO: Pflegegrad beantragen, Leistungen der Pflegekasse, Verhinderungspflege und Tipps für pflegende Angehörige in Dortmund.">
-  <PageHero title="Pflege-Ratgeber" lead="Verständliche Antworten auf die Fragen, die uns Angehörige am häufigsten stellen." crumbs={[{ label: 'Ratgeber' }]} />
+<Base title={page.text('seo.title')} description={page.text('seo.description')}>
+  <PageHero title={page.text('hero.title')} lead={page.text('hero.lead')} crumbs={[{ label: page.text('hero.crumb') }]} />
   <section class="section">
     <div class="wrap grid grid-3">
       {posts.map((p) => (
@@ -19,7 +24,7 @@ const fmt = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: 
             <time datetime={p.data.date.toISOString()}>{fmt(p.data.date)}</time>
             <h2><a href={`/blog/${p.id}/`}>{p.data.title}</a></h2>
             <p>{p.data.description}</p>
-            <span class="more">Weiterlesen <Icon name="arrow" size={18} /></span>
+            <span class="more">{page.text('list.more')} <Icon name="arrow" size={18} /></span>
           </div>
         </article>
       ))}

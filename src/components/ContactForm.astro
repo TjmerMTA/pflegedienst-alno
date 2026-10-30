@@ -4,7 +4,7 @@
 // rechnertermin (запрос консультации из Pflege-Rechner). Для rechner-вариантов скрипт Rechner.astro кладёт результат расчёта
 // в скрытое поле rechner_ergebnis; после успешной отправки форма шлёт событие lead-sent.
 // Защита от спама: honeypot-поле + минимальное время заполнения. Отправка — fetch на SITE.formEndpoint.
-import { SITE, getGlobal } from '../config/site';
+import { SITE, getGlobal, fieldAttrs } from '../config/site';
 interface Props { variant?: 'beratung' | 'rueckruf' | 'erstbegutachtung' | 'rechner' | 'rechnertermin'; id?: string }
 const { variant = 'beratung', id = 'anfrage' } = Astro.props;
 const subject = { beratung: 'Kostenlose Beratung', rueckruf: 'Rückruf-Anfrage', erstbegutachtung: 'Termin Erstbegutachtung', rechner: 'Pflege-Rechner (Kontaktdaten)', rechnertermin: 'Pflege-Rechner (Beratungstermin)' }[variant];
@@ -31,12 +31,12 @@ const okText = isRechner ? c('okRechner') : undefined;
   <div class="row">
     <div class="field">
       <label for={`${id}-name`}>{f('nameLabel')} <span class="req">*</span></label>
-      <input id={`${id}-name`} name="name" autocomplete="name" required minlength="2" />
+      <input id={`${id}-name`} name="name" autocomplete="name" required {...fieldAttrs('name')} />
       <span class="err" aria-live="polite"></span>
     </div>
     <div class="field">
       <label for={`${id}-phone`}>{f('phoneLabel')} <span class="req">*</span></label>
-      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +\(\)\/\-]{6,}" />
+      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required {...fieldAttrs('phone')} />
       <span class="err" aria-live="polite"></span>
     </div>
   </div>
@@ -58,7 +58,7 @@ const okText = isRechner ? c('okRechner') : undefined;
     <div class="row">
       <div class="field">
         <label for={`${id}-stadtteil`}>{c('placeLabel')} <span class="req">*</span></label>
-        <input id={`${id}-stadtteil`} name="stadtteil" required placeholder={c('placePlaceholder')} />
+        <input id={`${id}-stadtteil`} name="stadtteil" required placeholder={c('placePlaceholder')} {...fieldAttrs('stadtteil')} />
         <span class="err" aria-live="polite"></span>
       </div>
       <div class="field">
@@ -88,7 +88,7 @@ const okText = isRechner ? c('okRechner') : undefined;
     <div class="row">
       <div class="field">
         <label for={`${id}-email`}>{f('emailLabel')} <span class="muted">{f('optional')}</span></label>
-        <input id={`${id}-email`} name="email" type="email" autocomplete="email" />
+        <input id={`${id}-email`} name="email" type="email" autocomplete="email" {...fieldAttrs('email')} />
         <span class="err" aria-live="polite"></span>
       </div>
     </div>
@@ -96,7 +96,7 @@ const okText = isRechner ? c('okRechner') : undefined;
   {variant !== 'rueckruf' && !isRechner && (
     <div class="field">
       <label for={`${id}-msg`}>{f('messageLabel')} <span class="muted">{f('optional')}</span></label>
-      <textarea id={`${id}-msg`} name="message" placeholder={c('messagePlaceholder')}></textarea>
+      <textarea id={`${id}-msg`} name="message" placeholder={c('messagePlaceholder')} {...fieldAttrs('message')}></textarea>
     </div>
   )}
   <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off" /></label></div>
@@ -107,21 +107,34 @@ const okText = isRechner ? c('okRechner') : undefined;
 </form>
 <script>
   // Сообщения — из _global.json, подставляются при сборке (src/lib/client-texts.mjs)
-  declare const __CONTACT_FORM_MSG__: Record<'required' | 'phone' | 'email' | 'consent' | 'ok' | 'preview' | 'fail' | 'spam', string>;
-  const MSG = __CONTACT_FORM_MSG__;
+  declare const __CONTACT_FORM_MSG__: Record<'required' | 'name' | 'phone' | 'email' | 'invalid' | 'consent' | 'ok' | 'preview' | 'fail' | 'spam', string>;
+  const MSG: typeof __CONTACT_FORM_MSG__ & { year?: string } = __CONTACT_FORM_MSG__;
   document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
     const started = Date.now();
     const status = form.querySelector<HTMLElement>('.form-status')!;
     const show = (cls: 'ok' | 'fail', text: string) => { status.className = `form-status ${cls}`; status.textContent = text; };
     const check = (el: HTMLInputElement) => {
       const err = el.closest('.field')?.querySelector<HTMLElement>('.err');
+      const value = el.value.trim();
       let m = '';
-      if (el.validity.valueMissing) m = MSG.required;
+      if (el.validity.valueMissing || (el.required && !value)) m = MSG.required;
+      else if (value && value.length < ((el as HTMLInputElement).minLength ?? 0)) m = MSG.name;
       else if (el.type === 'tel' && el.validity.patternMismatch) m = MSG.phone;
-      else if (el.type === 'email' && el.validity.typeMismatch) m = MSG.email;
+      else if (el.type === 'email' && value && (el.validity.typeMismatch || el.validity.patternMismatch)) m = MSG.email;
       el.setAttribute('aria-invalid', m ? 'true' : 'false');
       if (err) err.textContent = m;
       return !m;
+    };
+    // Ответ сервера с именем поля: показываем ошибку под ним. Скрытое поле посетитель не исправит
+    const showField = (name: string) => {
+      const el = form.elements.namedItem(name);
+      if (!(el instanceof HTMLElement) || (el as HTMLInputElement).type === 'hidden') { show('fail', MSG.fail); return; }
+      const m = ({ name: MSG.name, phone: MSG.phone, email: MSG.email, datenschutz: MSG.consent, geburtsjahr: MSG.year } as Record<string, string | undefined>)[name] ?? MSG.invalid;
+      el.setAttribute('aria-invalid', 'true');
+      const err = el.closest('.field')?.querySelector<HTMLElement>('.err');
+      if (err) err.textContent = m;
+      show('fail', m);
+      el.focus();
     };
     form.querySelectorAll<HTMLInputElement>('input[required]:not([type=checkbox]), input[type=email]').forEach((el) => el.addEventListener('blur', () => check(el)));
     form.addEventListener('submit', async (e) => {
@@ -133,13 +146,16 @@ const okText = isRechner ? c('okRechner') : undefined;
       if (!consent.checked) { show('fail', MSG.consent); consent.focus(); return; }
       const data = new FormData(form);
       if (data.get('website') || Date.now() - started < 3000) { show('fail', MSG.spam); return; }
+      data.set('fill_ms', String(Date.now() - started)); // второй раз время проверит сервер
       const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
       btn.disabled = true;
       const endpoint = form.dataset.endpoint;
       try {
         if (endpoint) {
           const r = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
-          if (!r.ok) throw new Error(String(r.status));
+          const answer = await r.json().catch(() => null);
+          if (answer?.error === 'invalid' && answer.field) { showField(answer.field); return; }
+          if (!r.ok || !answer?.ok) throw new Error(String(r.status));
           show('ok', form.dataset.ok || MSG.ok);
         } else {
           show('ok', MSG.preview);

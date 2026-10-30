@@ -1,0 +1,99 @@
+{
+  "label": "Ratgeber (Übersicht und Artikelseiten)",
+  "url": "/blog/",
+  "order": 6,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Pflege-Ratgeber für Angehörige"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Ratgeber des Pflegedienstes ALNO: Pflegegrad beantragen, Leistungen der Pflegekasse, Verhinderungspflege und Tipps für pflegende Angehörige in Dortmund."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Übersichtsseite: Seitenkopf",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Pflege-Ratgeber"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Verständliche Antworten auf die Fragen, die uns Angehörige am häufigsten stellen."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in der Brotkrumen-Navigation",
+          "type": "text",
+          "help": "Auch auf den Artikelseiten",
+          "value": "Ratgeber"
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "label": "Übersichtsseite: Karten",
+      "fields": [
+        {
+          "id": "more",
+          "label": "Hinweis an jeder Karte",
+          "type": "text",
+          "help": "Bild, Datum, Titel und Beschreibung kommen aus den Artikeln (Menü „Beiträge“)",
+          "value": "Weiterlesen"
+        }
+      ]
+    },
+    {
+      "id": "article",
+      "label": "Artikelseiten (für alle Artikel gleich)",
+      "fields": [
+        {
+          "id": "tocTitle",
+          "label": "Überschrift des Inhaltsverzeichnisses",
+          "type": "text",
+          "value": "Inhalt"
+        },
+        {
+          "id": "helpTitle",
+          "label": "Seitenkasten: Überschrift",
+          "type": "text",
+          "value": "Fragen zu Ihrer Situation?"
+        },
+        {
+          "id": "helpText",
+          "label": "Seitenkasten: Text",
+          "type": "text",
+          "value": "Wir beraten Sie kostenlos – am Telefon oder bei Ihnen zu Hause."
+        },
+        {
+          "id": "relatedTitle",
+          "label": "Überschrift „Weitere Artikel“",
+          "type": "text",
+          "value": "Weitere Artikel"
+        }
+      ]
+    }
+  ]
+}

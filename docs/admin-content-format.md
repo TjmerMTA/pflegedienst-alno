@@ -166,6 +166,12 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
 - **Contact values inside texts** → tokens, only where the text is exactly that value:
   `{{phone}}`, `{{email}}`, `{{street}}`, `{{name}}`, `{{hours}}` (8–22 Uhr), `{{officeHours}}` (Mo–Fr 8–16 Uhr).
   Phone numbers in markup keep using `SITE.phone` / `SITE.phoneHref` (from `src/config/site.ts`).
+- **Sentences with runtime values in a browser `<script>`** (the Pflege-Rechner) cannot be constants. The script uses
+  macros that `rechnerTexts()` in `src/lib/client-texts.mjs` expands to plain literals at build time, so the bundle
+  and its hash stay the same: `__T('group.field', { betrag: eur(x) })` for `textContent`, `__H(…)` for `innerHTML`,
+  `__N('group.field')` for an amount. The value keeps the whole sentence with a placeholder, `Der Plan übersteigt das
+  Budget um {betrag}.`, and the field's `help` says it must stay. An unknown `{name}` is shown as typed, a removed one
+  is simply not shown. Amounts are `text` fields (`1497`, `7,08`); a value that is no number warns and becomes 0.
 - **Anything written into a `<script>`** goes through `jsonForScript(value)`, never `JSON.stringify`: it writes
   `< > &` and U+2028/2029 as `\uXXXX`, so `</script>` in a value cannot end the block (`Base.astro`, `PageHero.astro`).
   Pages that pass `schema` to `Base` are covered. `client-texts.mjs` also splits `<!--` and `<script` inside the
@@ -178,7 +184,10 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
   side by side. Tile title 24, tile text 40 (it wraps at spaces). To size a new button: about 8.5 px per character
   at 16 px bold, 52 px padding and border, 30 px for an icon. Check it at 360 px. `max` counts characters, not
   pixels: real labels run 7.7–8.1 px per character, a deliberately wide word (`Wohnungsumbaumaßnahme`, 9.8) can
-  still overflow.
+  still overflow. `main` clips overflow, so the page never scrolls and `scrollWidth` shows nothing: compare the
+  element's edge with its card instead. Inside a card or next to an icon a button may need less (`list.button`,
+  `calc.button`: 24). Small `nowrap` labels in the Rechner get 12–16. At 320 px a label at full length may stick out
+  of its card, without page scroll.
 - **Shared blocks** (used on several pages) go to `_global.json`, page-specific headings around them stay
   in the page file (e.g. `testimonials.h2` is in `index.json`, the testimonials themselves in `_global.json`).
 
@@ -213,8 +222,8 @@ helper changes.
      `import { SITE, getPage, getGlobal, escText } from '../config/site'`;
    - a page that loses image imports puts `import { getPage } from '../lib/content'` in the place of the first
      one, and pads the rest with a bare `import '../config/site';` (`ueber-uns.astro`: two images, two imports);
-   - a component that imports nothing from config uses `const { getGlobal } = await import('../lib/content');`
-     (a dynamic import does not count) — see `Certificates.astro`, `PageHero.astro`.
+   - a page or component that imports nothing from config uses `const { getGlobal } = await import('../lib/content');`
+     (a dynamic import does not count) — see `Certificates.astro`, `PageHero.astro`, `kosten-finanzierung.astro`.
 3. **Identical image files under different names**: the bundler emits identical bytes once, under whichever name
    it meets first. If `_astro/` file names change, compare the images with `md5`.
 4. **Long words**: up to 480 px, `h1, h2, h3, h4 { hyphens: auto; }` in `global.css` breaks long German words in
@@ -224,5 +233,7 @@ helper changes.
    such a word in a grid or flex cell is cut at the right edge, because `break-word` does not narrow the cell.
    `.way h3` is exempt so «Bundesfreiwilligendienst» does not break on desktop. A new narrow card title with a long
    German word may need the same; check it at desktop width.
-5. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a
+5. **The admin rewrites what it saves**: it trims `text` values, so the spaces between `…Before` and `…After` belong
+   in the markup, and a richtext value must survive its sanitizer unchanged (`<br>`, not `<br />`).
+6. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a
    `.map()` produce the same bytes — no need to imitate the old line breaks.

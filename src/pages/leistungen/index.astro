@@ -4,10 +4,15 @@ import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import Icon from '../../components/Icon.astro';
 import CtaBand from '../../components/CtaBand.astro';
+
+// Тексты страницы — в src/content/pages/leistungen.json, карточки — из коллекции leistungen
+// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
+const { getPage } = await import('../../lib/content');
+const p = getPage('leistungen');
 const items = (await getCollection('leistungen')).sort((a, b) => a.data.order - b.data.order);
 ---
-<Base title="Leistungen: Grundpflege, Behandlungspflege, Verhinderungspflege" description="Alle Leistungen des Pflegedienstes ALNO in Dortmund: Grundpflege, Behandlungspflege, Verhinderungspflege, Betreuung, Hauswirtschaft und Beratungsbesuche nach § 37.3.">
-  <PageHero title="Unsere Leistungen in Dortmund" lead="Wir stellen die Versorgung so zusammen, wie Sie oder Ihr Angehöriger sie brauchen – und rechnen direkt mit Pflege- und Krankenkasse ab." crumbs={[{ label: 'Leistungen' }]} />
+<Base title={p.text('seo.title')} description={p.text('seo.description')}>
+  <PageHero title={p.text('hero.title')} lead={p.text('hero.lead')} crumbs={[{ label: p.text('hero.crumb') }]} />
   <section class="section">
     <div class="wrap list">
       {items.map((l, i) => (
@@ -17,7 +22,7 @@ const items = (await getCollection('leistungen')).sort((a, b) => a.data.order - 
             <h2><a href={`/leistungen/${l.id}/`}>{l.data.title}</a></h2>
             <p>{l.data.teaser}</p>
             <p class="payer"><Icon name="euro" size={18} /> {l.data.payer}</p>
-            <a class="btn btn--ghost" href={`/leistungen/${l.id}/`}>Details <Icon name="arrow" size={18} /></a>
+            <a class="btn btn--ghost" href={`/leistungen/${l.id}/`}>{p.text('list.button')} <Icon name="arrow" size={18} /></a>
           </div>
           <ul class="checks">{l.data.highlights.map((h) => <li>{h}</li>)}</ul>
         </article>

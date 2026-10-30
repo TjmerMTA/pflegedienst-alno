@@ -1,8 +1,8 @@
 ---
 // Bewerbungsformular. Варианты: karriere (Stellen/Jobs), ausbildung (Ausbildung, Praktikum, FSJ, Quereinstieg).
 // Отправка и защита от спама — как в ContactForm: honeypot + минимальное время заполнения, fetch на SITE.formEndpoint;
-// пустой endpoint = режим превью. Файлы (Lebenslauf) через статический endpoint не передаются — см. подсказку в форме.
-import { SITE, getGlobal, getPage } from '../config/site';
+// пустой endpoint = режим превью. Поля для файлов в форме нет (Lebenslauf — на e-mail, см. подсказку); anfrage.php готов их принять, см. docs/anfragen-format.md.
+import { SITE, getGlobal, getPage, fieldAttrs, FORM_RULES } from '../config/site';
 interface Props { variant?: 'karriere' | 'ausbildung'; id?: string; position?: string }
 const { variant = 'karriere', id = 'bewerbung', position } = Astro.props;
 const subject = { karriere: 'Bewerbung Stelle', ausbildung: 'Bewerbung Ausbildung/Praktikum' }[variant];
@@ -15,6 +15,7 @@ const options = (id: string) => g.list<{ text: string }>(`applicationForm.${id}`
 const positions = [...getPage('karriere').list<{ title: string }>('jobs.items').map((j) => j.title), a('initiative')];
 const abschluss = options('schoolOptions');
 const wunsch = getPage('ausbildung').list<{ tag: string }>('ways.items').map((w) => w.tag);
+const { firstYear, minAge } = FORM_RULES.fields.geburtsjahr;
 const jahr = new Date().getFullYear();
 ---
 <form class="form" id={id} data-application-form data-endpoint={SITE.formEndpoint} novalidate>
@@ -39,13 +40,13 @@ const jahr = new Date().getFullYear();
   <div class="row">
     <div class="field">
       <label for={`${id}-name`}>{f('nameLabel')} <span class="req">*</span></label>
-      <input id={`${id}-name`} name="name" autocomplete="name" required minlength="2" />
+      <input id={`${id}-name`} name="name" autocomplete="name" required {...fieldAttrs('name')} />
       <span class="err" aria-live="polite"></span>
     </div>
     {variant === 'ausbildung' && (
       <div class="field">
         <label for={`${id}-jahr`}>{a('yearLabel')} <span class="req">*</span></label>
-        <input id={`${id}-jahr`} name="geburtsjahr" type="number" inputmode="numeric" required min="1940" max={jahr - 14} placeholder={a('yearPlaceholder')} />
+        <input id={`${id}-jahr`} name="geburtsjahr" type="number" inputmode="numeric" required min={firstYear} max={jahr - minAge} placeholder={a('yearPlaceholder')} />
         <span class="err" aria-live="polite"></span>
       </div>
     )}
@@ -53,12 +54,12 @@ const jahr = new Date().getFullYear();
   <div class="row">
     <div class="field">
       <label for={`${id}-phone`}>{f('phoneLabel')} <span class="req">*</span></label>
-      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +\(\)\/\-]{6,}" />
+      <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required {...fieldAttrs('phone')} />
       <span class="err" aria-live="polite"></span>
     </div>
     <div class="field">
       <label for={`${id}-email`}>{f('emailLabel')} <span class="req">*</span></label>
-      <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+      <input id={`${id}-email`} name="email" type="email" autocomplete="email" required {...fieldAttrs('email')} />
       <span class="err" aria-live="polite"></span>
     </div>
   </div>
@@ -66,7 +67,7 @@ const jahr = new Date().getFullYear();
     <>
       <div class="field">
         <label for={`${id}-quali`}>{a('qualiLabel')} <span class="muted">{f('optional')}</span></label>
-        <textarea id={`${id}-quali`} name="qualifikation" placeholder={a('qualiPlaceholder')}></textarea>
+        <textarea id={`${id}-quali`} name="qualifikation" placeholder={a('qualiPlaceholder')} {...fieldAttrs('qualifikation')}></textarea>
       </div>
       <div class="row">
         <div class="field">
@@ -99,7 +100,7 @@ const jahr = new Date().getFullYear();
   )}
   <div class="field">
     <label for={`${id}-msg`}>{f('messageLabel')} <span class="muted">{f('optional')}</span></label>
-    <textarea id={`${id}-msg`} name="message" placeholder={variant === 'karriere' ? a('messagePlaceholderJob') : a('messagePlaceholderTraining')}></textarea>
+    <textarea id={`${id}-msg`} name="message" placeholder={variant === 'karriere' ? a('messagePlaceholderJob') : a('messagePlaceholderTraining')} {...fieldAttrs('message')}></textarea>
   </div>
   <p class="muted note cv">
     {a('cvBefore')} <a href={`mailto:${SITE.email}`}>{SITE.email}</a> {a('cvAfter')}
@@ -112,7 +113,7 @@ const jahr = new Date().getFullYear();
 </form>
 <script>
   // Сообщения — из _global.json, подставляются при сборке (src/lib/client-texts.mjs)
-  declare const __APPLICATION_FORM_MSG__: Record<'required' | 'phone' | 'email' | 'year' | 'consent' | 'ok' | 'preview' | 'fail' | 'spam', string>;
+  declare const __APPLICATION_FORM_MSG__: Record<'required' | 'name' | 'phone' | 'email' | 'invalid' | 'year' | 'consent' | 'ok' | 'preview' | 'fail' | 'spam', string>;
   const MSG = __APPLICATION_FORM_MSG__;
   type Field = HTMLInputElement | HTMLSelectElement;
   document.querySelectorAll<HTMLFormElement>('[data-application-form]').forEach((form) => {
@@ -121,14 +122,27 @@ const jahr = new Date().getFullYear();
     const show = (cls: 'ok' | 'fail', text: string) => { status.className = `form-status ${cls}`; status.textContent = text; };
     const check = (el: Field) => {
       const err = el.closest('.field')?.querySelector<HTMLElement>('.err');
+      const value = el.value.trim();
       let m = '';
-      if (el.validity.valueMissing) m = MSG.required;
+      if (el.validity.valueMissing || (el.required && !value)) m = MSG.required;
+      else if (value && value.length < ((el as HTMLInputElement).minLength ?? 0)) m = MSG.name;
       else if (el.type === 'tel' && el.validity.patternMismatch) m = MSG.phone;
-      else if (el.type === 'email' && el.validity.typeMismatch) m = MSG.email;
+      else if (el.type === 'email' && value && (el.validity.typeMismatch || el.validity.patternMismatch)) m = MSG.email;
       else if (el.type === 'number' && (el.validity.rangeUnderflow || el.validity.rangeOverflow || el.validity.badInput)) m = MSG.year;
       el.setAttribute('aria-invalid', m ? 'true' : 'false');
       if (err) err.textContent = m;
       return !m;
+    };
+    // Ответ сервера с именем поля: показываем ошибку под ним. Скрытое поле посетитель не исправит
+    const showField = (name: string) => {
+      const el = form.elements.namedItem(name);
+      if (!(el instanceof HTMLElement) || (el as HTMLInputElement).type === 'hidden') { show('fail', MSG.fail); return; }
+      const m = ({ name: MSG.name, phone: MSG.phone, email: MSG.email, datenschutz: MSG.consent, geburtsjahr: MSG.year } as Record<string, string | undefined>)[name] ?? MSG.invalid;
+      el.setAttribute('aria-invalid', 'true');
+      const err = el.closest('.field')?.querySelector<HTMLElement>('.err');
+      if (err) err.textContent = m;
+      show('fail', m);
+      el.focus();
     };
     const sel = 'input[required]:not([type=checkbox]), select[required]';
     form.querySelectorAll<Field>(sel).forEach((el) => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'blur', () => check(el)));
@@ -141,13 +155,16 @@ const jahr = new Date().getFullYear();
       if (!consent.checked) { show('fail', MSG.consent); consent.focus(); return; }
       const data = new FormData(form);
       if (data.get('website') || Date.now() - started < 3000) { show('fail', MSG.spam); return; }
+      data.set('fill_ms', String(Date.now() - started)); // второй раз время проверит сервер
       const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
       btn.disabled = true;
       const endpoint = form.dataset.endpoint;
       try {
         if (endpoint) {
           const r = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
-          if (!r.ok) throw new Error(String(r.status));
+          const answer = await r.json().catch(() => null);
+          if (answer?.error === 'invalid' && answer.field) { showField(answer.field); return; }
+          if (!r.ok || !answer?.ok) throw new Error(String(r.status));
           show('ok', MSG.ok);
         } else {
           show('ok', MSG.preview);
