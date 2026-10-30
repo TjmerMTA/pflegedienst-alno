@@ -1,5 +1,6 @@
 <?php
 // Приём заявок с форм сайта. Формат хранения — docs/anfragen-format.md, тесты — test/anfrage-test.php.
+// Правила полей — src/config/form-rules.json, те же, что у форм; при сборке попадают в anfrage-site.json.
 // Данные лежат вне веб-корня, в ~/alno-data/: заявки, файлы, счётчики частоты, соль и config.php.
 // Персональные данные (Art. 9 DSGVO): в логи не пишем ничего, кроме id заявки; IP храним только как хэш с солью.
 declare(strict_types=1);
@@ -13,38 +14,9 @@ const RATE_MAX = 5;                     // запросов с одного IP �
 const RATE_WINDOW = 600;                // секунд
 const META_FIELDS = ['subject', 'from_page', 'website', 'fill_ms', 'datenschutz'];
 const UPLOAD_FIELD = 'dateien';
-
-// Поле: [тип, максимум символов, обязательное]
-const NAME = ['name', 100, true];
-const PHONE = ['phone', 40, true];
-const EMAIL_OPTIONAL = ['email', 254, false];
-const EMAIL_REQUIRED = ['email', 254, true];
-const LINE = ['line', 200, false];
-const LINE_REQUIRED = ['line', 200, true];
-const DATE = ['date', 10, false];
-const MESSAGE = ['text', 5000, false];
-
-// Форма определяется скрытым полем subject (задано в ContactForm.astro и ApplicationForm.astro).
-// Значения вариантов (leistung, tageszeit …) правятся в админке, поэтому здесь проверяются только имена, тип и длина.
-const FORMS = [
-  'Website: Kostenlose Beratung' => ['form' => 'beratung', 'label' => 'Kostenlose Beratung', 'fields' => [
-    'leistung' => LINE, 'name' => NAME, 'phone' => PHONE, 'email' => EMAIL_OPTIONAL, 'message' => MESSAGE]],
-  'Website: Rückruf-Anfrage' => ['form' => 'rueckruf', 'label' => 'Rückruf-Anfrage', 'fields' => [
-    'name' => NAME, 'phone' => PHONE, 'rueckrufzeit' => LINE]],
-  'Website: Termin Erstbegutachtung' => ['form' => 'erstbegutachtung', 'label' => 'Termin Erstbegutachtung', 'fields' => [
-    'leistung' => LINE, 'name' => NAME, 'phone' => PHONE, 'stadtteil' => LINE_REQUIRED, 'wunschtermin' => DATE, 'tageszeit' => LINE,
-    'pflegegrad' => LINE, 'email' => EMAIL_OPTIONAL, 'message' => MESSAGE]],
-  'Website: Pflege-Rechner (Kontaktdaten)' => ['form' => 'rechner', 'label' => 'Pflege-Rechner (Kontaktdaten)', 'fields' => [
-    'rechner_ergebnis' => ['text', 6000, false], 'name' => NAME, 'phone' => PHONE, 'email' => EMAIL_OPTIONAL]],
-  'Website: Pflege-Rechner (Beratungstermin)' => ['form' => 'rechnertermin', 'label' => 'Pflege-Rechner (Beratungstermin)', 'fields' => [
-    'rechner_ergebnis' => ['text', 6000, false], 'name' => NAME, 'phone' => PHONE, 'wunschtermin' => DATE, 'tageszeit' => LINE]],
-  'Website: Bewerbung Stelle' => ['form' => 'karriere', 'label' => 'Bewerbung Stelle', 'uploads' => true, 'fields' => [
-    'position' => LINE_REQUIRED, 'name' => NAME, 'phone' => PHONE, 'email' => EMAIL_REQUIRED, 'qualifikation' => ['text', 3000, false],
-    'eintritt' => DATE, 'arbeitszeit' => LINE, 'message' => MESSAGE]],
-  'Website: Bewerbung Ausbildung/Praktikum' => ['form' => 'ausbildung', 'label' => 'Bewerbung Ausbildung/Praktikum', 'uploads' => true, 'fields' => [
-    'wunsch' => LINE, 'name' => NAME, 'geburtsjahr' => ['year', 4, true], 'phone' => PHONE, 'email' => EMAIL_REQUIRED,
-    'schulabschluss' => LINE_REQUIRED, 'beginn' => DATE, 'message' => MESSAGE]],
-];
+const ANFRAGEN_MAX_MB = 200;            // предел каталога anfragen/, в config.php — anfragen_max_mb
+const ANFRAGEN_HARD_STOP = 1.1;         // выше предела текстовые заявки ещё пишем, дальше 503
+const WARNING_FILE = 'anfragen-warnung.json';
 
 const FILE_TYPES = [
   'pdf' => 'application/pdf',
@@ -146,12 +118,19 @@ function salt(string $data): string {
 
 // --- Проверка запроса ---
 
+// Строго хост и порт: parse_url прощает «http://evil\\@host», браузер такого не присылает
 function same_origin(): bool {
   $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
   $source = (string) ($_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? ''));
-  $url = parse_url($source);
-  if ($host === '' || !is_array($url) || !isset($url['host'])) return false;
-  return strtolower($url['host']) . (isset($url['port']) ? ':' . $url['port'] : '') === $host;
+  if ($host === '' || preg_match('~^https?://([a-z0-9.-]+(?::\d+)?)(?:[/?#]|$)~i', $source, $m) !== 1) return false;
+  return strtolower($m[1]) === $host;
+}
+
+// Счётчик и хэш: IPv6-клиент владеет целой /64, поэтому считаем её, а не адрес
+function rate_key(string $ip): string {
+  $bin = @inet_pton($ip);
+  if ($bin === false || strlen($bin) !== 16 || str_starts_with($bin, str_repeat("\0", 10) . "\xFF\xFF")) return $ip;
+  return bin2hex(substr($bin, 0, 8));
 }
 
 // Секунд до следующей попытки, 0 — можно. Отказанные попытки окно не продлевают
@@ -203,38 +182,50 @@ function valid_date(string $s): bool {
   return preg_match('/^(\d{4})-(\d\d)-(\d\d)$/', $s, $m) === 1 && checkdate((int) $m[2], (int) $m[3], (int) $m[1]);
 }
 
-function valid_value(string $type, string $v): bool {
-  return match ($type) {
-    'name' => char_count($v) >= 2,
-    'phone' => preg_match('~^[0-9 +()/\-]{6,}$~', $v) === 1,
-    'email' => filter_var($v, FILTER_VALIDATE_EMAIL) !== false,
+function valid_value(array $rule, string $v): bool {
+  if (char_count($v) < ($rule['min'] ?? 0) || char_count($v) > $rule['max']) return false;
+  if (isset($rule['pattern']) && preg_match('~^(?:' . $rule['pattern'] . ')$~D', $v) !== 1) return false;
+  return match ($rule['kind']) {
     'date' => valid_date($v),
-    'year' => preg_match('/^\d{4}$/', $v) === 1 && (int) $v >= 1900 && (int) $v <= (int) date('Y'),
+    'year' => preg_match('/^\d{4}$/', $v) === 1 && (int) $v >= $rule['firstYear'] && (int) $v <= (int) date('Y') - $rule['minAge'],
     default => true,
   };
 }
 
-// Имя вне белого списка, массив вместо строки, битый UTF-8, лишняя длина — отказ всей заявки
-function read_fields(array $form): array {
+function cut_chars(string $s, int $max): string {
+  return preg_match('/^.{0,' . $max . '}/su', $s, $m) === 1 ? rtrim($m[0]) : '';
+}
+
+// Имя вне белого списка, массив вместо строки, битый UTF-8 — отказ всей заявки. Обязательное поле с ошибкой тоже
+// (форма покажет, какое). Необязательное заявку не роняет: значение сохраняется, имя поля попадает в invalid.
+function read_fields(array $form, array $rules): array {
   foreach ($_POST as $key => $value) {
     if (!is_string($value)) invalid((string) $key);
     if (!isset($form['fields'][$key]) && !in_array($key, META_FIELDS, true)) invalid((string) $key);
     if (preg_match('//u', $value) !== 1) invalid((string) $key);
   }
   $fields = [];
-  foreach ($form['fields'] as $key => [$type, $max, $required]) {
+  $flagged = [];
+  foreach ($form['fields'] as $key => $required) {
+    $rule = $rules['fields'][$key];
     $raw = $_POST[$key] ?? '';
-    $value = $type === 'text' ? clean_text($raw) : clean_line($raw);
+    $value = in_array($rule['kind'], ['text', 'summary'], true) ? clean_text($raw) : clean_line($raw);
     if ($value === '') {
       if ($required) invalid($key);
       continue;
     }
-    if (char_count($value) > $max || !valid_value($type, $value)) invalid($key);
+    // Итог расчёта посетитель не видит и исправить не может
+    if ($rule['kind'] === 'summary') $value = cut_chars($value, $rule['max']);
+    if (!valid_value($rule, $value)) {
+      if ($required) invalid($key);
+      $value = cut_chars($value, $rule['max']);
+      $flagged[] = $key;
+    }
     $fields[$key] = $value;
   }
   if (($_POST['datenschutz'] ?? '') !== 'on') invalid('datenschutz');
   $fields['datenschutz'] = 'ja';
-  return $fields;
+  return [$fields, $flagged];
 }
 
 function page_path(): string {
@@ -252,9 +243,25 @@ function is_image(string $path, int $type): bool {
   return is_array($info) && $info[2] === $type;
 }
 
+// Настоящий ZIP с документом Word и без объявленных макросов. Без расширения zip DOCX не принимаем
 function is_docx(string $path): bool {
-  $bytes = (string) file_get_contents($path);
-  return str_contains($bytes, '[Content_Types].xml') && str_contains($bytes, 'word/document.xml') && !str_contains($bytes, 'vbaProject.bin');
+  if (!class_exists('ZipArchive')) return false;
+  $zip = new ZipArchive();
+  if ($zip->open($path, ZipArchive::CHECKCONS) !== true) return false;
+  $types = $zip->getFromName('[Content_Types].xml');
+  $ok = is_string($types) && $zip->locateName('word/document.xml') !== false && $zip->locateName('word/vbaProject.bin') === false
+    && str_contains($types, 'wordprocessingml.document.main+xml') && stripos($types, 'vbaProject') === false && stripos($types, 'macroEnabled') === false;
+  $zip->close();
+  return $ok;
+}
+
+function is_pdf(string $path): bool {
+  $handle = @fopen($path, 'rb');
+  if (!$handle) return false;
+  fseek($handle, -min(1024, (int) filesize($path)), SEEK_END);
+  $tail = (string) fread($handle, 1024);
+  fclose($handle);
+  return str_contains($tail, '%%EOF');
 }
 
 // Тип определяется только по содержимому; присланным Content-Type и расширением не верим
@@ -263,7 +270,7 @@ function sniff(string $path): ?string {
   if (!$handle) return null;
   $head = (string) fread($handle, 8);
   fclose($handle);
-  if (str_starts_with($head, '%PDF-')) return 'pdf';
+  if (str_starts_with($head, '%PDF-')) return is_pdf($path) ? 'pdf' : null;
   if (str_starts_with($head, "\xFF\xD8\xFF")) return is_image($path, IMAGETYPE_JPEG) ? 'jpg' : null;
   if (str_starts_with($head, "\x89PNG\r\n\x1A\n")) return is_image($path, IMAGETYPE_PNG) ? 'png' : null;
   if (str_starts_with($head, "PK\x03\x04")) return is_docx($path) ? 'docx' : null;
@@ -273,15 +280,16 @@ function sniff(string $path): ?string {
 // Имя файла клиента только для показа: в пути на диске оно не участвует
 function clean_file_name(string $name, string $extension): string {
   $name = clean_line(basename(str_replace('\\', '/', $name)));
-  $name = str_replace('..', '.', $name);
+  $name = str_replace(['..', '<', '>', '"'], ['.', '_', '_', '_'], $name);
   $stem = preg_replace('/\.[^.]*$/', '', $name);
   return (char_count($name) <= 120 && $stem !== '') ? $name : 'Datei.' . $extension;
 }
 
-function read_uploads(array $form): array {
+// Поля для файлов на сайте нет, поэтому по умолчанию любой файл — отказ. Включается ключом uploads в config.php
+function read_uploads(bool $allowed): array {
   $keys = array_keys($_FILES);
   if ($keys === []) return [];
-  if (empty($form['uploads']) || $keys !== [UPLOAD_FIELD] || !is_array($_FILES[UPLOAD_FIELD]['name'])) invalid((string) $keys[0]);
+  if (!$allowed || $keys !== [UPLOAD_FIELD] || !is_array($_FILES[UPLOAD_FIELD]['name'])) invalid((string) $keys[0]);
   $set = $_FILES[UPLOAD_FIELD];
   $files = [];
   foreach (array_keys($set['name']) as $i) {
@@ -324,6 +332,28 @@ function store_record(array $record, string $dir): void {
   }
 }
 
+// Размер заявок и файлов. Предупреждение для панели админки лежит рядом, в размер не входит
+function anfragen_bytes(string $dir): int {
+  $sum = 0;
+  foreach ([...(glob("$dir/*.json") ?: []), ...(glob("$dir/files/*") ?: [])] as $file) $sum += (int) @filesize($file);
+  return $sum;
+}
+
+function update_warning(string $data, int $used, int $limit): void {
+  $file = "$data/" . WARNING_FILE;
+  if ($used < $limit) {
+    @unlink($file);
+    return;
+  }
+  $old = json_decode((string) @file_get_contents($file), true);
+  $mb = fn (int $bytes) => round($bytes / 1048576, 1);
+  $limitMb = (int) round($limit / 1048576);
+  $warning = ['code' => 'anfragen_voll', 'since' => is_array($old) && isset($old['since']) ? $old['since'] : date('c'), 'used_mb' => $mb($used), 'limit_mb' => $limitMb,
+    'message' => "Der Speicher für Anfragen ist voll: {$mb($used)} von $limitMb MB. Bitte erledigte Anfragen löschen."];
+  $tmp = "$file.tmp";
+  if (file_put_contents($tmp, json_encode($warning, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n") !== false) @rename($tmp, $file);
+}
+
 // --- Письмо ---
 
 function valid_address(mixed $v): ?string {
@@ -339,7 +369,7 @@ function mail_from(array $config, array $site): ?string {
 }
 
 // Только контакт, чтобы перезвонить: письмо идёт через чужие серверы, поэтому текст и данные о здоровье
-// остаются на сервере. Тема — метка формы из FORMS, From и Reply-To — только проверенные адреса.
+// остаются на сервере. Тема — метка формы из правил, From и Reply-To — только проверенные адреса.
 function send_notification(array $record, array $form, array $config, array $site): void {
   $to = valid_address($config['anfragen_to'] ?? null) ?? valid_address($site['email'] ?? null);
   $from = mail_from($config, $site);
@@ -353,14 +383,16 @@ function send_notification(array $record, array $form, array $config, array $sit
   $lines[] = '';
   $lines[] = 'Name: ' . $f['name'];
   $lines[] = 'Telefon: ' . $f['phone'];
-  if (isset($f['email'])) $lines[] = 'E-Mail: ' . $f['email'];
+  $emailOk = isset($f['email']) && !in_array('email', $record['invalid'], true);
+  if (isset($f['email'])) $lines[] = 'E-Mail: ' . $f['email'] . ($emailOk ? '' : ' (ungültig)');
   $lines[] = '';
   $lines[] = 'Alle Angaben finden Sie im Admin unter Anfragen.';
   if ($record['files']) $lines[] = 'Dateien: ' . count($record['files']) . ' (bleiben auf dem Server, im Admin unter Anfragen)';
+  if (isset($record['files_refused'])) $lines[] = 'Dateien nicht gespeichert: ' . $record['files_refused'] . ' (Speicher voll)';
   $lines[] = 'Vorgang: ' . $record['id'];
 
   $headers = ["From: $from", 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit', 'Auto-Submitted: auto-generated'];
-  $reply = valid_address($f['email'] ?? null);
+  $reply = $emailOk ? valid_address($f['email']) : null;
   if ($reply !== null) $headers[] = "Reply-To: $reply";
   $subject = '=?UTF-8?B?' . base64_encode('Neue Anfrage: ' . $form['label']) . '?=';
   if (!mail($to, $subject, implode("\r\n", $lines) . "\r\n", implode("\r\n", $headers), "-f$from")) {
@@ -382,8 +414,11 @@ function handle(): never {
   prepare_storage($data);
   $config = load_config($data);
   $salt = salt($data);
+  $site = site_settings();
+  $rules = $site['rules'] ?? null;
+  if (!is_array($rules)) throw new RuntimeException('form rules not available');
 
-  $ipHash = substr(hash_hmac('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''), $salt), 0, 32);
+  $ipHash = substr(hash_hmac('sha256', rate_key((string) ($_SERVER['REMOTE_ADDR'] ?? '')), $salt), 0, 32);
   $window = (int) ($config['rate_window'] ?? RATE_WINDOW);
   if (random_int(1, 50) === 1) collect_rate_garbage("$data/ratelimit", $window);
   $wait = rate_wait("$data/ratelimit/$ipHash", (int) ($config['rate_max'] ?? RATE_MAX), $window);
@@ -397,24 +432,39 @@ function handle(): never {
   $fill = $_POST['fill_ms'] ?? '';
   if (!is_string($fill) || preg_match('/^\d{1,12}$/', $fill) !== 1 || (int) $fill < MIN_FILL_MS) fail(422, 'spam', 'Bitte versuchen Sie es erneut.');
 
-  $form = FORMS[is_string($_POST['subject'] ?? null) ? $_POST['subject'] : ''] ?? null;
+  $form = $rules['forms'][is_string($_POST['subject'] ?? null) ? $_POST['subject'] : ''] ?? null;
   if ($form === null) invalid('subject');
-  if (empty($form['uploads']) && $length > MAX_BODY_PLAIN) fail(413, 'too_large', 'Die Anfrage ist zu groß.');
+  $uploadsAllowed = !empty($config['uploads']) && !empty($form['uploads']);
+  if (!$uploadsAllowed && $length > MAX_BODY_PLAIN) fail(413, 'too_large', 'Die Anfrage ist zu groß.');
 
-  $fields = read_fields($form);
-  $uploads = read_uploads($form);
+  [$fields, $flagged] = read_fields($form, $rules);
+  $uploads = read_uploads($uploadsAllowed);
+
+  // Предел достигнут: файлы не берём, но текстовая заявка важнее порядка. Дальше — только 503
+  $limit = (int) (((int) ($config['anfragen_max_mb'] ?? ANFRAGEN_MAX_MB)) * 1048576);
+  $used = anfragen_bytes("$data/anfragen");
+  if ($used >= (int) ($limit * ANFRAGEN_HARD_STOP)) {
+    update_warning($data, $used, $limit);
+    fail(503, 'storage_full', 'Der Speicher ist voll.');
+  }
+  $refused = $used >= $limit ? count($uploads) : 0;
+  if ($refused > 0) $uploads = [];
 
   $id = date('Y-m-d-His') . '-' . bin2hex(random_bytes(8));
   $files = store_uploads($uploads, "$data/anfragen/files");
-  $record = ['id' => $id, 'received' => date('c'), 'form' => $form['form'], 'page' => page_path(), 'fields' => $fields, 'files' => $files, 'status' => 'neu', 'ip_hash' => $ipHash];
+  $record = ['id' => $id, 'received' => date('c'), 'form' => $form['form'], 'page' => page_path(), 'fields' => $fields, 'invalid' => $flagged, 'files' => $files, 'status' => 'neu', 'ip_hash' => $ipHash];
+  if ($refused > 0) $record['files_refused'] = $refused;
   try {
     store_record($record, "$data/anfragen");
-  } catch (Throwable $e) {
+  } catch (Throwable) {
     foreach ($files as $file) @unlink("$data/anfragen/files/{$file['stored']}");
-    throw $e;
+    update_warning($data, max($used, $limit), $limit);
+    error_log("anfrage: $id not stored");
+    fail(503, 'storage_full', 'Der Speicher ist voll.');
   }
+  update_warning($data, anfragen_bytes("$data/anfragen"), $limit);
   // Сбой письма заявку не теряет: она уже на сервере
-  send_notification($record, $form, $config, site_settings());
+  send_notification($record, $form, $config, $site);
   reply(200, ['ok' => true]);
 }
 

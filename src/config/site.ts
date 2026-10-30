@@ -2,10 +2,17 @@
 // Значения — в src/content/pages/_global.json (группа contact, правится в админке), здесь только тонкий слой.
 // Всё, что помечено TODO, нужно подтвердить у клиента до запуска.
 import { getGlobal, getPage, escText, jsonForScript } from '../lib/content';
+import FORM_RULES from './form-rules.json';
 
 // Страницы и компоненты, которые уже импортируют site.ts, берут это отсюда: лишний import в .astro
 // сдвигает порядок <style> в собранном HTML (Astro сортирует CSS по позиции импорта)
-export { getGlobal, getPage, escText, jsonForScript };
+export { getGlobal, getPage, escText, jsonForScript, FORM_RULES };
+
+// Атрибуты поля формы из единых правил: их же проверяет public/api/anfrage.php
+export function fieldAttrs(name: keyof typeof FORM_RULES.fields) {
+  const r: { min?: number; max: number; pattern?: string } = FORM_RULES.fields[name];
+  return { minlength: r.min, maxlength: r.max, pattern: r.pattern };
+}
 
 const g = getGlobal();
 const c = (id: string) => g.text(`contact.${id}`);

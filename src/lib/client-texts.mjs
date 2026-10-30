@@ -34,8 +34,10 @@ export function clientTexts() {
   return {
     __CONTACT_FORM_MSG__: jsonForScript({
       required: forms('errRequired'),
+      name: forms('errName'),
       phone: forms('errPhone'),
       email: forms('errEmail'),
+      invalid: forms('errInvalid'),
       consent: forms('errConsent'),
       ok: contact('ok'),
       preview: forms('msgPreview'),
@@ -44,8 +46,10 @@ export function clientTexts() {
     }),
     __APPLICATION_FORM_MSG__: jsonForScript({
       required: forms('errRequired'),
+      name: forms('errName'),
       phone: forms('errPhone'),
       email: forms('errEmail'),
+      invalid: forms('errInvalid'),
       year: application('errYear'),
       consent: forms('errConsent'),
       ok: application('ok'),

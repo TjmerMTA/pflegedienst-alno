@@ -15,7 +15,8 @@ $mails = "$tmp/mails";
 mkdir("$www/api", 0777, true);
 mkdir($mails);
 copy(ROOT . '/public/api/anfrage.php', "$www/api/anfrage.php");
-file_put_contents("$www/api/anfrage-site.json", json_encode(['email' => 'info@site.example', 'domain' => 'site.example']));
+$rules = json_decode((string) file_get_contents(ROOT . '/src/config/form-rules.json'), true);
+file_put_contents("$www/api/anfrage-site.json", json_encode(['email' => 'info@site.example', 'domain' => 'site.example', 'rules' => $rules]));
 file_put_contents("$tmp/sendmail", "#!/bin/sh\nn=\$(ls '$mails' | wc -l | tr -d ' ')\n{ echo \"ARGS: \$*\"; cat; } > '$mails/'\$n.eml\n[ -f '$tmp/mail-fails' ] && exit 1\nexit 0\n");
 chmod("$tmp/sendmail", 0755);
 
@@ -71,10 +72,11 @@ function karriere(array $o = []): array {
     'phone' => '0231 654321', 'email' => 'ben@example.org', 'arbeitszeit' => 'Vollzeit', 'website' => '', 'datenschutz' => 'on', 'fill_ms' => '5000'], $o);
 }
 function pdf(): string { return "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n"; }
-function docx(string $extra = ''): string {
+function docx(string $extra = '', string $types = ''): string {
   $f = tempnam(sys_get_temp_dir(), 'dx');
   $z = new ZipArchive(); $z->open($f, ZipArchive::OVERWRITE);
-  $z->addFromString('[Content_Types].xml', '<Types/>'); $z->addFromString('word/document.xml', '<w:document/>');
+  $z->addFromString('[Content_Types].xml', '<Types><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' . $types . '</Types>');
+  $z->addFromString('word/document.xml', '<w:document/>');
   if ($extra !== '') $z->addFromString($extra, 'x');
   $z->close();
   $b = (string) file_get_contents($f); unlink($f);
@@ -82,6 +84,7 @@ function docx(string $extra = ''): string {
 }
 
 // --- проверки ---
+function uploads_on(array $more = []): void { global $data; file_put_contents("$data/config.php", '<?php return ' . var_export(['uploads' => true] + $more, true) . ';'); }
 function stored(): array { global $data; return array_values(glob("$data/anfragen/*.json") ?: []); }
 function last(): array { $f = stored(); return json_decode((string) file_get_contents(end($f)), true); }
 function storedFiles(): array { global $data; return array_values(array_filter(glob("$data/anfragen/files/*") ?: [], 'is_file')); }
@@ -89,6 +92,7 @@ function mails(): array { global $mails; return array_values(glob("$mails/*.eml"
 function lastMail(): string { $m = mails(); return (string) file_get_contents(end($m)); }
 function reset_state(): void {
   global $data, $mails, $tmp;
+  @unlink("$data/anfragen-warnung.json");
   foreach (["$data/anfragen/*.json", "$data/anfragen/files/*", "$data/ratelimit/*", "$mails/*"] as $g) foreach (glob($g) ?: [] as $f) if (is_file($f)) unlink($f);
   @unlink("$data/config.php"); @unlink("$tmp/mail-fails");
 }
@@ -119,6 +123,8 @@ t('response is JSON and not cached', function () { $r = post(rueckruf()); ok(str
 t('foreign Origin is rejected', function () { rejected(post(rueckruf(), [], ['Origin' => 'https://evil.example']), 403); });
 t('foreign Referer without Origin is rejected', function () { rejected(post(rueckruf(), [], ['Origin' => null, 'Referer' => 'https://evil.example/x']), 403); });
 t('neither Origin nor Referer is rejected', function () { rejected(post(rueckruf(), [], ['Origin' => null]), 403); });
+t('Origin with a backslash and userinfo trick is rejected', function () { rejected(post(rueckruf(), [], ['Origin' => 'http://evil.example\\@127.0.0.1:' . PORT]), 403); });
+t('Origin with userinfo is rejected', function () { rejected(post(rueckruf(), [], ['Origin' => 'http://evil.example@127.0.0.1:' . PORT]), 403); });
 t('own Referer without Origin passes', function () { accepted(post(rueckruf(), [], ['Origin' => null, 'Referer' => 'http://127.0.0.1:' . PORT . '/'])); });
 t('body over the limit for a form without files is 413', function () { rejected(post(beratung(['message' => str_repeat('x', 200000)])), 413); });
 t('body over the total limit is 413', function () { rejected(http('POST', str_repeat('x', 34 * 1024 * 1024), ['Origin' => 'http://127.0.0.1:' . PORT, 'Content-Type' => 'multipart/form-data; boundary=x']), 413); });
@@ -147,6 +153,16 @@ t('rate limit: file name holds no IP, window expires', function () {
   accepted(post(rueckruf()));
 });
 
+t('IPv6 clients are limited per /64, IPv4 per address', function () {
+  preg_match('/^function rate_key\(.*?^}$/ms', (string) file_get_contents(ROOT . '/public/api/anfrage.php'), $m);
+  ok(isset($m[0]), 'rate_key not found');
+  if (!function_exists('rate_key')) eval($m[0]);
+  is_same(rate_key('2001:db8:1:2:aaaa::1'), rate_key('2001:db8:1:2:bbbb::9'), 'same /64');
+  ok(rate_key('2001:db8:1:2::1') !== rate_key('2001:db8:1:3::1'), 'other /64');
+  ok(rate_key('192.0.2.1') !== rate_key('192.0.2.2'), 'IPv4');
+  ok(rate_key('::ffff:192.0.2.1') !== rate_key('::ffff:192.0.2.2'), 'mapped IPv4');
+});
+
 echo "Белый список\n";
 t('unknown field is rejected', function () { rejected(post(rueckruf(['admin' => '1'])), 422); });
 t('field of another form is rejected', function () { rejected(post(rueckruf(['message' => 'x'])), 422); });
@@ -160,12 +176,36 @@ t('consent with another value is rejected', function () { rejected(post(rueckruf
 t('missing name is rejected', function () { rejected(post(rueckruf(['name' => '   '])), 422); });
 t('one-letter name is rejected', function () { rejected(post(rueckruf(['name' => 'A'])), 422); });
 t('bad phone is rejected', function () { rejected(post(rueckruf(['phone' => 'call me'])), 422); });
-t('bad e-mail is rejected', function () { rejected(post(beratung(['email' => 'nope'])), 422); });
+t('bad e-mail in a required field is rejected', function () { rejected(post(karriere(['email' => 'max@gmail'])), 422); });
+t('bad e-mail in an optional field keeps the enquiry', function () {
+  accepted(post(beratung(['email' => 'max@gmail'])));
+  is_same(last()['fields']['email'], 'max@gmail'); is_same(last()['invalid'], ['email']);
+  ok(str_contains(lastMail(), 'E-Mail: max@gmail (ungültig)'), 'typo visible and marked for the office');
+  ok(stripos(lastMail(), 'Reply-To') === false, 'no Reply-To for an invalid address');
+});
+t('a failed check names the field', function () { $r = post(karriere(['phone' => 'x'])); is_same($r['json']['error'], 'invalid'); is_same($r['json']['field'], 'phone'); });
+t('calculator summary over the limit is cut, not rejected', function () {
+  accepted(post(['subject' => 'Website: Pflege-Rechner (Kontaktdaten)', 'from_page' => '/pflege-rechner/', 'rechner_ergebnis' => str_repeat("- L01 Ganzwaschung\n", 500), 'name' => 'Anna Muster', 'phone' => '0231 123456', 'website' => '', 'datenschutz' => 'on', 'fill_ms' => '5000']));
+  ok(mb_strlen(last()['fields']['rechner_ergebnis']) <= 6000, 'length');
+});
 t('e-mail is optional on beratung', function () { accepted(post(beratung(['email' => '']))); ok(!isset(last()['fields']['email']), 'empty optional kept'); });
 t('e-mail is required on karriere', function () { rejected(post(karriere(['email' => ''])), 422); });
-t('bad date is rejected', function () { rejected(post(karriere(['eintritt' => '31.12.2026'])), 422); });
-t('impossible date is rejected', function () { rejected(post(karriere(['eintritt' => '2026-02-31'])), 422); });
-t('year out of range is rejected', function () { rejected(post(['subject' => 'Website: Bewerbung Ausbildung/Praktikum', 'from_page' => '/ausbildung/', 'wunsch' => 'Praktikum', 'name' => 'Ben B', 'geburtsjahr' => '1200', 'phone' => '0231 654321', 'email' => 'b@example.org', 'schulabschluss' => 'Abitur', 'website' => '', 'datenschutz' => 'on', 'fill_ms' => '5000']), 422); });
+t('a required field that fails is rejected and named', function () {
+  $r = post(['subject' => 'Website: Bewerbung Ausbildung/Praktikum', 'from_page' => '/ausbildung/', 'name' => 'Ben B', 'geburtsjahr' => '1939', 'phone' => '0231 654321', 'email' => 'b@example.org', 'schulabschluss' => 'Abitur', 'website' => '', 'datenschutz' => 'on', 'fill_ms' => '5000']);
+  rejected($r, 422); is_same($r['json']['field'], 'geburtsjahr');
+});
+t('an optional date that fails is kept and flagged', function () {
+  accepted(post(karriere(['eintritt' => '31.12.2026'])));
+  is_same(last()['fields']['eintritt'], '31.12.2026'); is_same(last()['invalid'], ['eintritt']);
+  reset_state();
+  accepted(post(karriere(['eintritt' => '2026-02-31']))); is_same(last()['invalid'], ['eintritt']);
+});
+t('an optional field over its limit is cut, kept and flagged', function () {
+  accepted(post(beratung(['message' => str_repeat('ü', 5001)])));
+  is_same(mb_strlen(last()['fields']['message']), 5000); is_same(last()['invalid'], ['message']);
+});
+t('a valid enquiry has an empty invalid list', function () { accepted(post(beratung())); is_same(last()['invalid'], []); });
+t('year out of range is rejected', function () { rejected(post(['subject' => 'Website: Bewerbung Ausbildung/Praktikum', 'from_page' => '/ausbildung/', 'wunsch' => 'Praktikum', 'name' => 'Ben B', 'geburtsjahr' => (string) ((int) date('Y') - 13), 'phone' => '0231 654321', 'email' => 'b@example.org', 'schulabschluss' => 'Abitur', 'website' => '', 'datenschutz' => 'on', 'fill_ms' => '5000']), 422); });
 t('name of 100 characters passes, 101 is rejected', function () {
   accepted(post(rueckruf(['name' => str_repeat('ü', 100)])));
   reset_state();
@@ -184,7 +224,7 @@ t('whitespace and control characters are normalised', function () {
 t('record has exactly the documented keys', function () {
   accepted(post(beratung(), [], ['Referer' => 'http://127.0.0.1:' . PORT . '/kontakt/?name=Anna#x']));
   $r = last();
-  is_same(array_keys($r), ['id', 'received', 'form', 'page', 'fields', 'files', 'status', 'ip_hash']);
+  is_same(array_keys($r), ['id', 'received', 'form', 'page', 'fields', 'invalid', 'files', 'status', 'ip_hash']);
   is_same($r['form'], 'beratung'); is_same($r['status'], 'neu'); is_same($r['files'], []);
   is_same($r['page'], '/kontakt/', 'page has no query');
   ok((bool) preg_match('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d:\d\d$/', $r['received']), 'ISO 8601: ' . $r['received']);
@@ -202,6 +242,7 @@ t('raw IP is not stored anywhere', function () {
 });
 t('files are private to the hosting user', function () {
   global $data;
+  uploads_on();
   accepted(post(karriere(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]));
   $mode = fn ($p) => decoct(fileperms($p) & 0777);
   is_same($mode(stored()[0]), '600'); is_same($mode(storedFiles()[0]), '600');
@@ -279,8 +320,15 @@ t('subject carries no personal data', function () {
   $s = iconv_mime_decode(trim($m[1]));
   ok(str_contains($s, 'Kostenlose Beratung'), 'label: ' . $s); ok(!str_contains($s, 'Zacharias'), 'name in subject');
 });
-t('header injection through e-mail is rejected', function () { rejected(post(beratung(['email' => "a@example.org\r\nBcc: victim@example.org"])), 422); });
-t('header injection through e-mail with a bare LF is rejected', function () { rejected(post(beratung(['email' => "a@example.org\nBcc: victim@example.org"])), 422); });
+t('header injection through a required e-mail is rejected', function () { rejected(post(karriere(['email' => "a@example.org\r\nBcc: victim@example.org"])), 422); });
+t('header injection through a required e-mail with a bare LF is rejected', function () { rejected(post(karriere(['email' => "a@example.org\nBcc: victim@example.org"])), 422); });
+foreach (["\r\n", "\n", "\r"] as $nl) {
+  t('header injection through an optional e-mail adds no header: ' . addcslashes($nl, "\r\n"), function () use ($nl) {
+    accepted(post(beratung(['email' => "a@example.org{$nl}Bcc: victim@example.org"])));
+    $m = lastMail();
+    ok(!preg_match('/^Bcc:/mi', $m), 'Bcc line'); ok(stripos($m, 'Reply-To') === false, 'Reply-To');
+  });
+}
 t('header injection through the name stays in the body', function () {
   accepted(post(beratung(['name' => "Eve\r\nBcc: victim@example.org\r\nSubject: x"])));
   $m = lastMail();
@@ -301,7 +349,52 @@ t('mail failure keeps the submission', function () {
 });
 
 echo "Файлы\n";
-$sent = fn (string $name, string $type, string $bytes) => post(karriere(), [['dateien[]', $name, $type, $bytes]]);
+$sent = function (string $name, string $type, string $bytes) { uploads_on(); return post(karriere(), [['dateien[]', $name, $type, $bytes]]); };
+t('uploads are refused until switched on', function () { rejected(post(karriere(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]), 422); });
+t('a big upload is refused as an oversized body while uploads are off', function () { rejected(post(karriere(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf() . str_repeat('x', 200000)]]), 413); });
+t('storage full: text-only enquiries are still stored, a warning appears', function () {
+  global $data;
+  file_put_contents("$data/config.php", "<?php return ['anfragen_max_mb' => 1];");
+  file_put_contents("$data/anfragen/files/old", str_repeat('x', 1048576));
+  accepted(post(beratung()));
+  is_same(count(stored()), 1); is_same(count(mails()), 1);
+  $w = json_decode((string) file_get_contents("$data/anfragen-warnung.json"), true);
+  is_same($w['code'], 'anfragen_voll'); is_same($w['limit_mb'], 1); ok(is_string($w['message']) && is_string($w['since']), 'warning fields');
+  ok(!str_contains((string) file_get_contents("$data/anfragen-warnung.json"), 'Anna'), 'no personal data in the warning');
+});
+t('storage full: files are dropped, the enquiry is kept and says so', function () {
+  global $data;
+  uploads_on(['anfragen_max_mb' => 1]);
+  file_put_contents("$data/anfragen/files/old", str_repeat('x', 1048576));
+  accepted(post(karriere(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]));
+  $r = last(); is_same($r['files'], []); is_same($r['files_refused'], 1); is_same(count(storedFiles()), 1);
+  ok(str_contains(lastMail(), 'nicht gespeichert'), 'mail says the file is missing');
+});
+t('storage over the hard stop: 503, nothing stored, warning stays', function () {
+  global $data;
+  file_put_contents("$data/config.php", "<?php return ['anfragen_max_mb' => 1];");
+  file_put_contents("$data/anfragen/files/old", str_repeat('x', 1153434));
+  $r = post(beratung());
+  is_same($r['status'], 503); is_same($r['json']['error'], 'storage_full'); is_same(count(stored()), 0); is_same(count(mails()), 0);
+  ok(is_file("$data/anfragen-warnung.json"), 'warning');
+});
+t('storage back under the limit: the warning goes away', function () {
+  global $data;
+  file_put_contents("$data/config.php", "<?php return ['anfragen_max_mb' => 1];");
+  file_put_contents("$data/anfragen-warnung.json", '{"code":"anfragen_voll"}');
+  accepted(post(beratung()));
+  ok(!is_file("$data/anfragen-warnung.json"), 'stale warning');
+});
+t('PDF without an end marker is rejected', function () use ($sent) { rejected($sent('a.pdf', 'application/pdf', "%PDF-1.4\n<html><script>alert(1)</script>"), 422); });
+t('junk with DOCX names in it is rejected', function () use ($sent) { rejected($sent('a.docx', 'application/octet-stream', "PK\x03\x04[Content_Types].xml word/document.xml junk"), 422); });
+t('ZIP with the names but no Word content type is rejected', function () use ($sent) {
+  $f = tempnam(sys_get_temp_dir(), 'z'); $z = new ZipArchive(); $z->open($f, ZipArchive::OVERWRITE);
+  $z->addFromString('[Content_Types].xml', '<Types/>'); $z->addFromString('word/document.xml', 'x'); $z->close();
+  $b = (string) file_get_contents($f); unlink($f);
+  rejected($sent('a.docx', 'application/octet-stream', $b), 422);
+});
+t('macro declared in the content types is rejected', function () use ($sent) { rejected($sent('a.docx', 'application/octet-stream', docx('word/x.bin', '<Override PartName="/word/x.bin" ContentType="application/vnd.ms-office.vbaProject"/>')), 422); });
+t('HTML in a file name is defused', function () use ($sent) { accepted($sent('<img src=x onerror=alert(1)>.pdf', 'application/pdf', pdf())); ok(!preg_match('/[<>"]/', last()['files'][0]['name']), last()['files'][0]['name']); });
 foreach ([['cv.pdf', 'application/pdf', 'pdf', 'application/pdf'], ['foto.jpg', 'image/jpeg', 'jpg', 'image/jpeg'], ['foto.jpeg', 'image/jpeg', 'jpg', 'image/jpeg'], ['bild.PNG', 'image/png', 'png', 'image/png'], ['cv.docx', 'application/octet-stream', 'docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']] as [$n, $ct, $k, $want]) {
   t("accepts $n by its content", function () use ($sent, $n, $ct, $k, $want) {
     $bytes = ['pdf' => fn () => pdf(), 'jpg' => fn () => base64_decode(JPG), 'png' => fn () => base64_decode(PNG), 'docx' => fn () => docx()][$k]();
@@ -327,23 +420,26 @@ t('plain ZIP named .docx is rejected', function () use ($sent) {
 t('macro document named .docx is rejected', function () use ($sent) { rejected($sent('cv.docx', 'application/octet-stream', docx('word/vbaProject.bin')), 422); });
 t('empty file is rejected', function () use ($sent) { rejected($sent('cv.pdf', 'application/pdf', ''), 422); });
 t('file of exactly 10 MB passes, one byte more is rejected', function () use ($sent) {
-  $big = pdf() . str_repeat('x', 10485760 - strlen(pdf()));
-  accepted($sent('cv.pdf', 'application/pdf', $big));
+  $big = fn (int $size) => "%PDF-1.4\n" . str_repeat('x', $size - 16) . "\n%%EOF\n";
+  accepted($sent('cv.pdf', 'application/pdf', $big(10485760)));
   reset_state();
-  rejected($sent('cv.pdf', 'application/pdf', $big . 'x'), 422);
+  rejected($sent('cv.pdf', 'application/pdf', $big(10485761)), 422);
 });
 t('three files pass, four are rejected', function () {
   $f = fn (int $i) => ['dateien[]', "cv$i.pdf", 'application/pdf', pdf()];
+  uploads_on();
   accepted(post(karriere(), [$f(1), $f(2), $f(3)]));
   is_same(count(last()['files']), 3); is_same(count(storedFiles()), 3);
   reset_state();
+  uploads_on();
   rejected(post(karriere(), [$f(1), $f(2), $f(3), $f(4)]), 422);
 });
 t('one bad file rejects all, nothing stays', function () {
+  uploads_on();
   rejected(post(karriere(), [['dateien[]', 'ok.pdf', 'application/pdf', pdf()], ['dateien[]', 'bad.pdf', 'application/pdf', '<?php']]), 422);
 });
-t('files on a form without uploads are rejected', function () { rejected(post(rueckruf(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]), 422); });
-t('another upload field is rejected', function () { rejected(post(karriere(), [['evil', 'cv.pdf', 'application/pdf', pdf()]]), 422); });
+t('files on a form without uploads are rejected', function () { uploads_on(); rejected(post(rueckruf(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]), 422); });
+t('another upload field is rejected', function () { uploads_on(); rejected(post(karriere(), [['evil', 'cv.pdf', 'application/pdf', pdf()]]), 422); });
 foreach (['../../evil.pdf', '..\\..\\evil.pdf', '/etc/passwd.pdf', 'a/../../b.pdf'] as $n) {
   t("traversal in file name: $n", function () use ($sent, $n) {
     global $data, $tmp, $www;
@@ -356,6 +452,7 @@ foreach (['../../evil.pdf', '..\\..\\evil.pdf', '/etc/passwd.pdf', 'a/../../b.pd
 }
 t('nothing from a submission lands in the web root', function () {
   global $www;
+  uploads_on();
   accepted(post(karriere(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]));
   $names = array_map(fn ($f) => $f->getFilename(), iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($www, FilesystemIterator::SKIP_DOTS)), false));
   sort($names); is_same($names, ['anfrage-site.json', 'anfrage.php']);
@@ -384,6 +481,19 @@ t('every form in dist is accepted exactly as the browser sends it', function () 
       }
       reset_state();
       accepted(post($v, [], ['Referer' => 'http://127.0.0.1:' . PORT . '/test/']));
+      foreach ((new DOMXPath($dom))->query('.//input[not(@type) or @type="tel" or @type="email"]|.//textarea', $form) as $el) {
+        $n = $el->getAttribute('name');
+        if ($n === 'website') continue;
+        ok($el->getAttribute('maxlength') !== '', "$id: $n has no maxlength");
+        $rule = $GLOBALS['rules']['fields'][$n];
+        is_same((int) $el->getAttribute('maxlength'), $rule['max'], "$id: $n maxlength");
+        is_same($el->getAttribute('pattern'), $rule['pattern'] ?? '', "$id: $n pattern");
+        is_same($el->getAttribute('minlength'), (string) ($rule['min'] ?? ''), "$id: $n minlength");
+        $len = (int) $el->getAttribute('maxlength');
+        $long = match ($el->getAttribute('type')) { 'tel' => str_repeat('1', $len), 'email' => str_repeat('a', $len - 12) . '@example.org', default => str_repeat('x', $len) };
+        reset_state();
+        accepted(post([$n => $long] + $v, [], ['Referer' => 'http://127.0.0.1:' . PORT . '/test/']));
+      }
       foreach ($v as $k => $x) if (!in_array($k, ['subject', 'from_page', 'website', 'fill_ms', 'datenschutz'], true)) ok(isset(last()['fields'][$k]), "$id: $k not stored");
     }
   }

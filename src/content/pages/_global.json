@@ -1079,6 +1079,13 @@
           "value": "Bitte füllen Sie dieses Feld aus."
         },
         {
+          "id": "errName",
+          "label": "Fehler: Name zu kurz",
+          "type": "text",
+          "required": true,
+          "value": "Bitte geben Sie Ihren vollständigen Namen an."
+        },
+        {
           "id": "errPhone",
           "label": "Fehler: Telefonnummer ungültig",
           "type": "text",
@@ -1091,6 +1098,14 @@
           "type": "text",
           "required": true,
           "value": "Bitte prüfen Sie die E-Mail-Adresse."
+        },
+        {
+          "id": "errInvalid",
+          "label": "Fehler: andere Angabe",
+          "type": "text",
+          "help": "Erscheint, wenn der Server eine Angabe nicht annimmt",
+          "required": true,
+          "value": "Bitte prüfen Sie diese Angabe."
         },
         {
           "id": "errConsent",
