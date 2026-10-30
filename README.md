@@ -17,6 +17,7 @@ npm run dev       # http://localhost:4321
 npm run build     # → dist/
 npm run preview
 npm test          # проверки src/lib на временной копии
+npm run test:browser  # настоящий Chrome: враждебные тексты во всех полях и весь сайт под CSP из .htaccess
 ./deploy.sh       # сборка + выкладка в ветку gh-pages
 ```
 
@@ -31,6 +32,7 @@ npm test          # проверки src/lib на временной копии
 | Тексты и картинки страниц | `src/content/pages/<страница>.json` — формат в `docs/admin-content-format.md` |
 | Обработчик форм | `public/api/anfrage.php`, включается переменной `PUBLIC_FORM_ENDPOINT=/api/anfrage.php` при сборке (GitHub → Settings → Variables), нужен и `SITE_URL`. Заявки лежат в `~/alno-data/`, формат и настройка — `docs/anfragen-format.md`. Без переменной формы в режиме превью |
 | Google Analytics 4 | переменная `PUBLIC_GA_ID` — баннер согласия включится сам, до согласия GA не грузится |
+| Заголовки безопасности | `public/.htaccess`, значение CSP с хешами подставляет сборка (`src/lib/hardening.mjs`). Работают только на Apache: GitHub Pages их не читает |
 | Продакшн-домен | `SITE_URL` в `deploy.sh` + `public/CNAME` |
 
 Если `SITE_URL` не содержит `siteboosty` — сайт автоматически открывается для индексации и `robots.txt` отдаёт sitemap.
