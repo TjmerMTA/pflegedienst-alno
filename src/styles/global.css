@@ -155,8 +155,7 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 
 /* Слово шире своей колонки переносится (последняя мера), а совсем длинное не раздвигает страницу */
 main, footer { overflow-wrap: break-word; overflow-x: clip; }
-/* На телефонах длинные немецкие слова переносятся по слогам, с дефисом */
+/* На телефонах длинные немецкие слова в заголовках переносятся по слогам, с дефисом */
 @media (max-width: 480px) {
-  main, footer { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 17 5 5; }
-  table, .quick, button { -webkit-hyphens: manual; hyphens: manual; }
+  h1, h2, h3, h4 { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 17 5 5; }
 }

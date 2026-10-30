@@ -177,11 +177,17 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
   Pages that pass `schema` to `Base` are covered. `client-texts.mjs` also splits `<!--` and `<script` inside the
   text, because the minifier undoes `\uXXXX` there.
 - **Labels that do not wrap** (buttons, menu items, the `.quick` tiles) get a `max`: `.btn` and `.nav a` are
-  `nowrap` by design and no CSS can break a word there. Buttons 32, menu 24, tile title 24, tile text 40.
-  The narrowest width we guarantee is 360 px: check a label there with a real long word. `main` clips overflow, so the page
-  never scrolls and `scrollWidth` shows nothing: compare the element's edge with its card instead. Inside a card or next
-  to an icon a button may need less (`list.button`, `calc.button`: 24). Small `nowrap` labels in the Rechner get 6–12.
-  At 320 px a label at full length may stick out of its card, without page scroll.
+  `nowrap` by design and no CSS can break a word there. The guaranteed narrowest screen is **360 px**: there a label
+  at its `max` must not change the width of any other box, or the pill pushes its card or grid column past the page
+  margin. So `max` follows the column: full 320 px column 32, or 28 with an icon; `ueber-uns` `jobs` 30; form
+  buttons and `ausbildung` `ask.button` 26; `mapButton` 25; CTA band 21; mobile bar 14. Menu 24, but `navKarriere` and `navAusbildung` 14, they sit
+  side by side. Tile title 24, tile text 40 (it wraps at spaces). To size a new button: about 8.5 px per character
+  at 16 px bold, 52 px padding and border, 30 px for an icon. Check it at 360 px. `max` counts characters, not
+  pixels: real labels run 7.7–8.1 px per character, a deliberately wide word (`Wohnungsumbaumaßnahme`, 9.8) can
+  still overflow. `main` clips overflow, so the page never scrolls and `scrollWidth` shows nothing: compare the
+  element's edge with its card instead. Inside a card or next to an icon a button may need less (`list.button`,
+  `calc.button`: 24). Small `nowrap` labels in the Rechner get 12–16. At 320 px a label at full length may stick out
+  of its card, without page scroll.
 - **Shared blocks** (used on several pages) go to `_global.json`, page-specific headings around them stay
   in the page file (e.g. `testimonials.h2` is in `index.json`, the testimonials themselves in `_global.json`).
 
@@ -220,9 +226,13 @@ helper changes.
      (a dynamic import does not count) — see `Certificates.astro`, `PageHero.astro`, `kosten-finanzierung.astro`.
 3. **Identical image files under different names**: the bundler emits identical bytes once, under whichever name
    it meets first. If `_astro/` file names change, compare the images with `md5`.
-4. **Long words**: `main, footer { overflow-wrap: anywhere; }` in `global.css` breaks any word too wide for its
-   box. Where real layout depends on word width it is switched off (`table`, `.quick`, `button`, `.way h3`). A
-   new narrow card title with a long German word may need the same; check it at desktop width.
+4. **Long words**: up to 480 px, `h1, h2, h3, h4 { hyphens: auto; }` in `global.css` breaks long German words in
+   headings at a syllable with a hyphen (pages are `lang="de"`). Paragraphs, lists and links are not hyphenated, so
+   approved text keeps its line breaks. In `main` and `footer`, at every width, `overflow-wrap: break-word` is the
+   last resort for a word too wide for its box, and `overflow-x: clip` stops an extreme word from widening the page:
+   such a word in a grid or flex cell is cut at the right edge, because `break-word` does not narrow the cell.
+   `.way h3` is exempt so «Bundesfreiwilligendienst» does not break on desktop. A new narrow card title with a long
+   German word may need the same; check it at desktop width.
 5. **The admin rewrites what it saves**: it trims `text` values, so the spaces between `…Before` and `…After` belong
    in the markup, and a richtext value must survive its sanitizer unchanged (`<br>`, not `<br />`).
 6. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a

@@ -61,7 +61,7 @@
           "type": "text",
           "help": "Daneben steht ein Button mit der Telefonnummer aus „Allgemein → Kontaktdaten“",
           "required": true,
-          "max": 32,
+          "max": 28,
           "value": "Kostenlose Erstbegutachtung"
         },
         {
