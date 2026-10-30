@@ -2,6 +2,8 @@
 // The data folder outside the web root: config, users, lockout, sessions, logs, caches, trash.
 declare(strict_types=1);
 
+require_once __DIR__ . '/data-dir.php';
+
 final class Store
 {
     public string $dir;
@@ -9,48 +11,48 @@ final class Store
     public function __construct(?string $dir = null)
     {
         $this->dir = rtrim($dir ?? self::defaultDir(), '/');
-        if (!is_dir($this->dir)) @mkdir($this->dir, 0700, true);
+        if ($this->dir !== '' && !is_dir($this->dir)) @mkdir($this->dir, 0700, true);
     }
 
-    /** Whether the data folder is $root or lies below it. */
-    public function isInside(string $root): bool
-    {
-        $base = $root !== '' ? realpath($root) : false;
-        $dir = realpath($this->dir);
-        return $base !== false && $dir !== false && strncmp("$dir/", "$base/", strlen($base) + 1) === 0;
-    }
-
-    /**
-     * ~/alno-data, found exactly as public/api/anfrage.php finds it: the form endpoint writes here.
-     * Not from this file's path: on the host a docroot can be a link into another tree.
-     */
+    /** ~/alno-data or what setup fixed: see data-dir.php, which the form endpoint uses as well. */
     public static function defaultDir(): string
     {
-        $env = getenv('ALNO_DATA_DIR');
-        if (is_string($env) && $env !== '') return rtrim($env, '/');
-        $home = '';
-        if (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
-            $user = posix_getpwuid(posix_geteuid());
-            $home = is_array($user) ? (string) $user['dir'] : '';
-        }
-        if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
-        if ($home === '' || !@is_dir($home)) $home = dirname(__DIR__, 3); // lib/ is <docroot>/wp-admin/lib
-        return rtrim($home, '/') . '/alno-data';
+        return alno_data_dir(self::siteRoot());
+    }
+
+    /** The site's web root, as a real path: the admin's docroot lies directly inside it. */
+    public static function siteRoot(): string
+    {
+        $docroot = dirname(__DIR__, 2); // lib/ is <docroot>/wp-admin/lib
+        return dirname(realpath($docroot) ?: $docroot);
+    }
+
+    /** The data folder holds the token and the submissions: no URL may reach it. Unknown counts as reachable. */
+    public function exposed(): bool
+    {
+        return $this->dir === '' || alno_inside_web($this->dir, alno_web_roots(self::siteRoot()));
+    }
+
+    /** Fixes this folder for good, for the admin and the form endpoint alike. */
+    public function fixDir(): bool
+    {
+        return alno_fix_data_dir(self::siteRoot(), $this->dir);
     }
 
     public function path(string $rel): string
     {
+        if ($this->dir === '') throw new RuntimeException('Datenordner unbekannt');
         return $this->dir . '/' . $rel;
     }
 
     public function exists(string $rel): bool
     {
-        return is_file($this->path($rel));
+        return $this->dir !== '' && is_file($this->path($rel));
     }
 
     public function read(string $rel): ?string
     {
-        $v = @file_get_contents($this->path($rel));
+        $v = $this->dir === '' ? false : @file_get_contents($this->path($rel));
         return $v === false ? null : $v;
     }
 

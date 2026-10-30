@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { markdownToHtml } from 'satteri';
-import { buildPolicy, inlineHashes, policyFor, safeMarkdown } from '../src/lib/hardening.mjs';
+import { buildPolicy, fixImageAlts, inlineHashes, policyFor, safeMarkdown } from '../src/lib/hardening.mjs';
 import { safeScheme } from '../src/lib/safe-url.mjs';
 
 const md = async (source) => (await markdownToHtml(source, { hastPlugins: [safeMarkdown] })).html;
@@ -51,4 +51,10 @@ test('политика по страницам: повторы один раз, 
   assert.match(policy, /connect-src 'self' https:\/\/forms\.example\.de /);
   assert.match(policy, /googletagmanager/);
   assert.doesNotMatch(policyFor(['<form data-endpoint="/api/anfrage.php"></form>']), /connect-src 'self' \/api/);
+});
+
+test('alt картинки из Markdown: один уровень кодирования', () => {
+  assert.equal(fixImageAlts('<img alt="Pflege &amp;amp; Team &lt;b&gt; AT&amp;amp;T" src="/a.webp">'), '<img alt="Pflege &amp; Team &lt;b&gt; AT&amp;T" src="/a.webp">');
+  assert.equal(fixImageAlts('<img src="/a.webp" alt="Pflege &amp; Team">'), '<img src="/a.webp" alt="Pflege &amp; Team">');
+  assert.equal(fixImageAlts('<p>&amp;amp;</p><a title="&amp;amp;">x</a>'), '<p>&amp;amp;</p><a title="&amp;amp;">x</a>');
 });

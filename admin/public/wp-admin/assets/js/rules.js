@@ -15,6 +15,8 @@ export function slugify(s) {
 export const PAGE_TAGS = ['p', 'br', 'strong', 'b', 'em', 'i', 'a', 'ul', 'ol', 'li', 'h2', 'h3'];
 // The editor's preview of Markdown bodies also shows these.
 export const MD_TAGS = [...PAGE_TAGS, 'h4', 'blockquote', 'hr', 'code'];
+// The Visuell tab of a body. An image there is its Markdown and its alt text; a src is never taken over from anywhere.
+export const MD_VISUAL_TAGS = [...MD_TAGS, 'img'];
 
 const VOID = new Set(['br', 'hr']);
 const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'noscript', 'template', 'svg', 'math', 'textarea', 'select', 'title', 'head']);
@@ -72,6 +74,11 @@ function tagEnd(src, from) {
 
 // A single pass over the input, so hostile markup costs linear time. Once a tag turns out never to
 // end, everything after it is plain text: no later `<` can open a tag either.
+function attrOf(attrs, name) {
+  const m = new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i').exec(attrs);
+  return decodeEntities(m ? m[1] ?? m[2] : '');
+}
+
 export function sanitizeHtml(input, allowed = PAGE_TAGS) {
   const allow = new Set(allowed);
   const src = String(input ?? '');
@@ -116,6 +123,11 @@ export function sanitizeHtml(input, allowed = PAGE_TAGS) {
       continue;
     }
     if (!allow.has(tag)) continue;
+    if (tag === 'img') {
+      const md = attrOf(attrs, 'data-md');
+      if (!closing && md) out += `<img data-md="${escAttr(md)}" alt="${escAttr(attrOf(attrs, 'alt'))}">`;
+      continue;
+    }
     if (VOID.has(tag)) { if (!closing) out += `<${tag}>`; continue; }
     if (closing) {
       if (!open[tag]) continue;

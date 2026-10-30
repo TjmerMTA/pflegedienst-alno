@@ -30,7 +30,9 @@ env:
   SFTP_USER: ftdq3y
   SFTP_PORT: '22'
   SITE_ROOT: public_html
-  ADMIN_ROOT: admin_html
+  # konsoleH lets a subdomain point only inside public_html.
+  ADMIN_DIR: admin-alno
+  ADMIN_ROOT: public_html/admin-alno
 
 jobs:
   build:
@@ -93,7 +95,7 @@ jobs:
           SFTP_KEY_FILE: ~/.ssh/alno_sftp
           SFTP_KNOWN_HOSTS_FILE: ~/.ssh/alno_known_hosts
         run: |
-          scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest
-          scripts/deploy-sftp.sh upload/admin "$ADMIN_ROOT" .alno-deploy-manifest-admin
+          scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest "$ADMIN_DIR"
+          scripts/deploy-sftp.sh upload/admin "$ADMIN_ROOT" .alno-deploy-manifest-admin-alno
       - if: always()
         run: rm -f ~/.ssh/alno_sftp

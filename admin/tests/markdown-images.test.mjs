@@ -57,6 +57,20 @@ test('random bodies: nothing that passes stops the build', { skip }, async () =>
   assert.deepEqual((await check(cases)).slice(0, 5), []);
 });
 
+test('the Visuell tab and the server agree on what an image is', async () => {
+  const { bodyImages } = await import('../public/wp-admin/assets/js/markdown.js');
+  const frag = ['![', '[', ']', '](', '(', ')', '`', '\\', '\n', '\n\n', ' ', '> ', '"', "'", '<', '>', 'a', '!', OK, NO, `![a](${OK})`, `](${OK})`, `](<${OK}>)`, ' "t"', "'t'"];
+  let x = 20261031;
+  const rnd = (n) => { x = (x * 1103515245 + 12345) & 0x7fffffff; return (x >>> 8) % n; };
+  const cases = Array.from({ length: 6000 }, () => { let s = ''; for (let k = 2 + rnd(10); k > 0; k--) s += frag[rnd(frag.length)]; return s; });
+  // Whole forms, which chance rarely puts together.
+  cases.push(`![a](${OK} "Titel")`, `![a](${OK} 'Titel')`, `![a](${OK} (Titel))`, `![a](<${OK}> "Titel")`, `![a](<${OK} b.jpg>)`, `![a](\n${OK}\n)`, `> ![a](\n> ${OK} "Titel"\n> )`, `![Foto [2026]](${OK})`, `![a\nb](${OK})`,
+    `![a\\]b](${OK})`, `![a](${OK}\\))`, `![a](x_(1).jpg)`, `![a](x(1(2)).jpg)`, `![a [b](c) d](${OK})`, `![\`a\`](${OK})`, `[![a](${OK})](/x/)`, `![a](${OK}) und ![b](${NO})`);
+  const server = rules(cases);
+  const differ = cases.filter((c, i) => JSON.stringify(bodyImages(server[i].san)) !== JSON.stringify(server[i].imgs));
+  assert.deepEqual(differ.slice(0, 5), []);
+});
+
 test('the forms a client writes pass and reach the renderer as images', { skip }, async () => {
   const { createSatteriMarkdownProcessor } = await import(pathToFileURL(renderer).href);
   const proc = await createSatteriMarkdownProcessor({});

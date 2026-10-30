@@ -67,6 +67,7 @@ export async function launch() {
     };
     return {
       problems,
+      call,
       evaluate,
       open: async (url) => {
         const loaded = timed(new Promise((resolve) => {

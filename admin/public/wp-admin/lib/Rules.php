@@ -39,6 +39,9 @@ final class Rules
     const MSG_ALT_REQUIRED = 'Alternativtext fehlt: Ist ein Bild gesetzt, muss der Alternativtext ausgefüllt sein.';
     const MSG_ALT_TOO_LONG = 'Alternativtext zu lang';
     const MSG_BAD_IMAGE = 'ungültiger Bildpfad';
+    const MSG_IMAGE_SQUARE = 'Das Bild muss quadratisch sein.';
+    const MSG_BAD_PHONE = 'Bitte nur die Telefonnummer mit Vorwahl eingeben, ohne Zusätze wie Zeiten oder eine zweite Nummer.';
+    const MSG_BAD_PHONE_INTL = 'Bitte leer lassen oder mit + und Ländervorwahl schreiben, z. B. +49 231 5467686.';
     const MSG_IMAGE_EXTERNAL = 'Bilder von fremden Websites werden hier nicht angezeigt. Bitte das Bild in die Mediathek hochladen und von dort einsetzen.';
     const MSG_UNKNOWN_GROUP = 'unbekannte Gruppe';
     const MSG_UNKNOWN_FIELD = 'unbekanntes Feld';
@@ -62,6 +65,7 @@ final class Rules
         return "Das Wort „{$w}“ ist mit $n Zeichen zu lang (höchstens " . self::WORD_MAX . '): Auf schmalen Bildschirmen passt es nicht in die Zeile. Bitte mit einem Bindestrich oder Leerzeichen trennen.';
     }
 
+    public static function msgImageSmall(int $w, int $h, int $nowW, int $nowH): string { return "Das Bild ist zu klein: mindestens $w × $h Pixel, dieses hat $nowW × $nowH."; }
     public static function msgImageMissing(string $p): string { return "Bild „{$p}“ nicht gefunden"; }
     public static function msgBadToken(string $t): string { return 'unbekannter Platzhalter {{' . $t . '}}'; }
     public static function msgMinItems(int $n): string { return $n === 1 ? self::MSG_MIN_ONE : "mindestens $n Einträge"; }
@@ -119,6 +123,13 @@ final class Rules
     }
 
     /** True when a plain text value could open a tag: `</script a` needs no `>` in the same field. */
+    // Every digit goes into the call link, so text beside the number would dial the wrong one.
+    private static function phoneOk(string $s, string $form): bool
+    {
+        $digits = strlen((string) preg_replace('/\D/', '', $s));
+        return $digits >= 6 && $digits <= 15 && preg_match($form, $s) === 1;
+    }
+
     public static function looksLikeHtml(string $s): bool
     {
         return preg_match('/<[a-zA-Z\/!?{]/', $s) === 1;
@@ -389,6 +400,16 @@ final class Rules
         return preg_match('/^[ \t]*(?:https?:|\/\/)/i', $src) === 1;
     }
 
+    /** Medien shows `uploads/x.jpg`: an image written with that path gets the one the build needs. */
+    public static function normalizeBodyImages(string $md, callable $exists): string
+    {
+        return preg_replace_callback(self::MD_IMAGE, static function (array $m) use ($exists): string {
+            [$src, $at] = ($m[2][0] ?? '') !== '' ? $m[2] : $m[1];
+            if (!self::isImagePath($src) || !$exists($src)) return $m[0][0];
+            return substr_replace($m[0][0], self::IMG_PREFIX . $src, $at - $m[0][1], strlen($src));
+        }, $md, -1, $count, PREG_OFFSET_CAPTURE) ?? $md;
+    }
+
     /** `![` that is no image in the known form, with a `](` after it or a reference definition anywhere. */
     private static function hasOddImage(string $md): bool
     {
@@ -548,6 +569,11 @@ final class Rules
             if ($value === '') { if (!empty($f['required'])) $err(self::MSG_REQUIRED); return; }
             if (!self::isImagePath($value)) { $err(self::isExternalImage($value) ? self::MSG_IMAGE_EXTERNAL : self::MSG_BAD_IMAGE); return; }
             if (isset($ctx['imageExists']) && !$ctx['imageExists']($value)) { $err(self::msgImageMissing($value)); return; }
+            $size = isset($ctx['imageSize']) && (isset($f['minWidth']) || isset($f['minHeight']) || !empty($f['square'])) ? $ctx['imageSize']($value) : null;
+            if ($size !== null) {
+                if ($size[0] < ($f['minWidth'] ?? 0) || $size[1] < ($f['minHeight'] ?? 0)) { $err(self::msgImageSmall((int) ($f['minWidth'] ?? 0), (int) ($f['minHeight'] ?? 0), $size[0], $size[1])); return; }
+                if (!empty($f['square']) && abs($size[0] - $size[1]) > 0.02 * max($size)) { $err(self::MSG_IMAGE_SQUARE); return; }
+            }
             if (!is_string($alt) || self::trim($alt) === '') { $err(self::MSG_ALT_REQUIRED); return; }
             if (self::chars($alt) > self::ALT_MAX) $err(self::MSG_ALT_TOO_LONG);
             return;
@@ -561,6 +587,8 @@ final class Rules
         if ($isPlain && !empty($f['max']) && $n > $f['max']) $err(self::msgTooLong((int) $f['max'], $n));
         if ($isPlain) {
             if ($contact && strpbrk($value, '<>') !== false) $err(self::MSG_NO_ANGLE);
+            elseif ($contact && $f['id'] === 'phone' && $plain !== '' && !self::phoneOk($plain, '/^\+?[0-9\p{Zs}\p{Pd}()\/.]+$/Du')) $err(self::MSG_BAD_PHONE);
+            elseif ($contact && $f['id'] === 'phoneIntl' && $plain !== '' && !self::phoneOk($plain, '/^\+[0-9 ()\/-]+$/D')) $err(self::MSG_BAD_PHONE_INTL);
             elseif (self::looksLikeHtml($value)) $err(self::MSG_NO_HTML);
         }
         if ($f['type'] === 'text' && strpos($value, "\n") !== false) $err(self::MSG_ONE_LINE);
@@ -740,6 +768,7 @@ final class Rules
         $body = $ctx['oldBody'] ?? '';
         if (!empty($def['body'])) {
             $body = rtrim(self::sanitizeMarkdown($input['body'] ?? ''), " \t\n");
+            if (isset($ctx['imageExists'])) $body = self::normalizeBodyImages($body, $ctx['imageExists']);
             $n = self::chars($body);
             if ($n > self::BODY_MAX) $errors[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::msgTooLong(self::BODY_MAX, $n)];
             if (self::hasUnsafeLink($body)) $errors[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::MSG_UNSAFE_LINK];

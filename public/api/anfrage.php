@@ -5,6 +5,8 @@
 // Персональные данные (Art. 9 DSGVO): в логи не пишем ничего, кроме id заявки; IP храним только как хэш с солью.
 declare(strict_types=1);
 
+require_once __DIR__ . '/data-dir.php'; // где лежат данные: тот же файл, что и у админки
+
 const MIN_FILL_MS = 3000;
 const MAX_BODY_PLAIN = 131072;          // форма без файлов
 const MAX_BODY_TOTAL = 33554432;        // три файла по 10 МБ и поля
@@ -46,32 +48,6 @@ function invalid(string $field): never {
 
 function web_root(): string {
   return realpath(dirname(__DIR__)) ?: dirname(__DIR__);
-}
-
-// __DIR__ здесь не годится: на Hetzner ~/public_html может оказаться ссылкой в другое дерево
-function data_dir(): string {
-  $env = getenv('ALNO_DATA_DIR');
-  if (is_string($env) && $env !== '') return rtrim($env, '/');
-  $home = '';
-  if (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
-    $user = posix_getpwuid(posix_geteuid());
-    $home = is_array($user) ? (string) $user['dir'] : '';
-  }
-  if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
-  if ($home === '' || !@is_dir($home)) $home = dirname(web_root());
-  return rtrim($home, '/') . '/alno-data';
-}
-
-// Каталог может ещё не существовать: сравниваем по ближайшему существующему родителю
-function inside_web_root(string $path): bool {
-  $existing = $path;
-  $tail = '';
-  while (!@file_exists($existing) && dirname($existing) !== $existing) {
-    $tail = '/' . basename($existing) . $tail;
-    $existing = dirname($existing);
-  }
-  $full = (realpath($existing) ?: $existing) . $tail;
-  return str_starts_with($full . '/', web_root() . '/');
 }
 
 function prepare_storage(string $data): void {
@@ -409,8 +385,8 @@ function handle(): never {
   if ($length <= 0 || $length > MAX_BODY_TOTAL) fail(413, 'too_large', 'Die Anfrage ist zu groß.');
   if (!same_origin()) fail(403, 'origin', 'Anfrage nicht erlaubt.');
 
-  $data = data_dir();
-  if (inside_web_root($data)) throw new RuntimeException('data directory inside the web root');
+  $data = alno_data_dir(web_root());
+  if ($data === '' || alno_inside_web($data, alno_web_roots(web_root()))) throw new RuntimeException('data directory unknown or inside the web root');
   prepare_storage($data);
   $config = load_config($data);
   $salt = salt($data);

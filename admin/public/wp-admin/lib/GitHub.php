@@ -66,7 +66,6 @@ final class GitHub
             $resp = curl_exec($c);
             $status = (int) curl_getinfo($c, CURLINFO_RESPONSE_CODE);
             $error = curl_error($c);
-            curl_close($c);
             if ($resp === false) throw new GitHubError(0, 'GitHub nicht erreichbar: ' . $error);
             return [$status, (string) $resp, $respHeaders];
         }

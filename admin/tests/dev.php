@@ -37,6 +37,12 @@ $php = PHP_BINARY;
 $ghPort = $port + 1;
 $env = array_merge(getenv(), ['FAKE_GH_DIR' => $repoDir, 'ALNO_DATA_DIR' => $dataDir, 'ALNO_GITHUB_API' => "http://127.0.0.1:$ghPort", 'PHP_CLI_SERVER_WORKERS' => '4']);
 $gh = proc_open([$php, '-d', 'variables_order=EGPCS', '-S', "127.0.0.1:$ghPort", __DIR__ . '/fake-github.php'], [0 => ['file', '/dev/null', 'r'], 1 => ['file', "$base/gh.log", 'a'], 2 => ['file', "$base/gh.log", 'a']], $p1, null, $env);
-$admin = proc_open([$php, '-d', 'variables_order=EGPCS', '-S', "127.0.0.1:$port", '-t', __DIR__ . '/../public'], [0 => ['file', '/dev/null', 'r'], 1 => ['file', "$base/admin.log", 'a'], 2 => ['file', "$base/admin.log", 'a']], $p2, null, $env);
+// Setup writes .alno-data-dir beside the site: run it from a copy, so it does not land in this checkout.
+$docroot = __DIR__ . '/../public';
+if (isset($o['setup'])) {
+    exec('rm -rf ' . escapeshellarg("$base/web") . ' && mkdir -p ' . escapeshellarg("$base/web/site") . ' && cp -R ' . escapeshellarg($docroot) . ' ' . escapeshellarg("$base/web/site/admin"));
+    $docroot = "$base/web/site/admin";
+}
+$admin = proc_open([$php, '-d', 'variables_order=EGPCS', '-S', "127.0.0.1:$port", '-t', $docroot], [0 => ['file', '/dev/null', 'r'], 1 => ['file', "$base/admin.log", 'a'], 2 => ['file', "$base/admin.log", 'a']], $p2, null, $env);
 echo "http://127.0.0.1:$port/wp-admin/  admin / dev-passwort-123   token for setup: good-token\nstate in $base\n";
 while (proc_get_status($admin)['running'] && proc_get_status($gh)['running']) sleep(1);

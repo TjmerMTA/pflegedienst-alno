@@ -71,13 +71,13 @@ function setup(): array
     file_put_contents("$d/src/wp-admin/api.php", '<?php');
     return [$d, new class($d) {
         public function __construct(public string $d) {}
-        public function run(array $env = [], ?string $src = null, string $root = 'public_html', string $manifest = '.alno-deploy-manifest'): int
+        public function run(array $env = [], ?string $src = null, string $root = 'public_html', string $manifest = '.alno-deploy-manifest', string $foreign = ''): int
         {
             @unlink("$this->d/log");
             $e = array_merge(getenv(), ['PATH' => "$this->d/bin:" . getenv('PATH'), 'FAKE_HOST' => "$this->d/host", 'FAKE_LOG' => "$this->d/log", 'SFTP_HOST' => 'h', 'SFTP_USER' => 'u', 'SFTP_PORT' => '22', 'SFTP_KEY_FILE' => '~/k', 'SFTP_KNOWN_HOSTS_FILE' => '~/n'], $env);
             // Its own process group: a loop in a subshell would outlive a plain kill and hold the tests up.
             $guard = '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV } $SIG{ALRM} = sub { kill KILL => -$p; exit 124 }; alarm 30; waitpid($p, 0); exit($? >> 8)';
-            $p = proc_open(['perl', '-e', $guard, 'bash', SCRIPT, $src ?? "$this->d/src", $root, $manifest], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
+            $p = proc_open(['perl', '-e', $guard, 'bash', SCRIPT, $src ?? "$this->d/src", $root, $manifest, $foreign], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
             return proc_close($p);
         }
         public function log(): array { return @file("$this->d/log", FILE_IGNORE_NEW_LINES) ?: []; }
@@ -247,6 +247,40 @@ test('a manifest entry that starts with a dash is a file name, not an option', f
     exec('rm -rf ' . escapeshellarg($d));
 });
 
+test('the site never touches the admin folder inside its docroot, whatever the manifest says', function () {
+    [$d, $h] = setup();
+    eq($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno'), 0, (string) @file_get_contents("$d/err"));
+    mkdir("$d/host/public_html/admin-alno/wp-admin", 0755, true);
+    foreach (['.htaccess', 'wp-admin/api.php', 'robots.txt', 'wp-login.php'] as $f) file_put_contents("$d/host/public_html/admin-alno/$f", 'admin');
+    $hash = str_repeat('0', 64);
+    $poison = ['admin-alno/wp-admin/api.php', 'admin-alno/.htaccess', 'admin-alno', './admin-alno/.htaccess', './admin-alno/wp-admin/api.php', './/admin-alno/robots.txt', '././admin-alno/wp-login.php', 'x//admin-alno', 'admin-alno//.htaccess'];
+    file_put_contents("$d/host/.alno-deploy-manifest", implode('', array_map(static fn ($p) => "$hash  $p\n", $poison)), FILE_APPEND);
+    eq($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno'), 0, (string) @file_get_contents("$d/err"));
+    foreach (['.htaccess', 'wp-admin/api.php', 'robots.txt', 'wp-login.php'] as $f) eq(file_get_contents("$d/host/public_html/admin-alno/$f"), 'admin', $f);
+    hasNot(implode("\n", $h->log()), 'admin-alno');
+    has((string) file_get_contents("$d/err"), '9 unsafe paths');
+    hasNot((string) file_get_contents("$d/host/.alno-deploy-manifest"), 'admin-alno');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+test('a site folder holding the admin folder stops the run before anything moves', function () {
+    [$d, $h] = setup();
+    mkdir("$d/src/admin-alno");
+    file_put_contents("$d/src/admin-alno/.htaccess", 'site');
+    ok($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno') !== 0, 'must fail');
+    has((string) file_get_contents("$d/err"), 'refusing to deploy');
+    eq($h->log(), []);
+    exec('rm -rf ' . escapeshellarg($d));
+});
+test('a name that only starts like the admin folder is the site\'s own', function () {
+    [$d, $h] = setup();
+    file_put_contents("$d/src/admin-alno-info.html", 'x');
+    eq($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno'), 0, (string) @file_get_contents("$d/err"));
+    unlink("$d/src/admin-alno-info.html");
+    eq($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno'), 0, (string) @file_get_contents("$d/err"));
+    ok(!is_file("$d/host/public_html/admin-alno-info.html"), 'stale file stayed');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
 test('two docroots with two manifests do not touch each other', function () {
     [$d, $h] = setup();
     mkdir("$d/adm/wp-admin/lib", 0755, true);
@@ -256,13 +290,13 @@ test('two docroots with two manifests do not touch each other', function () {
     file_put_contents("$d/adm/wp-admin/api.php", '<?php');
     file_put_contents("$d/adm/wp-admin/index.html", 'admin');
     eq($h->run(), 0, (string) @file_get_contents("$d/err"));
-    eq($h->run([], "$d/adm", 'admin_html', '.alno-deploy-manifest-admin'), 0, (string) @file_get_contents("$d/err"));
-    ok(is_file("$d/host/admin_html/.htaccess"), 'the docroot .htaccess arrived');
-    ok(is_file("$d/host/admin_html/wp-admin/lib/.htaccess"));
+    eq($h->run([], "$d/adm", 'public_html/admin-alno', '.alno-deploy-manifest-admin-alno'), 0, (string) @file_get_contents("$d/err"));
+    ok(is_file("$d/host/public_html/admin-alno/.htaccess"), 'the docroot .htaccess arrived');
+    ok(is_file("$d/host/public_html/admin-alno/wp-admin/lib/.htaccess"));
     ok(is_file("$d/host/public_html/index.html"), 'site untouched');
     unlink("$d/adm/wp-admin/api.php");
-    eq($h->run([], "$d/adm", 'admin_html', '.alno-deploy-manifest-admin'), 0, (string) @file_get_contents("$d/err"));
-    ok(!is_file("$d/host/admin_html/wp-admin/api.php"), 'stale admin file deleted');
+    eq($h->run([], "$d/adm", 'public_html/admin-alno', '.alno-deploy-manifest-admin-alno'), 0, (string) @file_get_contents("$d/err"));
+    ok(!is_file("$d/host/public_html/admin-alno/wp-admin/api.php"), 'stale admin file deleted');
     ok(is_file("$d/host/public_html/wp-admin/.htaccess"), 'the other docroot keeps its own');
     eq(file_get_contents("$d/host/alno-data/users.json"), '{"keep":true}');
     exec('rm -rf ' . escapeshellarg($d));

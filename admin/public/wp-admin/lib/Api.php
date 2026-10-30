@@ -28,6 +28,7 @@ final class Api
     private Store $store;
     private Auth $auth;
     private ?array $config;
+    private bool $exposed;
     private ?GitHub $gh = null;
     private ?Site $site = null;
     private ?array $user = null;
@@ -36,7 +37,9 @@ final class Api
     {
         $this->store = new Store();
         $this->auth = new Auth($this->store);
-        $this->config = $this->store->readJson('config.json');
+        // Fail closed: a folder a URL can reach is not used, whatever it holds. Only setup answers, and it refuses.
+        $this->exposed = $this->store->exposed();
+        $this->config = $this->exposed ? null : $this->store->readJson('config.json');
         if ($this->config) {
             $this->gh = new GitHub($this->store, $this->config['token']);
             $this->site = new Site($this->gh, $this->store);
@@ -293,15 +296,6 @@ final class Api
 
     // ---------------- setup, login ----------------
 
-    /** The data folder holds the token and the submissions: no URL may reach it. */
-    private function dataExposed(): bool
-    {
-        foreach ([(string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), dirname(__DIR__, 2)] as $root) {
-            if ($this->store->isInside($root)) return true;
-        }
-        return false;
-    }
-
     /** What the host offers, so that a missing extension is seen before anything fails. */
     private function checks(): array
     {
@@ -311,7 +305,8 @@ final class Api
             'curl' => function_exists('curl_init') || (bool) ini_get('allow_url_fopen'), 'mbstring' => extension_loaded('mbstring'),
             'fileinfo' => class_exists('finfo'), 'imageEngine' => $engine, 'webp' => Media::supportsWebp(),
             'uploadMax' => ini_get('upload_max_filesize'), 'postMax' => ini_get('post_max_size'), 'memory' => ini_get('memory_limit'),
-            'dataOutside' => !$this->dataExposed(),
+            'dataOutside' => !$this->exposed,
+            'dataFile' => $this->exposed ? alno_setting_file(Store::siteRoot()) : null,
         ];
     }
 
@@ -368,7 +363,7 @@ final class Api
     private function setup(): void
     {
         $this->checkLoginNonce();
-        if ($this->dataExposed()) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Root. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb setzen.');
+        if ($this->exposed) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte seinen Pfad in die Datei .alno-data-dir neben dem Web-Verzeichnis schreiben.', ['file' => alno_setting_file(Store::siteRoot())]);
         $b = self::readJson(65536);
         $token = trim((string) ($b['token'] ?? ''));
         $name = strtolower(trim((string) ($b['user'] ?? '')));
@@ -392,6 +387,7 @@ final class Api
                 'cron_key' => bin2hex(random_bytes(24)), 'created' => gmdate('c'),
             ]);
         });
+        if (!$this->store->fixDir()) $this->store->log(['event' => 'data-dir-not-fixed']);
         $this->store->log(['event' => 'setup', 'user' => $name, 'ip' => self::clientIp()]);
         self::json(200, ['ok' => true]);
     }
@@ -488,7 +484,10 @@ final class Api
             if ($loaded['structureErrors']) throw new HttpError(422, 'structure', '', ['structureErrors' => $loaded['structureErrors']]);
             $tokens = $id === '_global' ? Site::tokenKeys($loaded['page']) : $this->site->tokens();
             $values = is_array($b['values'] ?? null) ? $b['values'] : [];
-            $r = Rules::applyPageValues($loaded['page'], $values, $this->ctx() + ['tokens' => $tokens]);
+            // Size rules are for a newly chosen image: an unchanged one is not fetched on every save.
+            $old = array_column(Site::pageImageRefs($loaded['page']), 'path');
+            $imageSize = fn ($p) => in_array($p, $old, true) ? null : $this->site->imageSize($p);
+            $r = Rules::applyPageValues($loaded['page'], $values, $this->ctx() + ['tokens' => $tokens, 'imageSize' => $imageSize]);
             if (($b['hash'] ?? '') !== $loaded['hash']) throw new HttpError(409, 'conflict', '', ['hash' => $loaded['hash'], 'page' => $r['page']]);
             if ($r['errors']) throw new HttpError(422, 'validation', '', ['errors' => $r['errors'], 'page' => $r['page']]);
             $out = Site::serializePage($r['page']);
@@ -701,10 +700,12 @@ final class Api
     private function getMedia(): void
     {
         $search = mb_strtolower(Rules::trim((string) ($_GET['s'] ?? '')), 'UTF-8');
-        $alts = $this->mediaAlts();
+        $meta = $this->mediaAlts();
         $out = [];
         foreach ($this->site->listImages() as $i) {
-            if ($search === '' || strpos(mb_strtolower($i['path'], 'UTF-8'), $search) !== false) $out[] = $i + ['alt' => $alts[$i['path']]['alt'] ?? ''];
+            $alt = $meta[$i['path']]['alt'] ?? '';
+            $title = $meta[$i['path']]['title'] ?? '';
+            if ($search === '' || strpos(mb_strtolower("{$i['path']} $title $alt", 'UTF-8'), $search) !== false) $out[] = $i + ['alt' => $alt, 'title' => $title];
         }
         self::json(200, ['images' => $out]);
     }
@@ -716,6 +717,7 @@ final class Api
         if ($bytes === null) throw new HttpError(404, 'not_found');
         $info = @getimagesizefromstring($bytes);
         $image = ['path' => $item, 'name' => basename($item), 'size' => strlen($bytes), 'pending' => isset($this->site->pending()[$item])];
+        $image['title'] = $this->mediaAlts()[$item]['title'] ?? '';
         self::json(200, ['image' => $image, 'info' => $info ? ['width' => $info[0], 'height' => $info[1]] : (object) [], 'usedOn' => $this->site->usages($item), 'alt' => $this->mediaAlts()[$item]['alt'] ?? '']);
     }
 
@@ -723,13 +725,19 @@ final class Api
     {
         $item = (string) ($b['path'] ?? '');
         if (!$this->site->imageExists($item)) throw new HttpError(404, 'not_found');
-        $this->store->withLock('media', function () use ($item, $b) {
-            $alts = $this->mediaAlts();
-            $alt = mb_substr(Rules::cleanText((string) ($b['alt'] ?? '')), 0, Rules::ALT_MAX, 'UTF-8');
-            if ($alt !== '') $alts[$item] = ['alt' => $alt]; else unset($alts[$item]);
-            $this->store->writeJson('media.json', $alts);
-        });
+        $this->saveMediaEntry($item, ['alt' => mb_substr(Rules::cleanText((string) ($b['alt'] ?? '')), 0, Rules::ALT_MAX, 'UTF-8')]);
         self::json(200, ['ok' => true]);
+    }
+
+    /** Alt text and original file name of an image. An empty value removes it; null the whole entry. */
+    private function saveMediaEntry(string $item, ?array $values): void
+    {
+        $this->store->withLock('media', function () use ($item, $values) {
+            $meta = $this->mediaAlts();
+            $entry = $values === null ? [] : array_filter($values + ($meta[$item] ?? []), static fn ($v) => $v !== '');
+            if ($entry) $meta[$item] = $entry; else unset($meta[$item]);
+            $this->store->writeJson('media.json', $meta);
+        });
     }
 
     private function deleteMedia(array $b): void
@@ -747,6 +755,7 @@ final class Api
                 $this->gh->commit([$path => null], "Admin: Bild gelöscht – $item [skip ci]", $this->user['name'], [$path => $this->gh->tree()[$path]['sha']]);
                 $this->store->write('trash/media/' . time() . '-' . str_replace('/', '__', $item), $bytes);
             }
+            $this->saveMediaEntry($item, null);
             $this->store->log(['event' => 'media-delete', 'user' => $this->user['name'], 'file' => $item]);
             self::json(200, ['ok' => true]);
         });
@@ -759,14 +768,14 @@ final class Api
      */
     private function upload(): void
     {
-        if (!$_FILES && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > self::bytes((string) ini_get('post_max_size'))) throw new HttpError(413, 'too_large', 'Datei zu groß');
+        if (!$_FILES && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > self::bytes((string) ini_get('post_max_size'))) throw new HttpError(413, 'too_large', Media::msgTooLarge(self::uploadMax()));
         $f = $_FILES['file'] ?? null;
         $errors = [];
         $done = [];
         if (!is_array($f) || !is_string($f['tmp_name'] ?? null)) {
             $errors[] = ['file' => '', 'msg' => 'Leere Datei'];
         } elseif ($f['error'] === UPLOAD_ERR_INI_SIZE || $f['error'] === UPLOAD_ERR_FORM_SIZE) {
-            $errors[] = ['file' => (string) $f['name'], 'msg' => 'Datei zu groß (höchstens ' . (int) round(self::uploadMax() / 1048576) . ' MB)'];
+            $errors[] = ['file' => (string) $f['name'], 'msg' => Media::msgTooLarge(self::uploadMax())];
         } elseif ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
             $errors[] = ['file' => (string) $f['name'], 'msg' => 'Leere Datei'];
         } else {
@@ -783,8 +792,10 @@ final class Api
                         $this->gh->commit([Site::IMG . $p => $bytes], "Admin: Bild hochgeladen – uploads/$name [skip ci]", $this->user['name'], [Site::IMG . $p => null]);
                     });
                 }
+                $title = Media::titleOf((string) $f['name']);
+                $this->saveMediaEntry($p, ['title' => $title]);
                 $this->store->log(['event' => 'upload', 'user' => $this->user['name'], 'file' => $p, 'original' => mb_substr((string) $f['name'], 0, 80), 'bytes' => strlen($bytes)]);
-                $done[] = ['path' => $p, 'name' => $name, 'width' => $w, 'height' => $h, 'size' => strlen($bytes), 'alt' => ''];
+                $done[] = ['path' => $p, 'name' => $name, 'title' => $title, 'width' => $w, 'height' => $h, 'size' => strlen($bytes), 'alt' => ''];
             } catch (UploadError $e) {
                 $errors[] = ['file' => mb_substr((string) $f['name'], 0, 120), 'msg' => $e->getMessage()];
             }

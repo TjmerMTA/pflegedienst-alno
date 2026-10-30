@@ -70,13 +70,16 @@ renderer, wherever it thinks a code span starts. In running text the reader sees
 **Unsafe links are refused, never rewritten.** After decoding entities and removing backslashes and line breaks, the text must not hold `javascript:` or `vbscript:`,
 whatever follows them, unless a letter, digit, `+`, `.` or `-` comes right before. So a sentence «JavaScript: Eine Einführung» is refused too: the renderer cannot be told from a sentence safely. The same goes for `data:` followed by anything but a typed space: «data: 5» in a sentence is fine. A link target (`](x:…` or `[r]: x:…`) may only have the schemes `http`, `https`, `mailto` and `tel`, like richtext links.
 
-**Images in the text** must be `../../assets/img/<file>` of an existing image or a path of the site starting with `/`: any other local image fails the build of the whole site, and so does an address `decodeURI` refuses (a bare `%`). Foreign images (`http:`, `https:`, `//`) are refused with their own message, also in image fields: the site's CSP allows images from its own origin only.
+**Images in the text** must be `../../assets/img/<file>` of an existing image or a path of the site starting with `/`; the path Medien shows (`uploads/x.jpg`) is rewritten to the first form on save: any other local image fails the build of the whole site, and so does an address `decodeURI` refuses (a bare `%`). Foreign images (`http:`, `https:`, `//`) are refused with their own message, also in image fields: the site's CSP allows images from its own origin only.
 
 The form is a closed list, checked against the site's real renderer by `admin/tests/markdown-images.test.mjs`: alt text with line breaks and one level of brackets, no code span or link inside it; the target plain or in `<…>`; at most a quoted title. Anything else that could still be an image (a `![` with a `](` after it, or with a reference definition anywhere in the text) is refused with a message that says how to write it, because a form read wrongly here would stop the build or stay out of the commit. So a sentence like `Toll![1] und [Link](/x)` is refused too; the fix is one space. A target with a backslash or an entity is refused as well.
 
 The site should also filter rendered Markdown at build time: this rule protects what the admin saves, not what someone commits by hand.
 
 ## Pages (`src/content/pages/*.json`)
+
+- `image` fields may carry `minWidth`, `minHeight` and `square`. Checked only when the image changed, so an old one never blocks a save.
+- Group `contact`: `phone` is one number, 6 to 15 digits, with spaces and `+ ( ) / . -` at most, because every digit goes into the call link; `phoneIntl` is empty or the same with a leading `+`.
 
 - A file with a changed structure is refused for editing: label, `groups`, unique ids, known field types (`text textarea richtext image list`), `list` with `fields` and no list
   inside a list.

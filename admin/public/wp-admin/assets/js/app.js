@@ -1,6 +1,6 @@
 // The admin in the browser: session, hash router, calling the API, forms. Screens are rendered by
 // views/*.js and wired up by behaviour.js; what is valid is decided by the server alone.
-import { translator } from './i18n.js';
+import { translator, loadLabels } from './i18n.js';
 import { unsupportedMarkdown } from './markdown.js';
 import { layout, loginPage, setupPage, errorScreen, notices } from './views/layout.js';
 import * as V from './views/screens.js';
@@ -38,7 +38,7 @@ async function call(url, init = {}) {
   } catch {
     throw new ApiError(0, { error: 'network' });
   }
-  const data = await r.json().catch(() => null);
+  const data = t.localize(await r.json().catch(() => null));
   if (r.status === 401 && data?.error === 'login' && session) {
     session = null;
     afterLogin = location.hash;
@@ -63,8 +63,10 @@ const api = {
   }),
   // Upload errors are part of the answer: the screen shows them per file.
   upload: async (formData, stage) => {
+    const tooLarge = () => t.msg(`Datei zu groß (höchstens ${Math.round(session.uploadMaxBytes / 1048576)} MB). Bitte das Foto verkleinern und noch einmal hochladen.`);
+    if (formData.get('file')?.size > session.uploadMaxBytes) return { message: tooLarge() };
     const r = await fetch(query('media/upload', { stage: stage ? 1 : undefined }), { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-WP-Nonce': session?.nonce || '' } });
-    const data = await r.json().catch(() => ({ message: `HTTP ${r.status}` }));
+    const data = await r.json().catch(() => ({ message: r.status === 413 ? tooLarge() : t('err.server') }));
     if (r.status === 401) { session = null; afterLogin = location.hash; go('#/login?expired=1'); }
     return data;
   },
@@ -75,8 +77,9 @@ async function loadSession() {
   const data = await r.json().catch(() => ({}));
   sessionAt = Date.now();
   if (r.ok) {
-    session = data;
     t = translator(data.lang);
+    if (t.lang === 'ru') await loadLabels();
+    session = t.localize(data);
     document.documentElement.lang = t.lang;
     return 'ok';
   }
@@ -160,10 +163,11 @@ function errorText(e) {
   const code = e.data?.error;
   const map = {
     network: 'err.network', forbidden: 'err.forbidden', not_found: 'err.notfound', too_large: 'err.toolarge', conflict: 'notice.conflict', exists: 'notice.exists', in_use: 'media.delete.used',
-    too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server', data_dir: 'err.datadir',
+    too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server',
   };
   if (code === 'forbidden' && e.message !== 'csrf') return t('err.denied');
   if (code === 'locked') return t('err.locked', { n: e.data.retryMinutes });
+  if (code === 'data_dir') return t('err.datadir', { file: e.data.file });
   if (map[code]) return t(map[code], { n: 10 });
   return t.msg(e.message) || t('err.server');
 }

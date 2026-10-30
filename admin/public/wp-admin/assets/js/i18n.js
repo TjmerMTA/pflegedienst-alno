@@ -213,8 +213,15 @@ const de = {
   'media.save': 'Speichern',
   'media.empty': 'Keine Bilder gefunden.',
   'media.filter': 'Bilder durchsuchen',
+  'media.original': 'Ursprünglicher Name',
   'media.close': 'Schließen',
   'modal.title': 'Bild auswählen',
+  'modal.insert.title': 'Bild in den Text einfügen',
+  'modal.insert.choose': 'In den Text einfügen',
+  'modal.alt': 'Alternativtext',
+  'modal.alt.help': 'Beschreibt das Bild für Suchmaschinen und blinde Menschen.',
+  'modal.alt.missing': 'Bitte zuerst den Alternativtext eintragen.',
+  'edit.addmedia': 'Dateien hinzufügen',
   'modal.upload': 'Dateien hochladen',
   'modal.library': 'Mediathek',
   'modal.choose': 'Auswählen',
@@ -264,7 +271,8 @@ const de = {
   'setup.check.image': 'Bildverarbeitung',
   'setup.check.nowebp': 'nicht verfügbar – WebP-Bilder können nicht hochgeladen werden',
   'setup.check.data': 'Datenordner',
-  'setup.check.datainside': 'liegt im Web-Verzeichnis – so nicht erlaubt',
+  'setup.check.datainside': 'liegt im Web-Verzeichnis oder ist nicht bestimmbar – so nicht erlaubt',
+  'setup.check.datafile': 'Per SFTP die Datei {file} anlegen: eine Zeile mit dem absoluten Pfad eines Ordners außerhalb des Web-Verzeichnisses. Ein Deploy ändert sie nie.',
   'setup.check.limits': 'Grenzen',
   'setup.token': 'GitHub-Token',
   'setup.token.help': 'Fine-grained Token nur für dieses Repository: Contents (Lesen und Schreiben), Actions (Lesen).',
@@ -296,7 +304,7 @@ const de = {
   'err.title': 'Fehler',
   'err.denied': 'Dafür fehlt dir die Berechtigung.',
   'err.locked': 'Zu viele Fehlversuche. Bitte in {n} Minuten erneut versuchen.',
-  'err.datadir': 'Der Datenordner liegt im Web-Verzeichnis. So kann nicht eingerichtet werden: Bitte ALNO_DATA_DIR setzen.',
+  'err.datadir': 'So kann nicht eingerichtet werden: Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte in {file} seinen absoluten Pfad eintragen.',
   'err.network': 'Keine Verbindung zum Server. Bitte noch einmal versuchen.',
   'err.toolarge': 'Die Daten sind zu groß.',
   'err.pwshort': 'Das Passwort braucht mindestens {n} Zeichen.',
@@ -563,8 +571,15 @@ const ru = {
   'media.save': 'Сохранить',
   'media.empty': 'Картинок нет.',
   'media.filter': 'Поиск картинок',
+  'media.original': 'Исходное имя',
   'media.close': 'Закрыть',
   'modal.title': 'Выбор картинки',
+  'modal.insert.title': 'Вставить картинку в текст',
+  'modal.insert.choose': 'Вставить в текст',
+  'modal.alt': 'Альтернативный текст',
+  'modal.alt.help': 'Описывает картинку для поисковиков и незрячих людей.',
+  'modal.alt.missing': 'Сначала заполните альтернативный текст.',
+  'edit.addmedia': 'Добавить файлы',
   'modal.upload': 'Загрузить файлы',
   'modal.library': 'Библиотека',
   'modal.choose': 'Выбрать',
@@ -614,7 +629,8 @@ const ru = {
   'setup.check.image': 'Обработка картинок',
   'setup.check.nowebp': 'недоступно: картинки WebP загрузить нельзя',
   'setup.check.data': 'Папка данных',
-  'setup.check.datainside': 'лежит внутри веб-каталога, так нельзя',
+  'setup.check.datainside': 'лежит внутри веб-каталога или не определена, так нельзя',
+  'setup.check.datafile': 'Создайте по SFTP файл {file}: одна строка с абсолютным путём к папке вне веб-каталога. Деплой его никогда не меняет.',
   'setup.check.limits': 'Лимиты',
   'setup.token': 'Токен GitHub',
   'setup.token.help': 'Fine-grained токен только для этого репозитория: Contents (чтение и запись), Actions (чтение).',
@@ -646,7 +662,7 @@ const ru = {
   'err.title': 'Ошибка',
   'err.denied': 'У вас нет на это прав.',
   'err.locked': 'Слишком много неудачных попыток. Повторите через {n} мин.',
-  'err.datadir': 'Папка данных лежит внутри веб-каталога. Настроить так нельзя: задайте ALNO_DATA_DIR.',
+  'err.datadir': 'Настроить так нельзя: папка данных лежит внутри веб-каталога или не определена. Впишите её абсолютный путь в {file}.',
   'err.network': 'Нет связи с сервером. Попробуйте ещё раз.',
   'err.toolarge': 'Слишком большой объём данных.',
   'err.pwshort': 'В пароле должно быть не меньше {n} символов.',
@@ -742,7 +758,7 @@ const ruMessages = [
   [/^unbekannte Gruppe$/, 'неизвестная группа'],
   [/^Struktur verändert$/, 'изменена структура'],
   [/^Leere Datei$/, 'пустой файл'],
-  [/^Datei zu groß \(höchstens (\d+) MB\)$/, 'файл слишком большой (максимум $1 МБ)'],
+  [/^Datei zu groß \(höchstens (\d+) MB\).*$/, 'файл слишком большой (максимум $1 МБ). Уменьшите фото и загрузите снова.'],
   [/^SVG ist nicht erlaubt$/, 'SVG нельзя'],
   [/^Nur JPG, PNG oder WebP$/, 'только JPG, PNG или WebP'],
   [/^Die Datei ist kein lesbares Bild$/, 'файл — не картинка'],
@@ -750,18 +766,21 @@ const ruMessages = [
   [/^Animierte Bilder sind nicht erlaubt$/, 'анимированные картинки нельзя'],
   [/^Das Bild konnte nicht verarbeitet werden$/, 'картинку не удалось обработать'],
   [/^ungültiger Wert$/, 'неверное значение'],
+  [/^Das Bild ist zu klein: mindestens (\d+) × (\d+) Pixel, dieses hat (\d+) × (\d+)\.$/, 'картинка слишком маленькая: нужно не меньше $1 × $2 пикселей, у этой $3 × $4'],
+  [/^Das Bild muss quadratisch sein\.$/, 'картинка должна быть квадратной'],
+  [/^Bitte nur die Telefonnummer mit Vorwahl eingeben, ohne Zusätze wie Zeiten oder eine zweite Nummer\.$/, 'введите только номер телефона с кодом города, без дополнений вроде часов работы или второго номера'],
+  [/^Bitte leer lassen oder mit \+ und Ländervorwahl schreiben.*$/, 'оставьте пустым или напишите с + и кодом страны, например +49 231 5467686'],
   [/^ungültige Liste$/, 'неверный список'],
   [/^ungültiger Eintrag$/, 'неверный элемент'],
   [/^Bilder von fremden Websites .*$/, 'картинки с чужих сайтов здесь не показываются: загрузите картинку в медиатеку и вставьте её оттуда'],
   [/^Ein Bild im Text hat eine Form, .*?: (.*)$/, 'картинка в тексте записана в неподдерживаемой форме. Пишите так: $1'],
   [/^Das Bild hat zu viele Pixel$/, 'в картинке слишком много пикселей'],
-  [/^Datei zu groß$/, 'файл слишком большой'],
   [/^WebP wird auf diesem Server nicht unterstützt.*$/, 'этот сервер не поддерживает WebP: используйте JPG или PNG'],
   [/^Falscher Inhaltstyp$/, 'неверный тип данных'],
   [/^Anfrage zu groß$/, 'запрос слишком большой'],
   [/^Ungültige Daten$/, 'неверные данные'],
   [/^Host nicht erlaubt$/, 'этот адрес не разрешён'],
-  [/^Der Datenordner liegt im Web-Root\..*$/, 'папка данных лежит внутри веб-корня: укажите в ALNO_DATA_DIR папку вне него'],
+  [/^Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar\..*$/, 'папка данных лежит внутри веб-каталога или не определена: укажите в ALNO_DATA_DIR папку вне public_html'],
   [/^Das Repository ist leer\.$/, 'репозиторий пуст'],
   [/^Das Repository ist zu groß für eine vollständige Dateiliste\.$/, 'репозиторий слишком большой для полного списка файлов'],
   [/^GitHub nicht erreichbar(.*)$/, 'GitHub недоступен$1'],
@@ -788,14 +807,18 @@ const ruMessages = [
   [/^list ohne fields$/, 'list без fields'],
 ];
 
-// Labels of schema/collections.json and of the server's error list. Page and group labels are German by contract.
-const ruLabels = {
-  'Titel (H1 und Meta Title)': 'Заголовок (H1 и Meta Title)', 'Veröffentlicht am': 'Дата публикации', 'Aktualisiert am': 'Дата обновления',
-  'Entwurf – nicht auf der Website zeigen': 'Черновик — не показывать на сайте', Autor: 'Автор', Schlagwörter: 'Метки', 'Durch Kommas trennen': 'Через запятую',
-  Beitragsbild: 'Изображение записи', 'Name der Leistung': 'Название услуги', 'Kurztext (Karte auf der Startseite)': 'Краткий текст (карточка на главной)', Symbol: 'Значок',
-  Reihenfolge: 'Порядок', 'Wer bezahlt?': 'Кто платит?', Leistungspunkte: 'Пункты услуги', Punkt: 'Пункт', Name: 'Имя', Funktion: 'Должность', Beschreibung: 'Описание',
-  'Auf der Website ausblenden': 'Скрыть на сайте', Foto: 'Фото', Inhalt: 'Содержимое', Permalink: 'Постоянная ссылка', Text: 'Текст', Eintrag: 'Элемент',
-};
+// German in the page files and the schema, Russian from assets/labels-ru.json: a label it lacks stays German.
+let labels = {};
+const LABEL_KEYS = new Set(['label', 'help', 'itemLabel']);
+
+export function setLabels(dict) { labels = dict || {}; }
+
+export async function loadLabels() {
+  try {
+    const r = await fetch('assets/labels-ru.json', { credentials: 'same-origin' });
+    if (r.ok) setLabels(await r.json());
+  } catch { /* the German labels stay */ }
+}
 
 const dicts = { de, ru };
 
@@ -812,7 +835,13 @@ export function translator(lang) {
     for (const [re, rep] of ruMessages) if (re.test(m)) return m.replace(re, rep);
     return m;
   };
-  t.label = (s) => (t.lang === 'ru' && ruLabels[s]) || s;
+  t.label = (s) => (t.lang === 'ru' && labels[s]) || s;
+  // The same walk as admin/tests/labels_ru_check.mjs. Values are the site's content, not labels.
+  t.localize = (o) => {
+    if (t.lang !== 'ru' || !o || typeof o !== 'object') return o;
+    if (Array.isArray(o)) return o.map(t.localize);
+    return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'value' || k === 'values' ? v : LABEL_KEYS.has(k) && typeof v === 'string' ? t.label(v) : t.localize(v)]));
+  };
   t.count = (n) => t(n === 1 ? 'list.item' : 'list.items', { n });
   return t;
 }

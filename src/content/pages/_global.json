@@ -4,6 +4,70 @@
   "order": 0,
   "groups": [
     {
+      "id": "brand",
+      "label": "Logo und Website-Bilder",
+      "fields": [
+        {
+          "id": "logoLine1",
+          "label": "Logo: erste Zeile",
+          "type": "text",
+          "required": true,
+          "max": 24,
+          "value": "Pflegedienst"
+        },
+        {
+          "id": "logoLine2",
+          "label": "Logo: zweite Zeile",
+          "type": "text",
+          "required": true,
+          "max": 16,
+          "value": "ALNO"
+        },
+        {
+          "id": "logoSuffix",
+          "label": "Logo: Zusatz in der zweiten Zeile",
+          "type": "text",
+          "max": 10,
+          "value": "GmbH"
+        },
+        {
+          "id": "logoImage",
+          "label": "Logo-Bild",
+          "type": "image",
+          "help": "Quadratisch, mindestens 96 × 96 Pixel. Steht neben dem Logo-Text in Kopf und Fuß jeder Seite.",
+          "required": true,
+          "minWidth": 96,
+          "minHeight": 96,
+          "square": true,
+          "value": "logo-mark.png",
+          "alt": "Logo von Pflegedienst ALNO"
+        },
+        {
+          "id": "favicon",
+          "label": "Favicon (Symbol im Browser-Tab)",
+          "type": "image",
+          "help": "Quadratisch, mindestens 180 × 180 Pixel. Daraus entstehen das Symbol im Browser-Tab und das Symbol auf dem Handy-Startbildschirm.",
+          "required": true,
+          "minWidth": 180,
+          "minHeight": 180,
+          "square": true,
+          "value": "favicon.png",
+          "alt": "Symbol von Pflegedienst ALNO"
+        },
+        {
+          "id": "ogImage",
+          "label": "Bild beim Teilen in sozialen Netzen",
+          "type": "image",
+          "help": "Mindestens 1200 × 630 Pixel. Wird auf dieses Format zugeschnitten und erscheint, wenn jemand eine Seite teilt.",
+          "required": true,
+          "minWidth": 1200,
+          "minHeight": 630,
+          "value": "og.jpg",
+          "alt": "Pflegedienst ALNO in Dortmund"
+        }
+      ]
+    },
+    {
       "id": "contact",
       "label": "Kontaktdaten",
       "fields": [
@@ -76,7 +140,7 @@
           "id": "phone",
           "label": "Telefon",
           "type": "text",
-          "help": "So wie die Nummer auf der Seite steht. Token {{phone}}",
+          "help": "So wie die Nummer auf der Seite steht. Alle Anruf-Links und Google ändern sich damit automatisch. Token {{phone}}",
           "required": true,
           "value": "0231 54 67 686"
         },
@@ -84,9 +148,8 @@
           "id": "phoneIntl",
           "label": "Telefon international",
           "type": "text",
-          "help": "Für den Anruf-Link und Google: +49, Vorwahl ohne 0, Nummer",
-          "required": true,
-          "value": "+49 231 5467686"
+          "help": "Leer lassen: Der Anruf-Link entsteht automatisch aus „Telefon“ (0231 … wird +49 231 …). Nur ausfüllen, wenn der Link eine andere Nummer wählen soll, dann mit +49, Vorwahl ohne 0, Nummer",
+          "value": ""
         },
         {
           "id": "phone2",
@@ -118,7 +181,7 @@
           "id": "whatsapp",
           "label": "WhatsApp-Nummer",
           "type": "text",
-          "help": "Mit Ländervorwahl, ohne + und ohne führende 0, z. B. 4917612345678",
+          "help": "Läuft getrennt von „Telefon“: Nur ändern, wenn sich die WhatsApp-Nummer ändert, also das Handy, auf dem WhatsApp läuft. Mit Ländervorwahl, ohne + und ohne führende 0, z. B. 4917612345678",
           "required": true,
           "value": "492315467686"
         },

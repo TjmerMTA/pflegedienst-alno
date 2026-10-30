@@ -67,8 +67,8 @@ One front controller on the admin's own origin: `https://admin.pflegedienst-alno
 
 | Route | Method | Who | In | Out |
 |---|---|---|---|---|
-| `media` | GET | user | `s` | `images` |
-| `media/item` | GET | user | `path` | `image info usedOn alt` |
+| `media` | GET | user | `s` (path, original file name, alt) | `images`, each with `title` (original file name) and `alt` |
+| `media/item` | GET | user | `path` | `image` with `title`, `info usedOn alt` |
 | `media/file` | GET | user | `path thumb` | the image |
 | `media/upload` | POST | user | multipart field `file`, one per request; `?stage=1` from the modal | `files errors` |
 | `media/meta` | POST | user | `path alt` | `ok` |

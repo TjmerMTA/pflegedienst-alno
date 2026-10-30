@@ -15,14 +15,15 @@ $mails = "$tmp/mails";
 mkdir("$www/api", 0777, true);
 mkdir($mails);
 copy(ROOT . '/public/api/anfrage.php', "$www/api/anfrage.php");
+copy(ROOT . '/public/api/data-dir.php', "$www/api/data-dir.php");
 $rules = json_decode((string) file_get_contents(ROOT . '/src/config/form-rules.json'), true);
 file_put_contents("$www/api/anfrage-site.json", json_encode(['email' => 'info@site.example', 'domain' => 'site.example', 'rules' => $rules]));
 file_put_contents("$tmp/sendmail", "#!/bin/sh\nn=\$(ls '$mails' | wc -l | tr -d ' ')\n{ echo \"ARGS: \$*\"; cat; } > '$mails/'\$n.eml\n[ -f '$tmp/mail-fails' ] && exit 1\nexit 0\n");
 chmod("$tmp/sendmail", 0755);
 
-function serve(string $docroot, string $dataDir, int $port): mixed {
+function serve(string $docroot, string $dataDir, int $port, array $php = []): mixed {
   global $tmp;
-  $cmd = [PHP_BINARY, '-S', "127.0.0.1:$port", '-t', $docroot, '-d', "sendmail_path=$tmp/sendmail -t -i", '-d', 'post_max_size=64M', '-d', 'opcache.enable=0',
+  $cmd = [PHP_BINARY, ...$php, '-S', "127.0.0.1:$port", '-t', $docroot, '-d', "sendmail_path=$tmp/sendmail -t -i", '-d', 'post_max_size=64M', '-d', 'opcache.enable=0',
     '-d', 'upload_max_filesize=20M', '-d', 'display_errors=0', '-d', 'log_errors=1', '-d', "error_log=$tmp/php-errors.log"];
   $p = proc_open($cmd, [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, ['ALNO_DATA_DIR' => $dataDir, 'PATH' => getenv('PATH')]);
   for ($i = 0; $i < 100; $i++) { $s = @fsockopen('127.0.0.1', $port); if ($s) { fclose($s); return $p; } usleep(50000); }
@@ -262,13 +263,62 @@ t('a value cannot steer the storage path', function () {
 });
 t('data directory inside the web root: fails closed', function () {
   global $tmp;
-  $root = "$tmp/www2"; mkdir("$root/api", 0777, true); copy(ROOT . '/public/api/anfrage.php', "$root/api/anfrage.php");
+  $root = "$tmp/www2"; mkdir("$root/api", 0777, true); copy(ROOT . '/public/api/anfrage.php', "$root/api/anfrage.php"); copy(ROOT . '/public/api/data-dir.php', "$root/api/data-dir.php");
   $p = serve($root, "$root/data", PORT + 1);
   $r = post(rueckruf(), [], [], PORT + 1);
   proc_terminate($p);
   is_same($r['status'], 500); is_same($r['json']['ok'] ?? null, false);
   ok(!is_dir("$root/data/anfragen"), 'data written into the web root');
   is_same(count(mails()), 0);
+});
+t('no home to be found and no ALNO_DATA_DIR: fails closed, no guess at a folder', function () {
+  global $tmp;
+  $root = "$tmp/hosted/users/x"; mkdir("$root/api", 0777, true);
+  copy(ROOT . '/public/api/anfrage.php', "$root/api/anfrage.php");
+  copy(ROOT . '/public/api/data-dir.php', "$root/api/data-dir.php");
+  copy("$tmp/www/api/anfrage-site.json", "$root/api/anfrage-site.json");
+  file_put_contents("$tmp/prep.php", '<?php putenv("HOME"); putenv("ALNO_DATA_DIR");');
+  $p = serve($root, '', PORT + 9, ['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$tmp/prep.php"]);
+  $r = post(rueckruf(), [], [], PORT + 9);
+  proc_terminate($p);
+  is_same($r['status'], 500); is_same($r['json']['ok'] ?? null, false);
+  ok(!is_dir("$tmp/hosted/users/alno-data"), 'a folder above the web root was guessed');
+  ok(!is_dir("$root/alno-data"), 'a folder in the web root');
+  is_same(count(mails()), 0);
+});
+t('behind a link, without home: the path fixed at setup is what the form uses', function () {
+  global $tmp;
+  $real = "$tmp/linked/users/x"; mkdir("$real/api", 0777, true);
+  copy(ROOT . '/public/api/anfrage.php', "$real/api/anfrage.php");
+  copy(ROOT . '/public/api/data-dir.php', "$real/api/data-dir.php");
+  copy("$tmp/www/api/anfrage-site.json", "$real/api/anfrage-site.json");
+  symlink($real, "$tmp/public_html");
+  file_put_contents("$tmp/linked/users/.alno-data-dir", "$tmp/fest\n");
+  file_put_contents("$tmp/prep.php", '<?php putenv("HOME"); putenv("ALNO_DATA_DIR");');
+  $p = serve("$tmp/public_html", '', PORT + 10, ['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$tmp/prep.php"]);
+  $r = post(rueckruf(), [], [], PORT + 10);
+  proc_terminate($p);
+  is_same($r['status'], 200);
+  is_same(count(glob("$tmp/fest/anfragen/*.json") ?: []), 1);
+  ok(!is_dir("$real/alno-data") && !is_dir("$tmp/linked/users/alno-data"), 'stored somewhere else');
+});
+t('a fixed path that leads into the web root through a link: fails closed', function () {
+  global $tmp;
+  symlink("$tmp/public_html", "$tmp/umweg");
+  file_put_contents("$tmp/linked/users/.alno-data-dir", "$tmp/umweg/daten\n");
+  $p = serve("$tmp/public_html", '', PORT + 11, ['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$tmp/prep.php"]);
+  $r = post(rueckruf(), [], [], PORT + 11);
+  proc_terminate($p);
+  is_same($r['status'], 500);
+  ok(!is_dir("$tmp/linked/users/x/daten"), 'stored in the web root');
+});
+t('a broken setting is no folder', function () {
+  global $tmp;
+  file_put_contents("$tmp/linked/users/.alno-data-dir", "../../etc\n");
+  $p = serve("$tmp/public_html", '', PORT + 12, ['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$tmp/prep.php"]);
+  $r = post(rueckruf(), [], [], PORT + 12);
+  proc_terminate($p);
+  is_same($r['status'], 500);
 });
 t('storage impossible: 500 and no mail', function () {
   global $tmp;
@@ -455,7 +505,7 @@ t('nothing from a submission lands in the web root', function () {
   uploads_on();
   accepted(post(karriere(), [['dateien[]', 'cv.pdf', 'application/pdf', pdf()]]));
   $names = array_map(fn ($f) => $f->getFilename(), iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($www, FilesystemIterator::SKIP_DOTS)), false));
-  sort($names); is_same($names, ['anfrage-site.json', 'anfrage.php']);
+  sort($names); is_same($names, ['anfrage-site.json', 'anfrage.php', 'data-dir.php']);
 });
 
 echo "Формы сайта\n";

@@ -36,6 +36,14 @@ Geht beim Erstellen etwas schief, erscheint eine Fehlermeldung und **die Website
 
 Unter **Medien** oder direkt am Bildfeld mit „Bild ersetzen“. Erlaubt sind JPG, PNG und WebP. Zu große Bilder werden automatisch verkleinert. Wer ein Bild einsetzt, muss einen Alternativtext ausfüllen: Das ist die Beschreibung für Menschen, die das Bild nicht sehen können.
 
+**Bild im Text:** Im Editor von Beiträgen und Leistungen über **Dateien hinzufügen** ein Bild hochladen oder aus der Mediathek wählen, den Alternativtext eintragen, fertig: Das Bild steht an der Stelle des Cursors, in den Tabs Visuell und Text. Im Tab Text geht auch der Pfad aus den Medien, etwa `![Beschreibung](uploads/abc.jpg)`.
+
+**Logo, Favicon, Bild beim Teilen:** unter Einstellungen im ersten Kasten. Die nötige Mindestgröße steht jeweils am Feld.
+
+**Suchen:** In den Medien findet die Suche auch den ursprünglichen Dateinamen.
+
+**Telefonnummer ändern:** Nur das Feld **Telefon** in den Einstellungen ändern, alle Anruf-Links folgen. WhatsApp ist ein eigenes Feld.
+
 ### Anfragen
 
 Unter **Anfragen** stehen die Eingänge aus den Formularen der Website. Die Liste zeigt Datum, Formular, Name und Telefon. Alles Weitere steht nur in der Ansicht einer Anfrage.
@@ -88,6 +96,14 @@ Ein Administrator vergibt unter **Benutzer** ein neues Passwort. Hat kein Admini
 
 В разделе **Медиафайлы** или прямо в поле картинки кнопкой «Заменить картинку». Подходят JPG, PNG и WebP. Слишком большие картинки уменьшаются сами. Если картинка выбрана, нужно заполнить альтернативный текст: это описание для тех, кто её не видит.
 
+**Картинка в тексте:** в редакторе записей и услуг кнопка **Добавить файлы**: загрузите картинку или выберите из библиотеки, заполните альтернативный текст, и картинка встанет туда, где был курсор, во вкладках «Визуально» и «Текст». Во вкладке «Текст» подходит и путь из библиотеки, например `![Описание](uploads/abc.jpg)`.
+
+**Логотип, фавикон, картинка для соцсетей:** в настройках, первый блок. Минимальный размер указан у каждого поля.
+
+**Поиск:** в медиатеке находятся и исходные имена файлов.
+
+**Смена телефона:** достаточно поля **Telefon** в настройках, все ссылки для звонка изменятся сами. WhatsApp настраивается отдельным полем.
+
 ### Заявки
 
 В разделе **Заявки** лежит всё, что пришло с форм сайта. В списке видны дата, форма, имя и телефон. Остальное есть только в карточке заявки.
@@ -124,9 +140,9 @@ GitHub repo TjmerMTA/pflegedienst-alno, branch main   source of truth
   ↑ commits (GitHub REST API, fine-grained token)
   │                       ↓ push → .github/workflows/deploy.yml: build, then SFTP
 public_html/              https://pflegedienst-alno.de: the site and api/
-admin_html/               https://admin.pflegedienst-alno.de: wp-admin/, wp-login.php, .htaccess
+public_html/admin-alno/   https://admin.pflegedienst-alno.de: wp-admin/, wp-login.php, .htaccess
 ~/alno-data/              config.json (token), users.json, sessions, logs, trash, anfragen/
-~/.alno-deploy-manifest, ~/.alno-deploy-manifest-admin   what the last deploy uploaded, with hashes
+~/.alno-deploy-manifest, ~/.alno-deploy-manifest-admin-alno   what the last deploy uploaded, with hashes
 ```
 
 ### Setup, once
@@ -148,7 +164,11 @@ rm alno_sftp known_hosts
 
 Without `SFTP_KNOWN_HOSTS` the workflow warns and trusts whatever key answers that day. Pushing `deploy.yml` itself needs a token with the `workflow` right. The admin's token never touches it.
 
-**2. Subdomain.** In konsoleH point `admin.pflegedienst-alno.de` at `~/admin_html` and give it a TLS certificate. If the folder has another name, change `ADMIN_ROOT` in `deploy.yml`. The first deploy creates it, if konsoleH needs it earlier create it empty.
+**2. Subdomain.** In konsoleH point `admin.pflegedienst-alno.de` at `public_html/admin-alno` and give it a TLS certificate: konsoleH allows a subdomain only inside `public_html`, so the admin's docroot lies inside the site's. If the folder has another name, change `ADMIN_ROOT` and `ADMIN_DIR` in `deploy.yml` and the name in both `.htaccess` files. The first deploy creates it, if konsoleH needs it earlier create it empty.
+
+Russian labels of the page files and the schema are in `wp-admin/assets/labels-ru.json`: key = the exact German `label`, `help` or `itemLabel`, German where a key is missing. `admin/tests/labels_ru_check.mjs` runs with the admin tests, so a new German label without Russian fails them.
+
+The nesting has three consequences, all handled: `public_html/.htaccess` is inherited by the admin folder, so its redirect and headers apply to every host except our own subdomains and local addresses; `pflegedienst-alno.de/admin-alno/…` is refused in both `.htaccess` files, on top of the admin's own host check; and the site's deploy neither uploads to nor deletes from that folder. A data folder inside `public_html` is refused by the setup screen, also behind a link: the check is the parent of the admin's docroot, not the folder's name. Before go-live: `https://pflegedienst-alno.de/alno-data/config.json` must give 403 or 404, `~/alno-data/config.json` must exist, and a test form must show up under Anfragen. The `index.htm` Hetzner puts in `public_html` does not get in the way, because the site's `.htaccess` sets `DirectoryIndex index.html`, but it stays reachable under its own name: delete it by hand.
 
 **3. PHP.** In konsoleH, for the subdomain too: PHP 8.2 or newer, `upload_max_filesize` at least 12M (konsoleH sets `post_max_size` with it). The setup screen shows what the host really has: GD or Imagick, WebP, limits.
 
@@ -174,7 +194,7 @@ Nothing else. Choose an expiry and put it in the calendar.
 https://admin.pflegedienst-alno.de/wp-admin/cron.php?key=…
 ```
 
-or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. Deletion also runs on every visit to Anfragen, so the job is what keeps retention when nobody logs in.
+or, where cron runs PHP scripts directly, `php ~/public_html/admin-alno/wp-admin/cron.php`. Deletion also runs on every visit to Anfragen, so the job is what keeps retention when nobody logs in.
 
 **8. Check a form.** Send one test enquiry from the site and find it under Anfragen. Details: `docs/anfragen-format.md`, section 6.
 
@@ -182,8 +202,9 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 
 - `deploy.yml` has jobs `build` and `deploy`. Keep these names: the admin reads them through the Actions API to tell a failed build from a failed upload.
 - `scripts/assemble-upload.sh` prepares the two docroots, `scripts/deploy-sftp.sh` uploads each of them with its own manifest.
-- Only changed files go up, assets before pages. The only files ever deleted are ones an earlier deploy uploaded, listed in the manifest of that docroot. Anything else in `public_html` or `admin_html` stays, and `~/alno-data` is never touched.
+- Only changed files go up, assets before pages. The only files ever deleted are ones an earlier deploy uploaded, listed in the manifest of that docroot. Anything else in `public_html` stays, and `~/alno-data` is never touched.
 - The first deploy therefore leaves old files of a previous site in place. Remove them by hand.
+- If the admin was ever uploaded to `~/admin_html`, that folder and `~/.alno-deploy-manifest-admin` stay on the host unused. Delete them by hand.
 - Start the workflow by hand with `full` to upload everything again.
 - A deploy stops before it touches the host when the folder has no `index.html` (site) or `wp-admin/index.html` (admin), or holds less than half the files of the last upload. A real clean-up of that size: start the workflow by hand with `allow_shrink`.
 - One deploy at a time; a running deploy is never cut off, and a newer push replaces a waiting one.
@@ -192,8 +213,8 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 
 - **Cookies** are `__Host-`: the browser refuses them with a `Domain`, without `Secure` or with a path other than `/`, so the public site can neither read nor plant one. Over plain local HTTP they use the plain name.
 - `SameSite` does not separate a subdomain from its parent, so the API refuses `Sec-Fetch-Site: same-site` and `cross-site`, on GET too. No CORS header is ever sent.
-- **Host check:** only `admin.pflegedienst-alno.de` and what `hosts` in `config.json` lists; the public domain gets 421.
-- **Headers** in `admin_html/.htaccess`: CSP with `default-src 'none'` and nothing but this origin's scripts, styles and images, HSTS, `frame-ancestors 'none'`, COOP, CORP, COEP, Permissions-Policy, `noindex`. `index.html` carries the CSP as a meta tag too, in case `mod_headers` is off. The `Referrer-Policy` stays `same-origin`: with `no-referrer` the browser would send `Origin: null` on the admin's own POSTs.
+- **Host check:** only `admin.pflegedienst-alno.de` and what `hosts` in `config.json` lists; the public domain gets 421. Apache refuses it first, with 403 at `/admin-alno/`. A further host in `hosts` must also go into the `<If>` line of `admin/public/.htaccess`.
+- **Headers** in `public_html/admin-alno/.htaccess`: CSP with `default-src 'none'` and nothing but this origin's scripts, styles and images, HSTS, `frame-ancestors 'none'`, COOP, CORP, COEP, Permissions-Policy, `noindex`. `index.html` carries the CSP as a meta tag too, in case `mod_headers` is off. The `Referrer-Policy` stays `same-origin`: with `no-referrer` the browser would send `Origin: null` on the admin's own POSTs.
 
 ### Login limits
 
@@ -203,9 +224,11 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 
 ### Good to know
 
-- **HTTPS:** `admin_html/.htaccess` redirects HTTP and sets HSTS.
+- **HTTPS:** `public_html/admin-alno/.htaccess` redirects HTTP and sets HSTS.
 - **Logs:** `~/alno-data/logs/admin.log` for events, `access.log` for who read which submission (ids only).
-- **Data folder:** `~/alno-data`, found exactly as `public/api/anfrage.php` finds it (`ALNO_DATA_DIR`, the user's home from `posix_getpwuid`, `$HOME`, the parent of the web root). Both must agree; if the home is detected wrongly, set `ALNO_DATA_DIR` with `SetEnv` in `.htaccess`. Setup refuses a folder inside the web root.
+- **Data folder:** one file, `data-dir.php`, finds it for the form endpoint and the admin: `ALNO_DATA_DIR` as an override, else the absolute path setup wrote into `.alno-data-dir` beside `public_html` (never in it), else `~/alno-data` from `posix_getpwuid` or `$HOME`. If none of them answers, nothing is guessed. A path that really lies in a web root, by `realpath` and through every parent, is refused whatever it is called: setup refuses, the admin stops reading it, the form stores nothing and answers 500. To move the folder, change `.alno-data-dir` by hand.
+- **Setup refuses at "Datenordner":** the host gave no home folder, or the path lies in a web root. The setup screen names the exact file to create, because behind a linked `public_html` it is not `~/.alno-data-dir`. Put one line in it by SFTP, the absolute path of a folder outside the web root, and reload. The file lies outside the web root, so no deploy touches it.
+- **`ALNO_DATA_DIR`** is for a vhost or an FPM pool, where it outlives a deploy. Do not put it in `public_html/.htaccess`: a deploy stops at the check of that file, or replaces it if the build changed it. Setup copies the path into `.alno-data-dir` in any case, so a `SetEnv` already there can simply be deleted.
 - **Token expired:** the admin says so. Create a new one and replace `token` in `~/alno-data/config.json` by SFTP.
 - **Locked out, no administrator left:** by SFTP delete `~/alno-data/users.json` and `~/alno-data/config.json`, open the setup screen, paste a token. Content and Anfragen are not affected.
 - **Backups:** `~/alno-data` is not in Git. It holds health data, so keep the backup as protected as the host.

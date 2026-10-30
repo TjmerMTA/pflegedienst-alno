@@ -1,7 +1,13 @@
-# Docroot of admin.pflegedienst-alno.de, a separate origin from the public site. Headers for
-# everything served here. api.php sends its own as well; of two CSPs the browser applies both.
+# Docroot of admin.pflegedienst-alno.de, a separate origin from the public site. It lies inside
+# public_html (konsoleH allows nothing else), so the public site's addresses reach this folder too
+# as /admin-alno/ and must be refused here, before anything below answers them. Headers for
+# everything served here; api.php sends its own CSP, which the first lines of the header block replace.
 Options -Indexes
 ServerSignature Off
+
+<If "%{HTTP_HOST} !~ /^(admin\.pflegedienst-alno\.de|127\.0\.0\.1|localhost)(:[0-9]+)?$/i">
+  Require all denied
+</If>
 
 # Passwords and the token never travel in the clear.
 <IfModule mod_rewrite.c>
@@ -15,7 +21,9 @@ ServerSignature Off
 
 <IfModule mod_headers.c>
   # Nothing but this origin's own scripts, styles and images. No inline code, no frames, no forms
-  # that navigate (every form here goes through fetch).
+  # that navigate (every form here goes through fetch). `always` replaces what PHP sent through FPM
+  # or CGI, and the plain unset what it sent through mod_php: one CSP either way.
+  Header unset Content-Security-Policy
   Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'"
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
   Header always set X-Content-Type-Options "nosniff"

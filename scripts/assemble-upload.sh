@@ -8,10 +8,17 @@ out=$1
 for f in dist/index.html admin/public/wp-admin/index.html; do
   if [ ! -s "$f" ]; then echo "$f is missing or empty: nothing to deploy." >&2; exit 1; fi
 done
+# The form endpoint and the admin must find one data folder: one file, uploaded twice.
+if [ -e dist/api/anfrage.php ] && ! cmp -s dist/api/data-dir.php admin/public/wp-admin/lib/data-dir.php; then
+  echo "dist/api/data-dir.php and the admin's copy differ: nothing to deploy." >&2
+  exit 1
+fi
 rm -rf "$out"
 mkdir -p "$out/site" "$out/admin"
 cp -R dist/. "$out/site/"
-if [ -e "$out/site/wp-admin" ]; then echo "dist must not contain wp-admin/" >&2; exit 1; fi
+for d in wp-admin admin-alno; do
+  if [ -e "$out/site/$d" ]; then echo "dist must not contain $d/" >&2; exit 1; fi
+done
 cp -R admin/public/. "$out/admin/"
 # GitHub Pages' own files, for the preview only.
 rm -f "$out/site/CNAME" "$out/site/.nojekyll"
