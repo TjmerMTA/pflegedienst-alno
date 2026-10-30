@@ -1,0 +1,21 @@
+{
+  "label": "Über uns",
+  "url": "/ueber-uns/",
+  "order": 2,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO",
+      "fields": [
+        { "id": "title", "label": "Meta Title", "type": "text", "max": 70, "required": true, "value": "Über uns | Beispiel" }
+      ]
+    },
+    {
+      "id": "intro",
+      "label": "Einleitung",
+      "fields": [
+        { "id": "text", "label": "Text", "type": "richtext", "value": "<h2>Wer wir sind</h2><p>Ein Beispieltext.</p><ul><li>Erstens</li><li>Zweitens</li></ul>" }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,7 @@ function inline(src) {
     links.push({ text, url }); return `\u0000L${links.length - 1}\u0000`;
   });
   s = escText(decodeEntities(s));
-  s = s.replace(/\\([\\`*_{}\[\]()#+\-.!>])/g, (m, c) => `\u0000E${c.charCodeAt(0)}\u0000`);
+  s = s.replace(/\\([\\`*_{}\[\]()#+\-.!>&])/g, (m, c) => `\u0000E${c.charCodeAt(0)}\u0000`);
   s = s.replace(/\*\*(?=\S)([\s\S]*?\S)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/__(?=\S)([\s\S]*?\S)__/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^*\w])\*(?=\S)([\s\S]*?\S)\*(?!\*)/g, '$1<em>$2</em>');
@@ -219,7 +219,9 @@ function blocksMd(nodes, out) {
 
 // A paragraph must not accidentally start a heading, list or quote.
 function lineStartSafe(t) {
-  return t.split('\n').map((l) => l.replace(/^(\s*)(#{1,6}\s|>|[-+]\s|\d+[.)]\s)/, (m, sp, x) => sp + '\\' + x)).join('\n');
+  return t.split('\n').map((l) => l
+    .replace(/^(\s*)(#{1,6}\s|>|[-+]\s)/, (m, sp, x) => `${sp}\\${x}`)
+    .replace(/^(\s*\d+)([.)]\s)/, (m, n, x) => `${n}\\${x}`)).join('\n');
 }
 
 function listMd(n, depth) {

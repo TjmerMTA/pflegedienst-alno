@@ -1,0 +1,42 @@
+{
+  "label": "Startseite",
+  "url": "/",
+  "order": 1,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        { "id": "title", "label": "Meta Title", "type": "text", "max": 70, "required": true, "value": "Testseite | Beispiel Pflegedienst" },
+        { "id": "description", "label": "Meta Description", "type": "textarea", "max": 170, "required": true, "value": "Beschreibung der Testseite für die Fixture." }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        { "id": "pill", "label": "Kleiner Hinweis über der Überschrift", "type": "text", "value": "Ambulante Pflege" },
+        { "id": "h1", "label": "Überschrift (H1)", "type": "text", "max": 90, "required": true, "value": "Gut versorgt zu Hause –" },
+        { "id": "h1Highlight", "label": "Farbig hervorgehobener Teil", "type": "text", "help": "Wird farbig hervorgehoben.", "value": "mit Herz" },
+        { "id": "lead", "label": "Einleitungstext", "type": "richtext", "value": "<p>Wir pflegen <strong>zu Hause</strong>. Telefon {{phone}}.</p>" },
+        { "id": "image", "label": "Bild", "type": "image", "value": "hero/start.jpg", "alt": "Testbild Startseite" },
+        { "id": "trust", "label": "Vertrauenspunkte", "type": "list", "itemLabel": "Punkt", "min": 1, "max": 4,
+          "fields": [ { "id": "text", "label": "Text", "type": "text" } ],
+          "value": [ { "text": "Alle Kassen" }, { "text": "Telefon {{hours}}" } ] }
+      ]
+    },
+    {
+      "id": "cards",
+      "label": "Karten",
+      "fields": [
+        { "id": "items", "label": "Karten", "type": "list", "itemLabel": "Karte", "min": 0, "max": 3,
+          "fields": [
+            { "id": "title", "label": "Titel", "type": "text", "required": true },
+            { "id": "text", "label": "Text", "type": "textarea", "max": 120 },
+            { "id": "photo", "label": "Bild", "type": "image" }
+          ],
+          "value": [ { "title": "Karte eins", "text": "Text der Karte", "photo": "team.jpg", "photoAlt": "Team auf einem Bild" } ] }
+      ]
+    }
+  ]
+}
