@@ -65,6 +65,14 @@ test('ids are checked before any path is built', function () use ($e, $admin) {
     ok(is_file("$e->data/users.json"));
 });
 
+test('a file whose name only ends like an id, with a line break, is no record', function () use ($e, $admin) {
+    $id = '2026-10-30-132824-b48fc68bab33b63f';
+    $e->store->write("anfragen/$id\n.json", '{"status":"neu","fields":{"name":"Eingeschleust"}}');
+    hasNot($admin->get('anfragen')['body'], 'Eingeschleust');
+    eq($admin->get('anfragen/item', ['id' => "$id\n"])['status'], 404);
+    unlink("$e->data/anfragen/$id\n.json");
+});
+
 test('stored names are checked too; files[].name never reaches a path', function () use ($e, $admin) {
     $id = $e->anfrage(['files' => [
         ['name' => '../../config.json', 'stored' => STORED, 'size' => 1, 'type' => 'application/pdf'],
