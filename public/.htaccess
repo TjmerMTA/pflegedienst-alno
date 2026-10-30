@@ -1,5 +1,16 @@
 # Заголовки безопасности публичного сайта (Apache, Hetzner Webhosting).
 # Значение CSP подставляет при сборке src/lib/hardening.mjs: хеши инлайновых скриптов и стилей берутся из готовых страниц.
+# Только HTTPS: и формы, и cookie согласия не ездят открытым текстом. Адрес зашит, а не взят из Host: заголовок задаёт
+# клиент. .well-known открыт для проверки сертификата, локальные адреса — для проверки на своей машине
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteCond %{HTTP_HOST} !^(127\.0\.0\.1|localhost)(:[0-9]+)?$
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^ https://pflegedienst-alno.de%{REQUEST_URI} [R=301,L]
+</IfModule>
+
 <IfModule mod_headers.c>
   Header always set Content-Security-Policy "__CSP__"
   Header always set X-Content-Type-Options "nosniff"

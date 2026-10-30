@@ -190,6 +190,27 @@ test('the two docroots: nothing of the admin in the site, nothing of the site in
     unlink("$d/admin");
     rmTree($d);
 });
+test('a build without pages stops before the docroots are made', function () use ($root) {
+    foreach (['no dist' => null, 'empty index.html' => ''] as $name => $index) {
+        $d = tmpDir('alno-assemble-leer');
+        if ($index !== null) { mkdir("$d/dist"); file_put_contents("$d/dist/index.html", $index); }
+        symlink("$root/admin", "$d/admin");
+        $o = [];
+        exec('cd ' . escapeshellarg($d) . ' && bash ' . escapeshellarg("$root/scripts/assemble-upload.sh") . ' upload 2>&1', $o, $code);
+        ok($code !== 0, $name);
+        has(implode("\n", $o), 'nothing to deploy');
+        ok(!is_dir("$d/upload"), 'no upload folder');
+        unlink("$d/admin");
+        rmTree($d);
+    }
+});
+test('the public site: plain HTTP goes to a fixed HTTPS address, and the CSP block stays', function () use ($root) {
+    $h = (string) file_get_contents("$root/public/.htaccess");
+    has($h, 'RewriteRule ^ https://pflegedienst-alno.de%{REQUEST_URI} [R=301,L]');
+    hasNot($h, 'https://%{HTTP_HOST}');
+    eq(substr_count($h, '__CSP__'), 1);
+    has($h, 'Header always set Strict-Transport-Security');
+});
 test('the workflow deploys to two docroots; the data folder appears nowhere', function () use ($root) {
     $w = (string) file_get_contents("$root/.github/workflows/deploy.yml");
     has($w, 'scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest');
