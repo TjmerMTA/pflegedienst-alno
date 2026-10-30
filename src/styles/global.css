@@ -153,7 +153,10 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 
-/* Длинное слово без пробелов переносится и не раздвигает страницу. Исключения держат ширину по слову:
-   у таблиц своя прокрутка, в плитках и на кнопках короткие подписи */
-main, footer { overflow-wrap: anywhere; }
-table, .quick, button { overflow-wrap: normal; }
+/* Слово шире своей колонки переносится (последняя мера), а совсем длинное не раздвигает страницу */
+main, footer { overflow-wrap: break-word; overflow-x: clip; }
+/* На телефонах длинные немецкие слова переносятся по слогам, с дефисом */
+@media (max-width: 480px) {
+  main, footer { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 17 5 5; }
+  table, .quick, button { -webkit-hyphens: manual; hyphens: manual; }
+}

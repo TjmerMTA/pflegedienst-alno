@@ -1,9 +1,10 @@
 // В сборку идут только названные в страницах картинки; битый JSON называет свой файл. Запуск: npm test
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import { loadContent } from './load-content.mjs';
 import { readPage } from '../src/lib/page-files.mjs';
 
@@ -43,4 +44,26 @@ test('invalid JSON names the file', () => {
 
 test('a missing page file names the file', () => {
   assert.throws(() => readPage(fixture.root, 'gibtsnicht'), /\[content\] src\/content\/pages\/gibtsnicht\.json not found/);
+});
+
+// client-texts читается при загрузке astro.config: без своей проверки ошибка не называла бы файл
+async function clientTextsWith(global) {
+  const root = mkdtempSync(join(tmpdir(), 'content-test-'));
+  mkdirSync(join(root, 'src/content/pages'), { recursive: true });
+  cpSync('src/lib', join(root, 'src/lib'), { recursive: true });
+  writeFileSync(join(root, 'src/content/pages/_global.json'), JSON.stringify(global));
+  const { clientTexts } = await import(pathToFileURL(join(root, 'src/lib/client-texts.mjs')));
+  try {
+    clientTexts();
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test('missing contact group names the file and the group', async () => {
+  await assert.rejects(clientTextsWith({ groups: [{ id: 'forms', fields: [] }] }), /\[content\] src\/content\/pages\/_global\.json: group "contact" not found/);
+});
+
+test('missing groups names the file', async () => {
+  await assert.rejects(clientTextsWith({ label: 'Allgemein' }), /\[content\] src\/content\/pages\/_global\.json: "groups" must be an array/);
 });
