@@ -25,8 +25,9 @@ npm run preview
 
 | Что | Где |
 |---|---|
-| Адрес, телефоны, WhatsApp, районы | `src/config/site.ts` |
-| FAQ | `src/config/faq.ts` |
+| Адрес, телефоны, WhatsApp, часы, районы | `src/content/pages/_global.json` (группы `contact`, `area…`); код читает их через `src/config/site.ts` |
+| FAQ главной | `src/content/pages/_global.json` (группа `faq`), схема FAQ — `src/config/faq.ts` |
+| Тексты и картинки страниц | `src/content/pages/<страница>.json` — формат в `docs/admin-content-format.md` |
 | Обработчик форм (Web3Forms / Formspree) | переменная `PUBLIC_FORM_ENDPOINT` (GitHub → Settings → Variables) |
 | Google Analytics 4 | переменная `PUBLIC_GA_ID` — баннер согласия включится сам, до согласия GA не грузится |
 | Продакшн-домен | `SITE_URL` в `deploy.sh` + `public/CNAME` |
