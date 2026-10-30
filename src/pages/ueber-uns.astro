@@ -15,8 +15,8 @@ const initials = (m: { name: string; role: string }) =>
   m.name === 'N. N.' ? m.role[0] : m.name.split(' ').map((w) => w[0]).join('');
 // Тексты и картинки — в src/content/pages/ueber-uns.json (правятся в админке)
 const p = getPage('ueber-uns');
-const teamImg = p.img('leitbild.image')!;
-const careImg = p.img('quals.image')!;
+const teamImg = p.img('leitbild.image');
+const careImg = p.img('quals.image');
 const quals = p.list<{ text: string }>('quals.items');
 const values = p.list<{ icon: string; title: string; text: string }>('values.items');
 ---
@@ -30,7 +30,7 @@ const values = p.list<{ icon: string; title: string; text: string }>('values.ite
         <h2>{p.text('leitbild.h2')}</h2>
         {p.list<{ text: string }>('leitbild.paragraphs').map((t) => <p>{t.text}</p>)}
       </div>
-      <Image src={teamImg.src} alt={teamImg.alt} widths={[424]} class="img" />
+      {teamImg && <Image src={teamImg.src} alt={teamImg.alt} widths={[424]} class="img" />}
     </div>
   </section>
 
@@ -61,7 +61,7 @@ const values = p.list<{ icon: string; title: string; text: string }>('values.ite
 
   <section class="section section--soft">
     <div class="wrap split">
-      <Image src={careImg.src} alt={careImg.alt} widths={[424]} class="img" />
+      {careImg && <Image src={careImg.src} alt={careImg.alt} widths={[424]} class="img" />}
       <div>
         <span class="eyebrow">{p.text('quals.eyebrow')}</span>
         <h2>{p.text('quals.h2')}</h2>

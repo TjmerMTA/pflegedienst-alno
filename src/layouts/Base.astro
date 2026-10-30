@@ -5,7 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import MobileBar from '../components/MobileBar.astro';
 import Consent from '../components/Consent.astro';
-import { SITE, NOINDEX, getGlobal } from '../config/site';
+import { SITE, NOINDEX, getGlobal, jsonForScript } from '../config/site';
 
 interface Props {
   title: string;
@@ -62,8 +62,8 @@ const business = {
     <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-sans" preload />
-    <script type="application/ld+json" set:html={JSON.stringify(business)} />
-    {schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+    <script type="application/ld+json" set:html={jsonForScript(business)} />
+    {schema.map((s) => <script type="application/ld+json" set:html={jsonForScript(s)} />)}
   </head>
   <body>
     <a class="sr-only skip" href="#main">{getGlobal().text('header.skipLink')}</a>

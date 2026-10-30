@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 interface Props { title: string; lead?: string; crumbs?: { href?: string; label: string }[]; bg?: string }
 const { title, lead, crumbs = [], bg } = Astro.props;
 // Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
-const { getGlobal } = await import('../lib/content');
+const { getGlobal, jsonForScript } = await import('../lib/content');
 const all = [{ href: '/', label: getGlobal().text('header.crumbHome') }, ...crumbs];
 const schema = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
@@ -24,5 +24,5 @@ const photo = byName(bg) || byName(section) || byName('default');
     {lead && <p class="lead">{lead}</p>}
     <slot />
   </div>
-  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  <script type="application/ld+json" set:html={jsonForScript(schema)} />
 </section>

@@ -2,11 +2,12 @@
 // а data-атрибуты изменили бы HTML, поэтому astro.config.mjs подставляет значения при сборке
 // через vite.define — в код они попадают обычными литералами. Токены {{key}} — как в content.ts.
 // В astro dev значения define читаются при старте: после правки JSON сервер нужно перезапустить.
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { breakScriptTags, jsonForScript } from './json-for-script.mjs';
+import { PAGES_DIR, readPage } from './page-files.mjs';
 
-const pagePath = (id) => fileURLToPath(new URL(`../content/pages/${id}.json`, import.meta.url));
-const read = (id) => JSON.parse(readFileSync(pagePath(id), 'utf8'));
+const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const read = (id) => readPage(ROOT, id);
 const fillTokens = (s, tokens) => String(s ?? '').replace(/\{\{\s*([\w-]+)\s*\}\}/g, (m, key) => tokens[key] ?? m);
 
 // Читатель полей группы: нет группы или поля — та же понятная ошибка сборки, что в content.ts
@@ -17,7 +18,7 @@ function reader(id, groupId, tokens) {
   return (fieldId) => {
     const f = group.fields.find((x) => x.id === fieldId);
     if (!f) throw new Error(`[content] ${file}: field "${groupId}.${fieldId}" not found`);
-    return fillTokens(f.value, tokens);
+    return breakScriptTags(fillTokens(f.value, tokens));
   };
 }
 
@@ -31,7 +32,7 @@ export function clientTexts() {
   const application = reader('_global', 'applicationForm', tokens);
   // Порядок ключей важен: минификатор сохраняет его в собранном HTML
   return {
-    __CONTACT_FORM_MSG__: JSON.stringify({
+    __CONTACT_FORM_MSG__: jsonForScript({
       required: forms('errRequired'),
       phone: forms('errPhone'),
       email: forms('errEmail'),
@@ -41,7 +42,7 @@ export function clientTexts() {
       fail: forms('msgFail'),
       spam: forms('msgSpam'),
     }),
-    __APPLICATION_FORM_MSG__: JSON.stringify({
+    __APPLICATION_FORM_MSG__: jsonForScript({
       required: forms('errRequired'),
       phone: forms('errPhone'),
       email: forms('errEmail'),
@@ -53,7 +54,7 @@ export function clientTexts() {
       spam: forms('msgSpam'),
     }),
     // Вставляется в атрибут title внутри innerHTML
-    __KONTAKT_MAP_TITLE__: JSON.stringify(reader('kontakt', 'anfahrt', tokens)('mapTitle').replace(/"/g, '&quot;')),
+    __KONTAKT_MAP_TITLE__: jsonForScript(reader('kontakt', 'anfahrt', tokens)('mapTitle').replace(/"/g, '&quot;')),
   };
 }
 
@@ -104,7 +105,7 @@ function expandMacro(call, code, tokens, page) {
   const [pathArg, partsArg] = call.arguments;
   const path = pathArg.value;
   if (call.callee.name === '__LEISTUNGEN') return serviceList(page, path);
-  const value = fillTokens(field(page, path, 'text', 'textarea').value, tokens);
+  const value = breakScriptTags(fillTokens(field(page, path, 'text', 'textarea').value, tokens));
   if (call.callee.name === '__N') return String(number(value, path));
   const text = call.callee.name === '__H' ? escText(value) : value;
   if (!partsArg) return JSON.stringify(text);
@@ -130,7 +131,7 @@ export function rechnerTexts() {
     name: 'alno-rechner-texts',
     transform(source, id) {
       if (!RECHNER_SOURCES.test(id)) return null;
-      this.addWatchFile(pagePath(PAGE));
+      this.addWatchFile(`${ROOT}${PAGES_DIR}/${PAGE}.json`);
       const tokens = contactTokens();
       const page = read(PAGE);
       let code = source;

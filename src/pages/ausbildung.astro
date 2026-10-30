@@ -101,7 +101,9 @@ const stages = p.list<{ title: string; text: string }>('training.stages');
 <style>
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
   .hero-cta { margin-block-start: 24px; }
-  .way { display: flex; flex-direction: column; }
+  /* Заголовок карточки держит ширину по слову (Bundesfreiwilligendienst не рвём посередине), а скрытие не даёт очень длинному слову раздвинуть сетку */
+  .way { display: flex; flex-direction: column; overflow: hidden; }
+  .way h3 { overflow-wrap: normal; }
   .way p { flex: 1; }
   .more { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--brand-700); text-decoration: none; }
   .more:hover { text-decoration: underline; }

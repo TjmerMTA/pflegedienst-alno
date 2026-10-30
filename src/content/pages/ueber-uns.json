@@ -306,6 +306,7 @@
           "label": "Button zu den Stellen",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Zu den Stellen"
         },
         {
@@ -313,6 +314,7 @@
           "label": "Button zur Ausbildung",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Ausbildung & Praktikum"
         }
       ]

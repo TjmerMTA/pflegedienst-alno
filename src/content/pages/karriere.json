@@ -56,6 +56,7 @@
           "label": "Button: bewerben",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Jetzt bewerben"
         },
         {
@@ -63,6 +64,7 @@
           "label": "Button: Stellen",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Offene Stellen"
         }
       ]
@@ -256,6 +258,7 @@
           "label": "Button in den Karten",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Dafür bewerben"
         }
       ]

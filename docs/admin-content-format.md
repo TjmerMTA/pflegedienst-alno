@@ -19,7 +19,7 @@ all pages (contact data, opening hours, header, footer, cookie banner, CTA band,
       "label": "SEO: Titel und Beschreibung",
       "fields": [
         { "id": "title", "label": "Meta Title", "type": "text", "max": 70, "required": true, "value": "Ambulanter Pflegedienst in Dortmund | Pflegedienst ALNO GmbH" },
-        { "id": "description", "label": "Meta Description", "type": "textarea", "max": 170, "required": true, "value": "…" }
+        { "id": "description", "label": "Meta Description", "type": "textarea", "max": 180, "required": true, "value": "…" }
       ]
     },
     {
@@ -29,7 +29,7 @@ all pages (contact data, opening hours, header, footer, cookie banner, CTA band,
         { "id": "pill", "label": "Kleiner Hinweis über der Überschrift", "type": "text", "value": "Ambulante Pflege in Dortmund" },
         { "id": "h1", "label": "Überschrift (H1)", "type": "text", "max": 90, "required": true, "value": "Gut versorgt zu Hause –" },
         { "id": "h1Highlight", "label": "Farbig hervorgehobener Teil", "type": "text", "value": "mit Herz und Fachwissen" },
-        { "id": "lead", "label": "Einleitungstext", "type": "richtext", "value": "<p>Wir pflegen …</p>" },
+        { "id": "lead", "label": "Einleitungstext", "type": "textarea", "value": "Wir pflegen …" },
         { "id": "image", "label": "Bild", "type": "image", "value": "startseite-hero.jpg", "alt": "Pflegekraft umarmt eine lächelnde Seniorin" },
         { "id": "trust", "label": "Vertrauenspunkte", "type": "list", "itemLabel": "Punkt", "min": 1, "max": 6,
           "fields": [ { "id": "text", "label": "Text", "type": "text" } ],
@@ -98,8 +98,8 @@ frontmatter use a path relative to the `.md` file (`../../assets/img/…`).
 - Library = every `jpg/jpeg/png/webp` under `src/assets/img/`.
 - Uploads go to `src/assets/img/uploads/<random>.<ext>`: type checked by content, re-encoded
   (sharp), longest side at most 2400 px, never the uploaded file name, never SVG.
-- The site loads images through `import.meta.glob('/src/assets/img/**/*.{jpg,jpeg,png,webp}')`, so
-  `<Image>` keeps its optimisation.
+- The site imports only the images named in the page files (Vite plugin `src/lib/content-images.mjs`), so
+  `<Image>` keeps its optimisation and an image no page uses any more does not reach `dist`.
 
 ## 4. Site helper — `src/lib/content.ts`
 
@@ -107,7 +107,7 @@ frontmatter use a path relative to the `.md` file (`../../assets/img/…`).
 const p = getPage('index');      // throws at build time if the file or a field is missing
 p.text('hero.h1')                // string, tokens replaced
 p.html('hero.lead')              // sanitised HTML for set:html, tokens replaced
-p.img('hero.image')              // { src: ImageMetadata, alt: string }
+p.img('hero.image')              // { src: ImageMetadata, alt: string }, or null when empty
 p.list('hero.trust')             // array of item objects (their text values tokens replaced)
 getGlobal()                      // same API for _global.json
 ```
@@ -134,7 +134,8 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
    then replace each literal text with `{p.text('group.field')}`, the SEO props with `title={p.text('seo.title')}` /
    `description={p.text('seo.description')}`, the `PageHero` props with `title`, `lead` and
    `crumbs={[{ label: p.text('hero.crumb') }]}` (see `hero` in any page file), and each image import with
-   `const img = p.img('group.image')!` → `<Image src={img.src} alt={img.alt} … />`.
+   `const img = p.img('group.image');` → `{img && <Image src={img.src} alt={img.alt} … />}` (an empty image is
+   `null`, so no `!`; the check also adds nothing to the output).
    Do not name loop variables `p` (the blog loop in `index.astro` became `post`).
 4. **Build and diff**: `npm run build && diff -r /tmp/dist-before dist` must print nothing. Then change one
    value in the JSON and see it in `dist`, and rename one field id and see the build fail with `[content] …`.
@@ -171,6 +172,12 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
   `__N('group.field')` for an amount. The value keeps the whole sentence with a placeholder, `Der Plan übersteigt das
   Budget um {betrag}.`, and the field's `help` says it must stay. An unknown `{name}` is shown as typed, a removed one
   is simply not shown. Amounts are `text` fields (`1497`, `7,08`); a value that is no number warns and becomes 0.
+- **Anything written into a `<script>`** goes through `jsonForScript(value)`, never `JSON.stringify`: it writes
+  `< > &` and U+2028/2029 as `\uXXXX`, so `</script>` in a value cannot end the block (`Base.astro`, `PageHero.astro`).
+  Pages that pass `schema` to `Base` are covered. `client-texts.mjs` also splits `<!--` and `<script` inside the
+  text, because the minifier undoes `\uXXXX` there.
+- **Labels that do not wrap** (buttons, menu items, the `.quick` tiles) get a `max`: `.btn` and `.nav a` are
+  `nowrap` by design and no CSS can break a word there. Buttons 32, menu 24, tile title 24, tile text 40.
 - **Shared blocks** (used on several pages) go to `_global.json`, page-specific headings around them stay
   in the page file (e.g. `testimonials.h2` is in `index.json`, the testimonials themselves in `_global.json`).
 
@@ -182,13 +189,13 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
   An optional image can be `null`, so render it with a check: `{c.photo && <Image src={c.photo.src} alt={c.photo.alt} … />}`.
 - `textHtml()` — a `text`/`textarea` value as HTML for `set:html`, escaped the way literal markup text is
   (see the next point). `escText(value)` does the same for a value from `list()`.
-- Missing file, group or field, a wrong type, an empty `required` value, an image that is not in
-  `src/assets/img/`, an image with an empty alt, a list image stored as a plain path → the build fails with
+- Missing file, malformed JSON, missing group or field, a wrong type, an empty `required` value, an image that is
+  not in `src/assets/img/`, an image with an empty alt, a list image stored as a plain path → the build fails with
   `[content] <file>: …`. An unknown `{{token}}` only warns and stays
   as typed (the admin can save it, so the site must still build).
 
-`npm test` runs the real `content.ts` on a temporary copy with its own fixtures (`test/content-images.test.mjs`);
-add a case there when the helper changes.
+`npm test` runs the real `src/lib` on a temporary copy with its own fixtures (`test/`); add a case there when the
+helper changes.
 
 ### Byte-identity traps (each one cost a diff)
 
@@ -207,11 +214,12 @@ add a case there when the helper changes.
      one, and pads the rest with a bare `import '../config/site';` (`ueber-uns.astro`: two images, two imports);
    - a page or component that imports nothing from config uses `const { getGlobal } = await import('../lib/content');`
      (a dynamic import does not count) — see `Certificates.astro`, `PageHero.astro`, `kosten-finanzierung.astro`.
-3. **Identical image files under different names**: the library glob imports all of `src/assets/img/`, and the
-   bundler emits identical bytes once, under whichever name it meets first. `team.jpg` (a copy of
-   `blog-antrag.jpg`) renamed the blog image in the output and was removed. If `_astro/` file names change,
-   compare the images with `md5`.
-4. **The admin rewrites what it saves**: it trims `text` values, so the spaces between `…Before` and `…After` belong
+3. **Identical image files under different names**: the bundler emits identical bytes once, under whichever name
+   it meets first. If `_astro/` file names change, compare the images with `md5`.
+4. **Long words**: `main, footer { overflow-wrap: anywhere; }` in `global.css` breaks any word too wide for its
+   box. Where real layout depends on word width it is switched off (`table`, `.quick`, `button`, `.way h3`). A
+   new narrow card title with a long German word may need the same; check it at desktop width.
+5. **The admin rewrites what it saves**: it trims `text` values, so the spaces between `…Before` and `…After` belong
    in the markup, and a richtext value must survive its sanitizer unchanged (`<br>`, not `<br />`).
-5. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a
+6. **Whitespace** between elements is dropped by the compiler, so a static `<li>…</li><li>…</li>` and a
    `.map()` produce the same bytes — no need to imitate the old line breaks.

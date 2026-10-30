@@ -48,6 +48,7 @@
           "label": "Button zur Startseite",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Zur Startseite"
         },
         {
@@ -55,6 +56,7 @@
           "label": "Button zu den Leistungen",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Leistungen"
         },
         {
@@ -62,6 +64,7 @@
           "label": "Button zum Kontakt",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Kontakt"
         }
       ]

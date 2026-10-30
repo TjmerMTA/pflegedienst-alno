@@ -16,6 +16,7 @@ npm install
 npm run dev       # http://localhost:4321
 npm run build     # → dist/
 npm run preview
+npm test          # проверки src/lib на временной копии
 ./deploy.sh       # сборка + выкладка в ветку gh-pages
 ```
 

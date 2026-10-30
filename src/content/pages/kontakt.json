@@ -150,6 +150,7 @@
           "label": "Button: Karte laden",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Karte laden"
         },
         {
