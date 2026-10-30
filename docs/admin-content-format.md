@@ -52,18 +52,25 @@ all pages (contact data, opening hours, header, footer, cookie banner, CTA band,
 | `text`     | string, one line                                        | no HTML |
 | `textarea` | string, may contain `\n`                                | no HTML; site shows `\n` as line break only where the markup already allowed it |
 | `richtext` | HTML string                                             | allowed tags only: `p br strong b em i a[href] ul ol li h2 h3`; anything else is stripped by the admin on save and by the site on render |
-| `image`    | path relative to `src/assets/img/` (e.g. `team.jpg`, `uploads/ab12cd.jpg`) | extra key `"alt"` (required, string) |
+| `image`    | path relative to `src/assets/img/` (e.g. `uploads/ab12cd.jpg`) | extra key `"alt"` (string, required once an image is set) |
 | `list`     | array of objects keyed by the sub-field ids in `fields` | `itemLabel`, `min`, `max`; sub-fields use the same types except `list` |
 
 An `image` sub-field inside a `list` item is stored as an object with the same keys as a top-level image field:
 `item[<id>] = { "value": "<path under src/assets/img>", "alt": "<alt text>" }`. `list()` returns it as
-`{ src: ImageMetadata, alt }` for that key. A missing file or an empty alt fails the build.
+`{ src: ImageMetadata, alt }` for that key.
 
 ```json
 { "id": "cards", "label": "Karten", "type": "list", "itemLabel": "Karte", "min": 1, "max": 6,
   "fields": [ { "id": "title", "label": "Titel", "type": "text" }, { "id": "photo", "label": "Foto", "type": "image" } ],
   "value": [ { "title": "Pflege zu Hause", "photo": { "value": "uploads/ab12cd.jpg", "alt": "Pflegekraft im Gespräch" } } ] }
 ```
+
+Rules for every `image`, top-level and inside a list:
+
+- **No image** is `"value": ""` with `"alt": ""`, or a missing key; in a list item that means
+  `{ "value": "", "alt": "" }` or no `<id>` key. `img()` and `list()` give `null` for it.
+- A `required` image fails the build when it is empty.
+- Once an image is set, a missing file or an empty alt fails the build.
 
 ### Tokens
 
@@ -165,17 +172,16 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
 
 - `text()` — `text`/`textarea` fields; `html()` — `richtext` fields, sanitised; `img()` — `{ src, alt }`, or
   `null` when an optional image is empty; `list()` — items with `text`/`textarea` values tokens replaced and
-  `richtext` values sanitised, `image` values as `{ src, alt }` (alt tokens replaced), or `null` when an optional
-  image is empty: `{ "value": "", "alt": "" }` or no key at all. Render it like a top-level image:
-  `{c.photo && <Image src={c.photo.src} alt={c.photo.alt} … />}`.
+  `richtext` values sanitised, `image` values as `{ src, alt }` or `null` (rules in section 1; alt tokens replaced).
+  An optional image can be `null`, so render it with a check: `{c.photo && <Image src={c.photo.src} alt={c.photo.alt} … />}`.
 - `textHtml()` — a `text`/`textarea` value as HTML for `set:html`, escaped the way literal markup text is
   (see the next point). `escText(value)` does the same for a value from `list()`.
 - Missing file, group or field, a wrong type, an empty `required` value, an image that is not in
-  `src/assets/img/`, a list image with an empty alt or stored as a plain path → the build fails with
+  `src/assets/img/`, an image with an empty alt, a list image stored as a plain path → the build fails with
   `[content] <file>: …`. An unknown `{{token}}` only warns and stays
   as typed (the admin can save it, so the site must still build).
 
-`npm test` runs the real `content.ts` on a temporary copy with its own fixtures (`test/content-list-image.test.mjs`);
+`npm test` runs the real `content.ts` on a temporary copy with its own fixtures (`test/content-images.test.mjs`);
 add a case there when the helper changes.
 
 ### Byte-identity traps (each one cost a diff)

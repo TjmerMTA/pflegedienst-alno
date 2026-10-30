@@ -126,15 +126,15 @@ export function getPage(id: string): Page {
     const src = str(v, f, path);
     if (!src) return null;
     const meta = images[`/src/assets/img/${src}`] ?? fail(`${file}: image "${src}" of "${path}" not found in src/assets/img/`);
-    return { src: meta, alt: alt == null ? '' : fillTokens(String(alt), `${file} "${path}" alt`) };
+    const text = alt == null ? '' : fillTokens(String(alt), `${file} "${path}" alt`);
+    if (!text.trim()) fail(`${file}: image "${src}" of "${path}" has an empty alt`);
+    return { src: meta, alt: text };
   };
-  // Картинка в элементе списка — объект { value, alt }, те же ключи, что у поля image. Здесь alt обязателен
+  // Картинка в элементе списка — объект { value, alt }, те же ключи, что у поля image
   const listImg = (v: unknown, f: Field, path: string): Img | null => {
     if (v != null && (typeof v !== 'object' || Array.isArray(v))) fail(`${file}: value of "${path}" must be an object { "value", "alt" }`);
     const { value, alt } = (v ?? {}) as { value?: unknown; alt?: unknown };
-    const img = imgOf(value, alt, f, path);
-    if (img && !img.alt.trim()) fail(`${file}: image "${value}" of "${path}" has an empty alt`);
-    return img;
+    return imgOf(value, alt, f, path);
   };
 
   const page: Page = {
