@@ -1,12 +1,7 @@
-// Картинки: поле image и image внутри элемента list. Запускает настоящий src/lib/content.ts через Vite на временной
-// копии со своими JSON и картинкой — контент сайта не трогает. Vite без плагинов Astro отдаёт
-// вместо ImageMetadata адрес файла, поэтому src здесь строка. Запуск: npm test
+// Картинки: поле image и image внутри элемента list. Запуск: npm test
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { createServer } from 'vite';
+import { loadContent } from './load-content.mjs';
 
 const photo = (fields = {}) => ({ id: 'photo', label: 'Foto', type: 'image', ...fields });
 const list = (id, value, sub = photo()) => ({ id, label: id, type: 'list', fields: [{ id: 'title', label: 'Titel', type: 'text' }, sub], value });
@@ -27,31 +22,14 @@ const images = [
   image('noAlt', 'a.jpg', '  '),
   { id: 'altKeyMissing', label: 'altKeyMissing', type: 'image', value: 'a.jpg' },
 ];
-const page = (label, groups) => JSON.stringify({ label, url: null, order: 0, groups });
-
-let root, server, p;
+let fixture, p;
 
 before(async () => {
-  root = mkdtempSync(join(tmpdir(), 'content-test-'));
-  mkdirSync(join(root, 'src/content/pages'), { recursive: true });
-  mkdirSync(join(root, 'src/assets/img'), { recursive: true });
-  cpSync('src/lib', join(root, 'src/lib'), { recursive: true });
-  writeFileSync(join(root, 'src/assets/img/a.jpg'), 'jpg');
-  writeFileSync(join(root, 'src/content/pages/_global.json'), page('Allgemein', [
-    { id: 'contact', label: 'Kontakt', fields: [{ id: 'street', label: 'Straße', type: 'text', value: 'Teststraße 1' }] },
-  ]));
-  writeFileSync(join(root, 'src/content/pages/liste.json'), page('Liste', [{ id: 'team', label: 'Team', fields: lists }, { id: 'img', label: 'Bilder', fields: images }]));
-  server = await createServer({
-    root, configFile: false, logLevel: 'silent', appType: 'custom',
-    server: { middlewareMode: true, watch: null, ws: false }, optimizeDeps: { noDiscovery: true },
-  });
-  p = (await server.ssrLoadModule('/src/lib/content.ts')).getPage('liste');
+  fixture = await loadContent({ liste: [{ id: 'team', label: 'Team', fields: lists }, { id: 'img', label: 'Bilder', fields: images }] }, ['a.jpg']);
+  p = (await fixture.content()).getPage('liste');
 });
 
-after(async () => {
-  await server?.close();
-  rmSync(root, { recursive: true, force: true });
-});
+after(() => fixture?.close());
 
 test('image sub-field comes back as { src, alt }, alt with tokens replaced', () => {
   const [item] = p.list('team.ok');

@@ -36,20 +36,23 @@ const fail = (msg: string): never => { throw new Error(`[content] ${msg}`); };
 // Экранирование текста для set:html — ровно настолько, насколько нужно: «<» и «&», с которого
 // мог бы начаться HTML-символ. Так «Kosten & Finanzierung» и «geht's» выходят байт в байт
 // как написанные прямо в разметке (обычное {выражение} дало бы &amp; и &#39;).
-export const escText = (s: string) => s.replace(/</g, '&lt;').replace(/&(?=[#a-zA-Z0-9])/g, '&amp;');
+export const escText = (s: string) => s.replace(/&(?=[#a-zA-Z0-9])/g, '&amp;').replace(/</g, '&lt;');
 
 // Richtext: только p br strong b em i a[href] ul ol li h2 h3, всё остальное вырезается.
 // Разрешённые теги без атрибутов остаются как были, у <a> остаётся только безопасный href.
 const ALLOWED = new Set(['p', 'br', 'strong', 'b', 'em', 'i', 'a', 'ul', 'ol', 'li', 'h2', 'h3']);
 const DROP_WITH_CONTENT = /<(script|style|iframe|object|embed|template|noscript|textarea|title|select|svg|math)\b[\s\S]*?<\/\1\s*>/gi;
 
+// Как в браузере: код вне Unicode — это U+FFFD, а не повод ронять сборку
+const fromCode = (n: number) => (n <= 0x10ffff ? String.fromCodePoint(n) : '\ufffd');
+
 function safeHref(attrs: string): string {
   const m = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i.exec(attrs);
   const href = (m?.[1] ?? m?.[2] ?? m?.[3] ?? '').trim();
   // Схему проверяем после раскодирования сущностей и без пробелов: браузер делает так же
   const plain = href
-    .replace(/&#x([0-9a-f]+);?/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);?/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&#x([0-9a-f]+);?/gi, (_, h) => fromCode(parseInt(h, 16)))
+    .replace(/&#(\d+);?/g, (_, d) => fromCode(Number(d)))
     .replace(/&colon;/gi, ':')
     .replace(/[\u0000- ]|&tab;|&newline;/gi, '');
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(plain)?.[1].toLowerCase();
