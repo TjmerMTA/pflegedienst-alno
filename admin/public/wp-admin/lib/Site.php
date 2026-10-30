@@ -83,6 +83,12 @@ final class Site
         ];
     }
 
+    /** Editors' words in a commit message must not switch off the build. */
+    public static function commitLabel(string $s): string
+    {
+        return Rules::trim((string) preg_replace('/\[\s*(?:skip\s+ci|ci\s+skip|no\s+ci|skip\s+actions|actions\s+skip)\s*\]|\*\*\*NO_CI\*\*\*/i', '', str_replace("\n", ' ', $s)));
+    }
+
     public static function serializePage(array $page): string
     {
         return Json::stringify($page) . "\n";
@@ -92,7 +98,7 @@ final class Site
     public static function tokenKeys(?array $global): array
     {
         foreach ($global['groups'] ?? [] as $g) {
-            if ($g['id'] !== 'contact') continue;
+            if (($g['id'] ?? null) !== 'contact' || !is_array($g['fields'] ?? null)) continue;
             return array_values(array_map(static fn ($f) => $f['id'], array_filter($g['fields'], static fn ($f) => $f['type'] !== 'list' && $f['type'] !== 'image')));
         }
         return [];
@@ -101,6 +107,13 @@ final class Site
     public function tokens(): array
     {
         return self::tokenKeys($this->page('_global')['page'] ?? null);
+    }
+
+    // What a save would have cleaned; validation then sees the same value a save would store.
+    private static function restored($v, string $type)
+    {
+        if (!is_string($v)) return $v;
+        return $type === 'richtext' ? Rules::cleanBody($v) : Rules::cleanText($v, $type === 'textarea');
     }
 
     /** Values of an old version poured into the current structure. */
@@ -119,12 +132,12 @@ final class Site
                     $items = [];
                     foreach ($of['value'] as $item) {
                         $res = [];
-                        foreach ($f['fields'] as $s) $res[$s['id']] = $s['type'] === 'image' ? Rules::itemImage($item, $s) : ($item[$s['id']] ?? '');
+                        foreach ($f['fields'] as $s) $res[$s['id']] = $s['type'] === 'image' ? Rules::itemImage($item, $s) : self::restored($item[$s['id']] ?? '', $s['type']);
                         $items[] = $res;
                     }
                     $current['groups'][$gi]['fields'][$fi]['value'] = $items;
                 } else {
-                    $current['groups'][$gi]['fields'][$fi]['value'] = $of['value'] ?? '';
+                    $current['groups'][$gi]['fields'][$fi]['value'] = $f['type'] === 'image' ? ($of['value'] ?? '') : self::restored($of['value'] ?? '', $f['type']);
                     if ($f['type'] === 'image') $current['groups'][$gi]['fields'][$fi]['alt'] = !empty($of['value']) ? ($of['alt'] ?? '') : '';
                 }
             }

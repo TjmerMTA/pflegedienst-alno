@@ -249,7 +249,7 @@ final class Env
     /** The admin's own log. */
     public function log(): string
     {
-        return (string) @file_get_contents("$this->data/logs/admin.log");
+        return (string) @file_get_contents("$this->data/logs/admin.log") . (string) @file_get_contents("$this->data/logs/access.log");
     }
 
     /** Requests the fake GitHub saw, optionally only those starting with $prefix (`PATCH`, `POST /git`). */

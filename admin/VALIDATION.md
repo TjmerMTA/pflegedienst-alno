@@ -62,10 +62,12 @@ revision, for one). Then the message is «nicht erlaubtes HTML».
 ## Markdown bodies
 
 **Nothing is deleted.** Every `<` followed by a letter, `/`, `!` or `?` becomes `&lt;`, everywhere, inside code too. This leaves no raw HTML for any
-renderer, wherever it thinks a code span starts, and the reader sees the characters that were typed. Trailing whitespace goes.
+renderer, wherever it thinks a code span starts. In running text the reader sees the characters that were typed; inside a code span the reader sees `&lt;`. Trailing whitespace goes.
 
-**Unsafe links are refused, never rewritten.** After decoding entities and removing backslashes and line breaks, the text must not hold `javascript:`, `vbscript:`
-or `data:` followed by a non-space, unless a letter, digit, `+`, `.` or `-` comes right before it. «data: 5» in a sentence is fine.
+**Unsafe links are refused, never rewritten.** After decoding entities and removing backslashes and line breaks, the text must not hold `javascript:` or `vbscript:`,
+whatever follows them, unless a letter, digit, `+`, `.` or `-` comes right before. The same goes for `data:` followed by anything but a typed space: «data: 5» in a sentence is fine.
+
+**Images in the text** must be `http(s)`, start with `/`, or be `../../assets/img/<file>` of an existing image: any other local image fails the build of the whole site. A reference-style image (`![a][r]`) is not checked.
 
 The site should also filter rendered Markdown at build time: this rule protects what the admin saves, not what someone commits by hand.
 
@@ -102,13 +104,14 @@ Fields per `schema/collections.json`.
 
 Keys the schema does not know stay in the file, in their order. A new key comes after them in schema order. A collection without a body in the admin (Team) keeps the text its file has.
 
-Frontmatter is parsed and written by `Frontmatter.php`. A file it does not understand is shown as unreadable and not touched.
+Frontmatter is parsed and written by `Frontmatter.php`. A file it does not understand, with no frontmatter or a mapping in a value, is shown as unreadable and not touched. Comments in frontmatter do not survive a save.
 
 ## New entries, trash, revisions
 
 - The slug comes from the Permalink field or the title: lower case, `ä ö ü ß` to `ae oe ue ss`, accents removed, anything else to `-`. A taken slug is refused.
-- Trash: the commit that removes the file comes first; only then is the copy written to the data folder.
-- A restored revision goes through the same rules as a save. Page values are poured into the current structure, and a value that no longer passes refuses the restore.
+- Trash: the commit that removes the file comes first; only then is the copy written to the data folder. Restoring from the trash is refused if one of the entry's images has gone.
+- A restored revision goes through the same rules as a save. Page values are poured into the current structure, and a value that no longer passes refuses the restore. An image outside the library is refused, and a file of a collection without «create» cannot come back once it is gone.
+- Commit messages drop `[skip ci]` and its variants from titles: an editor's words must not switch off the build.
 
 ## Uploads
 
@@ -126,6 +129,7 @@ Frontmatter is parsed and written by `Frontmatter.php`. A file it does not under
 - POST: `Origin`, or else `Referer`, must match the host; `Origin: null` is refused.
 - POST needs `X-WP-Nonce` equal to the session's token. Login and setup: `X-Login-Nonce` equal to the cookie `alno_login`.
 - JSON bodies need `Content-Type: application/json`.
-- Login: 5 failures per name, 20 per IP, within 15 minutes lock for 15 minutes. The attempt is counted before the slow hash, under a file lock, so parallel guesses cannot pass the check together.
+- Login: 5 failures per name and network, 20 per network, within 15 minutes lock for 15 minutes. A network is the IPv4 address or the IPv6 /64. The attempt is counted before the slow hash, under a file lock, so parallel guesses cannot pass the check together. Locked attempts are not logged. A stranger cannot lock someone else out from another network.
+- Reads of Anfragen go to `logs/access.log`, which only logged-in users can fill.
 - Saves carry the blob id they were based on. Another id answers 409 and the input stays on the screen.
 - Anfragen: rules in `docs/anfragen-format.md`, section 4.

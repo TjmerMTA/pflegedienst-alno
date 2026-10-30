@@ -12,15 +12,17 @@ final class Frontmatter
     {
         if (!mb_check_encoding($text, 'UTF-8')) throw new FrontmatterError('Die Datei ist nicht in UTF-8 gespeichert');
         $s = str_replace(["\r\n", "\r"], "\n", (string) preg_replace('/^\x{FEFF}/u', '', $text));
-        if (!preg_match('/^---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/D', $s, $m)) return ['fm' => '', 'body' => $s, 'hasFm' => false];
-        return ['fm' => $m[1], 'body' => substr($s, strlen($m[0])), 'hasFm' => true];
+        // No frontmatter means an empty form that would overwrite the file: such a file is not touched.
+        if (!preg_match('/^---\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/D', $s, $m)) throw new FrontmatterError('Die Datei hat keinen gültigen Kopfbereich (---)');
+        return ['fm' => $m[1] ?? '', 'body' => substr($s, strlen($m[0])), 'hasFm' => true];
     }
 
     private static function unquote(string $v, int $line): ?string
     {
         if ($v !== '' && $v[0] === '"') {
             if (!preg_match('/^"(?:[^"\\\\]|\\\\.)*"$/sD', $v)) throw new FrontmatterError("Zeile $line: Anführungszeichen nicht geschlossen");
-            $d = json_decode(str_replace("\\'", "'", $v));
+            // YAML allows \' where JSON does not. One pass, so that \\' stays a backslash and a quote.
+            $d = json_decode((string) preg_replace_callback('/\\\\(.)/s', static fn (array $e): string => $e[1] === "'" ? "'" : $e[0], $v));
             if (!is_string($d)) throw new FrontmatterError("Zeile $line: ungültige Zeichenkette");
             return $d;
         }
@@ -36,7 +38,7 @@ final class Frontmatter
         $v = Rules::trim($raw);
         $q = self::unquote($v, $line);
         if ($q !== null) return $q;
-        if (preg_match('/^[|>&*!%@`]/', $v)) throw new FrontmatterError("Zeile $line: nicht unterstütztes YAML");
+        if (preg_match('/^[|>&*!%@`{\[]/', $v)) throw new FrontmatterError("Zeile $line: nicht unterstütztes YAML");
         $plain = rtrim(preg_match('/\s#/', $v, $m, PREG_OFFSET_CAPTURE) ? substr($v, 0, $m[0][1]) : $v);
         if ($plain === '' || $plain === '~' || $plain === 'null') return null;
         if ($plain === 'true') return true;
@@ -54,6 +56,7 @@ final class Frontmatter
         $n = strlen($inner);
         for ($i = 0; $i < $n; $i++) {
             $ch = $inner[$i];
+            if ($q === '"' && $ch === '\\' && $i + 1 < $n) { $cur .= $ch . $inner[++$i]; continue; }
             if ($q !== null) { $cur .= $ch; if ($ch === $q) $q = null; continue; }
             // A quote opens a string only at the start of an item: «it's» is a plain word.
             if (($ch === '"' || $ch === "'") && trim($cur) === '') { $q = $ch; $cur .= $ch; continue; }
@@ -64,6 +67,24 @@ final class Frontmatter
         if ($q !== null) throw new FrontmatterError("Zeile $line: Anführungszeichen nicht geschlossen");
         if (trim($cur) !== '') $items[] = $cur;
         return array_map(static fn ($s) => self::scalar($s, $line), $items);
+    }
+
+    /** Index of the `]` closing the list that opens at 0, skipping quoted items; -1 if there is none. */
+    private static function flowEnd(string $s): int
+    {
+        $q = null;
+        $start = true;
+        $n = strlen($s);
+        for ($i = 1; $i < $n; $i++) {
+            $ch = $s[$i];
+            if ($q === '"' && $ch === '\\') { $i++; continue; }
+            if ($q !== null) { if ($ch === $q) $q = null; continue; }
+            if (($ch === '"' || $ch === "'") && $start) { $q = $ch; $start = false; continue; }
+            if ($ch === ']') return $i;
+            if ($ch === ',') { $start = true; continue; }
+            if (strpos(" \t", $ch) === false) $start = false;
+        }
+        return -1;
     }
 
     /** Returns an ordered list of [key, value]; dates are ['date' => 'YYYY-MM-DD']. */
@@ -83,8 +104,9 @@ final class Frontmatter
             if (isset($seen[$key])) throw new FrontmatterError("Zeile $no: Schlüssel „{$key}“ doppelt");
             $seen[$key] = true;
             if ($rest !== '' && $rest[0] === '[') {
-                if (!preg_match('/\]\s*(#.*)?$/D', $rest, $c, PREG_OFFSET_CAPTURE)) throw new FrontmatterError("Zeile $no: Liste nicht geschlossen");
-                $entries[] = [$key, self::splitFlow(substr($rest, 1, $c[0][1] - 1), $no)];
+                $end = self::flowEnd($rest);
+                if ($end < 0 || !preg_match('/^\s*(#.*)?$/D', substr($rest, $end + 1))) throw new FrontmatterError("Zeile $no: Liste nicht geschlossen");
+                $entries[] = [$key, self::splitFlow(substr($rest, 1, $end - 1), $no)];
                 continue;
             }
             if ($rest === '' || $rest[0] === '#') {
@@ -142,7 +164,7 @@ final class Frontmatter
     {
         $out = [];
         foreach ($entries as [$key, $v]) {
-            if ($v === null) continue;
+            if ($v === null) { $out[] = "$key:"; continue; }
             if (is_array($v) && !isset($v['date'])) {
                 if (!$v) { $out[] = "$key: []"; continue; }
                 if (in_array($key, $flowKeys, true)) {

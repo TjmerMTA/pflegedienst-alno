@@ -100,7 +100,7 @@ For administrators and users with the `anfragen` flag; `anfragen/retention` for 
 
 | Route | Method | In | Out |
 |---|---|---|---|
-| `anfragen` | GET | `view` (`neu`, `erledigt`, `trash`) | `items counts retention view warning`, for administrators `cronUrl` |
+| `anfragen` | GET | `view` (`neu`, `erledigt`, `trash`) | `items counts retention view cronLast warning`, for administrators `cronUrl` |
 | `anfragen/item` | GET | `id` | `id received form name phone status files deleteAt invalid filesRefused page fields attachments trashed` |
 | `anfragen/file` | GET | `id stored` | the file, always as a download |
 | `anfragen/status` | POST | `id status` (`neu`, `erledigt`) | `ok` |

@@ -222,7 +222,7 @@ test('lockout: five wrong passwords lock the account, even for the right passwor
     eq($r['json']['error'], 'locked');
     eq($r['json']['retryMinutes'], 15);
     ok(!isset($c->cookies['alno_session']));
-    has($e->log(), '"reason":"locked"');
+    hasNot($e->log(), '"reason":"locked"', 'locked attempts are free to send, so they must not fill the log');
     hasNot($e->log(), 'falsch');
 });
 
@@ -302,7 +302,7 @@ test('40 parallel wrong logins cannot get more than MAX_FAILS guesses past the l
     eq(array_sum(array_intersect_key($by, [401 => 1, 429 => 1])), 40, show($by));
     ok(($by[401] ?? 0) <= Auth::MAX_FAILS, show($by));
     $t = $p->store->readJson('lockout.json');
-    eq($t['u:' . sha1('redakteurin')]['count'], Auth::MAX_FAILS, 'attempts that reached the hash');
+    eq($t['u:' . sha1('redakteurin|127.0.0.1')]['count'], Auth::MAX_FAILS, 'attempts that reached the hash');
     eq($p->client()->login('redakteurin', $p->password)['status'], 429, 'the right password is locked out too');
 });
 

@@ -180,6 +180,8 @@ or, where cron runs PHP scripts directly, `php ~/public_html/wp-admin/cron.php`.
 
 ### Good to know
 
+- **HTTPS:** `wp-admin/.htaccess` redirects HTTP and sets HSTS. It needs `mod_rewrite` with `RewriteEngine` allowed in `.htaccess`.
+- **Logs:** `~/alno-data/logs/admin.log` for events, `access.log` for who read which submission (ids only).
 - **Data folder:** `~/alno-data`, found exactly as `public/api/anfrage.php` finds it (`ALNO_DATA_DIR`, the user's home from `posix_getpwuid`, `$HOME`, the parent of the web root). Both must agree; if the home is detected wrongly, set `ALNO_DATA_DIR` with `SetEnv` in `.htaccess`. Setup refuses a folder inside the web root.
 - **Token expired:** the admin says so. Create a new one and replace `token` in `~/alno-data/config.json` by SFTP.
 - **Locked out, no administrator left:** by SFTP delete `~/alno-data/users.json` and `~/alno-data/config.json`, open the setup screen, paste a token. Content and Anfragen are not affected.

@@ -480,7 +480,7 @@ function anfrageAction(t, route, id, label, { cls = '', next, status, confirm } 
 
 const invalidMark = (t) => html` <span class="anfrage-invalid">${t('anfragen.invalid')}</span>`;
 
-export function anfragenList(ctx, { items, counts, retention, view, cronUrl, warning }) {
+export function anfragenList(ctx, { items, counts, retention, view, cronUrl, cronLast, warning }) {
   const { t } = ctx;
   const base = '#/anfragen.php';
   const views = [[base, t('list.all'), counts.all, 'all'], [`${base}?view=neu`, t('anfragen.new'), counts.neu, 'neu'], [`${base}?view=erledigt`, t('anfragen.done'), counts.erledigt, 'erledigt'], [`${base}?view=trash`, t('list.trash'), counts.trash, 'trash']];
@@ -508,7 +508,7 @@ export function anfragenList(ctx, { items, counts, retention, view, cronUrl, war
     <p><label for="ret-i">${t('anfragen.retention.inquiries')}</label> <input type="number" min="1" max="60" step="1" id="ret-i" name="inquiries" value="${retention.inquiries}" class="small-text"> ${t('anfragen.months')}</p>
     <p><label for="ret-a">${t('anfragen.retention.applications')}</label> <input type="number" min="1" max="60" step="1" id="ret-a" name="applications" value="${retention.applications}" class="small-text"> ${t('anfragen.months')}</p>
     <p><button type="submit" class="button button-primary">${t('media.save')}</button></p></form>
-    ${cronUrl ? html`<h3 class="status-sub">${t('anfragen.cron')}</h3><p class="description">${t('anfragen.cron.help')}</p><p><code class="cron-url">${cronUrl}</code></p>` : ''}` }) : ''}`;
+    ${cronUrl ? html`<h3 class="status-sub">${t('anfragen.cron')}</h3><p class="description">${t('anfragen.cron.help')}</p><p><code class="cron-url">${cronUrl}</code></p><p class="description">${t('anfragen.cron.last')}: ${cronLast ? formatDate(cronLast, t.lang) : t('dash.status.never')}</p>` : ''}` }) : ''}`;
 }
 
 export function anfrageDetail(ctx, a) {

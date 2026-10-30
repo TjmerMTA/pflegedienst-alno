@@ -50,6 +50,7 @@ final class Rules
     const MSG_BAD_TAG = 'ungültiges Schlagwort';
     const MSG_SLUG_INVALID = 'Ungültiger Permalink: nur a–z, 0–9 und Bindestriche.';
     const MSG_SLUG_TAKEN = 'Unter diesem Namen gibt es bereits einen Eintrag.';
+    const MSG_BODY_IMAGE_PREFIX = 'Bild im Text nicht gefunden: ';
     const MSG_UNSAFE_LINK = 'Der Text enthält eine unsichere Link-Adresse (javascript:, vbscript: oder data:).';
 
     public static function msgTooLong(int $max, int $now): string { return "höchstens $max Zeichen (jetzt $now)"; }
@@ -325,12 +326,35 @@ final class Rules
     /**
      * Whether the text anywhere names an active URL scheme, after the decoding a Markdown renderer
      * does. Not limited to link positions: those depend on the renderer (references inside quotes or
-     * lists, line breaks). «data: 5» in a sentence is fine: a URL has no space after the colon.
+     * lists, line breaks). `javascript:` counts whatever follows it: the renderer encodes a space
+     * after the colon and the browser still runs it. Only «data: 5» in a sentence is fine, with a
+     * typed space: data: URLs do not run at the top level, and the entity form is not a sentence.
      */
     public static function hasUnsafeLink(string $md): bool
     {
         $decoded = str_replace(['\\', "\n", "\r", "\t"], '', self::decodeEntities($md));
-        return preg_match('/(?:^|[^a-z0-9+.-])(?:javascript|vbscript|data):(?=[^' . self::WS_CLASS . '])/iu', $decoded) === 1;
+        if (preg_match('/(?:^|[^a-z0-9+.-])(?:javascript|vbscript):/iu', $decoded)) return true;
+        if (preg_match('/(?:^|[^a-z0-9+.-])data:&/i', str_replace('\\', '', $md))) return true;
+        return preg_match('/(?:^|[^a-z0-9+.-])data:(?=[^ \n\t])/iu', $decoded) === 1;
+    }
+
+    /** Targets of the Markdown images in a body. */
+    public static function bodyImages(string $md): array
+    {
+        preg_match_all('/!\[(?:[^\]\\\\\n]|\\\\.)*\]\([ \t]*<?([^)\s>]*)/', $md, $m);
+        return $m[1];
+    }
+
+    /** A local image the build cannot find fails the whole site. */
+    public static function missingBodyImages(string $md, callable $exists): array
+    {
+        $out = [];
+        foreach (self::bodyImages($md) as $src) {
+            if ($src !== '' && ($src[0] === '/' || preg_match('/^https?:/i', $src))) continue;
+            $p = strncmp($src, self::IMG_PREFIX, strlen(self::IMG_PREFIX)) === 0 ? substr($src, strlen(self::IMG_PREFIX)) : '';
+            if (!self::isImagePath($p) || !$exists($p)) $out[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::MSG_BODY_IMAGE_PREFIX . $src];
+        }
+        return $out;
     }
 
     // ---------------- page files ----------------
@@ -645,6 +669,7 @@ final class Rules
             $n = self::chars($body);
             if ($n > self::BODY_MAX) $errors[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::msgTooLong(self::BODY_MAX, $n)];
             if (self::hasUnsafeLink($body)) $errors[] = ['path' => 'body', 'label' => 'Inhalt', 'msg' => self::MSG_UNSAFE_LINK];
+            if (isset($ctx['imageExists'])) $errors = array_merge($errors, self::missingBodyImages($body, $ctx['imageExists']));
         }
         return ['entries' => $entries, 'body' => $body, 'errors' => $errors];
     }

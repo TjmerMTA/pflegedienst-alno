@@ -86,7 +86,7 @@ final class GitHub
     {
         $msg = json_decode($body, true)['message'] ?? '';
         if ($status === 401) return new GitHubError($status, 'Der GitHub-Token ist ungültig oder abgelaufen.');
-        if ($status === 403 && ($headers['x-ratelimit-remaining'] ?? '') === '0') return new GitHubError($status, 'GitHub-Limit erreicht. Bitte in einigen Minuten erneut versuchen.');
+        if ($status === 429 || ($status === 403 && (($headers['x-ratelimit-remaining'] ?? '') === '0' || isset($headers['retry-after'])))) return new GitHubError($status, 'GitHub-Limit erreicht. Bitte in einigen Minuten erneut versuchen.');
         return new GitHubError($status, "GitHub-Fehler $status" . ($msg !== '' ? ": $msg" : ''));
     }
 
@@ -156,6 +156,8 @@ final class GitHub
 
     private static function flatten(array $tree): array
     {
+        // A cut-off listing would make files look deleted.
+        if (!empty($tree['truncated'])) throw new GitHubError(0, 'Das Repository ist zu groß für eine vollständige Dateiliste.');
         $map = [];
         foreach ($tree['tree'] ?? [] as $e) {
             if (($e['type'] ?? '') === 'blob') $map[$e['path']] = ['sha' => $e['sha'], 'size' => (int) ($e['size'] ?? 0)];
@@ -200,7 +202,16 @@ final class GitHub
             if ($e->status === 404) return null;
             throw $e;
         }
+        // Above 1 MB /contents gives no content, only the blob's id.
+        if (($c['content'] ?? '') === '' && !empty($c['sha']) && ($c['size'] ?? 0) > 0) return $this->blob((string) $c['sha']);
         return (string) base64_decode(str_replace("\n", '', (string) ($c['content'] ?? '')));
+    }
+
+    /** Forgets what this request has read: inside the write lock only the current branch counts. */
+    public function refresh(): void
+    {
+        $this->head = null;
+        $this->tree = null;
     }
 
     public function commits(?string $path, int $limit): array

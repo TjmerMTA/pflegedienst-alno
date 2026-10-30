@@ -36,13 +36,25 @@ if grep -qvE '^[A-Za-z0-9._@+/-]+$' "$work/files"; then
 fi
 (cd "$src" && while read -r f; do sha256sum "$f"; done < "$work/files") > "$work/new"
 
-: > "$work/old"
-sftp "get $manifest -o $work/old" 2>/dev/null || echo 'No manifest on the host: first upload.'
-if [ "${FULL:-false}" = true ]; then : > "$work/old"; fi
+# Only a manifest that is really not there means a first upload. Any other failure stops the run: it
+# would forget which files are stale, and they would stay public for good.
+if ! out=$(sftp "get $manifest -o $work/old" 2>&1); then
+  if ! printf '%s' "$out" | grep -qi 'no such file'; then
+    echo "$out" >&2
+    exit 1
+  fi
+  echo 'No manifest on the host: first upload.'
+  : > "$work/old"
+fi
 
 LC_ALL=C sort "$work/new" > "$work/new.sorted"
 LC_ALL=C sort "$work/old" > "$work/old.sorted"
-LC_ALL=C comm -13 "$work/old.sorted" "$work/new.sorted" | sed 's/^[0-9a-f]*  //' > "$work/changed"
+# FULL uploads everything, but still knows what used to be there.
+if [ "${FULL:-false}" = true ]; then
+  cp "$work/files" "$work/changed"
+else
+  LC_ALL=C comm -13 "$work/old.sorted" "$work/new.sorted" | sed 's/^[0-9a-f]*  //' > "$work/changed"
+fi
 sed 's/^[0-9a-f]*  //' "$work/old.sorted" | LC_ALL=C sort -u > "$work/old.paths"
 LC_ALL=C sort -u "$work/files" > "$work/new.paths"
 LC_ALL=C comm -23 "$work/old.paths" "$work/new.paths" | grep -E '^[A-Za-z0-9._@+/-]+$' | grep -v '\.\.' > "$work/stale" || true
@@ -66,15 +78,15 @@ if [ -f "$src/wp-admin/.htaccess" ]; then
 fi
 
 if [ -s "$work/stale" ]; then
-  {
-    sed "s|^\(.*\)$|rm -f $root/\1|" "$work/stale"
-    # Folders left empty; rmdir refuses the others, which is what we want.
-    while read -r f; do
-      d=$(dirname "$f")
-      while [ "$d" != . ]; do echo "$d"; d=$(dirname "$d"); done
-    done < "$work/stale" | sort -ru | sed "s|^\(.*\)$|rmdir $root/\1|"
-  } > "$work/delete"
-  sftp "$(cat "$work/delete")" || true
+  # A delete that fails stops the run before the manifest: the next run tries again.
+  sftp "set cmd:fail-exit yes
+$(sed "s|^\(.*\)$|rm -f $root/\1|" "$work/stale")"
+  # Folders left empty; rmdir refuses the others, which is what we want.
+  while read -r f; do
+    d=$(dirname "$f")
+    while [ "$d" != . ]; do echo "$d"; d=$(dirname "$d"); done
+  done < "$work/stale" | sort -ru | sed "s|^\(.*\)$|rmdir $root/\1|" > "$work/rmdir"
+  sftp "$(cat "$work/rmdir")" || true
 fi
 
 sftp "put $work/new -o $manifest"

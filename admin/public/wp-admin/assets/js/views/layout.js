@@ -33,7 +33,7 @@ function menuItem(ctx, { key, href, label, iconName, subs = [], badge }) {
 
 export function notices(list, t) {
   return (list || []).map((n) => html`<div class="notice notice-${n.type || 'success'}${n.job ? ' js-job' : ''}"${n.job ? html` data-job="${n.job}"` : ''} role="${n.type === 'error' ? 'alert' : 'status'}">
-    <p class="notice-text">${n.htmlMessage ? raw(n.htmlMessage) : n.message}</p>
+    <p class="notice-text">${n.message}</p>
     ${n.items?.length ? html`<ul class="notice-items">${n.items.map((i) => html`<li>${i}</li>`)}</ul>` : ''}
     ${n.url ? html`<p><a href="${n.url}" target="_blank" rel="noopener">${t('notice.details')}</a></p>` : ''}
   </div>`);

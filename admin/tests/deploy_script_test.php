@@ -28,7 +28,10 @@ foreach (preg_split('/[\\n;]+/', \$argv[2]) as \$line) {
     \$p = preg_split('/\\s+/', trim(\$line));
     switch (\$p[0]) {
         case 'get':
-            if (!is_file("\$home/\$p[1]")) { \$failed = true; break; }
+            // As the real lftp: a local file that exists is refused, a missing remote one named so.
+            if (is_file(\$p[3])) { fwrite(STDERR, "get: \$p[3]: File exists\\n"); \$failed = true; break; }
+            if (getenv('FAKE_GET_FAILS')) { fwrite(STDERR, "get: Fatal error: Connection refused\\n"); \$failed = true; break; }
+            if (!is_file("\$home/\$p[1]")) { fwrite(STDERR, "get: Access failed: No such file (\$p[1])\\n"); \$failed = true; break; }
             copy("\$home/\$p[1]", \$p[3]);
             break;
         case 'put':
@@ -41,6 +44,7 @@ foreach (preg_split('/[\\n;]+/', \$argv[2]) as \$line) {
             break;
         case 'rm':
             \$f = "\$home/\$p[2]";
+            if (getenv('FAKE_RM_FAILS')) { \$failed = true; exit(1); }
             if (is_file(\$f)) { unlink(\$f); file_put_contents(\$log, "rm \$p[2]\\n", FILE_APPEND); }
             break;
         case 'rmdir':
@@ -137,6 +141,35 @@ test('a manifest holding a path outside public_html cannot make it delete there'
     file_put_contents("$d/host/.alno-deploy-manifest", str_repeat('0', 64) . "  ../alno-data/users.json\n", FILE_APPEND);
     eq($h->run(), 0, (string) @file_get_contents("$d/err"));
     ok(is_file("$d/host/alno-data/users.json"), 'not deleted');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
+test('a manifest that cannot be read stops the run instead of forgetting stale files', function () {
+    [$d, $h] = setup();
+    $h->run();
+    file_put_contents("$d/src/neu.html", 'neu');
+    ok($h->run(['FAKE_GET_FAILS' => '1']) !== 0, 'must fail');
+    ok(!is_file("$d/host/public_html/neu.html"), 'nothing uploaded');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
+test('FULL=true still knows what is stale', function () {
+    [$d, $h] = setup();
+    $h->run();
+    unlink("$d/src/kontakt/index.html");
+    eq($h->run(['FULL' => 'true']), 0, (string) @file_get_contents("$d/err"));
+    ok(!is_file("$d/host/public_html/kontakt/index.html"), 'stale file deleted');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
+test('a delete that fails keeps the file in the manifest, so the next run tries again', function () {
+    [$d, $h] = setup();
+    $h->run();
+    unlink("$d/src/kontakt/index.html");
+    ok($h->run(['FAKE_RM_FAILS' => '1']) !== 0, 'must fail');
+    has((string) file_get_contents("$d/host/.alno-deploy-manifest"), 'kontakt/index.html');
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    ok(!is_file("$d/host/public_html/kontakt/index.html"));
     exec('rm -rf ' . escapeshellarg($d));
 });
 

@@ -8,9 +8,11 @@ require __DIR__ . '/lib/bootstrap.php';
 
 $store = new Store();
 $config = $store->readJson('config.json');
-if (PHP_SAPI !== 'cli' && (!$config || !hash_equals((string) ($config['cron_key'] ?? "\0"), (string) ($_GET['key'] ?? '')))) {
+// Over the web there is a client address; a cron job started through php-cgi has none and is no visitor.
+if (isset($_SERVER['REMOTE_ADDR']) && (!$config || !hash_equals((string) ($config['cron_key'] ?? "\0"), (string) ($_GET['key'] ?? '')))) {
     http_response_code(403);
     exit;
 }
 header('Content-Type: text/plain; charset=utf-8');
 echo 'deleted: ' . (new Anfragen($store))->purge() . "\n";
+$store->write('cron-last', gmdate('c'));

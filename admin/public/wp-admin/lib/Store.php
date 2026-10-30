@@ -99,11 +99,18 @@ final class Store
         }
     }
 
-    public function log(array $entry): void
+    /** $log: `admin`, or `access` for who read which submission, which only logged-in users can fill. */
+    public function log(array $entry, string $log = 'admin'): void
     {
         if (!is_dir($this->path('logs'))) @mkdir($this->path('logs'), 0700, true);
-        $file = $this->path('logs/admin.log');
-        if (@filesize($file) > 2097152) @rename($file, $file . '.1');
+        $file = $this->path("logs/$log.log");
+        clearstatcache(true, $file);
+        if (@filesize($file) > 2097152) {
+            $this->withLock('log', static function () use ($file): void {
+                clearstatcache(true, $file);
+                if (@filesize($file) > 2097152) @rename($file, $file . '.1');
+            });
+        }
         @file_put_contents($file, json_encode(['at' => gmdate('c')] + $entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
     }
 }

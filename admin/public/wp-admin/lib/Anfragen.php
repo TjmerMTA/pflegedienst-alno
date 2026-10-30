@@ -102,7 +102,7 @@ final class Anfragen
         return [
             'items' => array_values(array_map(fn ($r) => $this->brief($r, $retention, $view === 'trash'), $rows)),
             'counts' => ['all' => count($live), 'neu' => count(array_filter($live, static fn ($r) => ($r['status'] ?? 'neu') === 'neu')), 'erledigt' => count(array_filter($live, static fn ($r) => ($r['status'] ?? 'neu') === 'erledigt')), 'trash' => count($trash)],
-            'retention' => $retention, 'view' => $view,
+            'retention' => $retention, 'view' => $view, 'cronLast' => (string) $this->store->read('cron-last'),
         ];
     }
 
@@ -150,11 +150,13 @@ final class Anfragen
     public function setStatus(string $id, string $status): bool
     {
         if (!in_array($status, self::STATUSES, true)) return false;
-        $rec = $this->load($id);
-        if (!$rec) return false;
-        $rec['status'] = $status;
-        $this->store->write(self::LIVE . "/$id.json", (string) json_encode($rec, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        return true;
+        return $this->store->withLock('anfragen', function () use ($id, $status) {
+            $rec = $this->load($id);
+            if (!$rec) return false;
+            $rec['status'] = $status;
+            $this->store->write(self::LIVE . "/$id.json", (string) json_encode($rec, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return true;
+        });
     }
 
     private function move(array $rec, string $id, string $from, string $to): void
@@ -169,32 +171,78 @@ final class Anfragen
 
     public function trash(string $id): bool
     {
-        $rec = $this->load($id);
-        if (!$rec) return false;
-        $this->move($rec, $id, self::LIVE, self::TRASH);
-        @touch($this->store->path(self::TRASH . "/$id.json"), $this->now);
-        return true;
+        return $this->store->withLock('anfragen', function () use ($id) {
+            $rec = $this->load($id);
+            if (!$rec) return false;
+            $this->move($rec, $id, self::LIVE, self::TRASH);
+            @touch($this->store->path(self::TRASH . "/$id.json"), $this->now);
+            return true;
+        });
     }
 
     public function restore(string $id): bool
     {
-        $rec = $this->load($id, self::TRASH);
-        if (!$rec) return false;
-        $this->move($rec, $id, self::TRASH, self::LIVE);
-        return true;
+        return $this->store->withLock('anfragen', function () use ($id) {
+            $rec = $this->load($id, self::TRASH);
+            if (!$rec) return false;
+            $this->move($rec, $id, self::TRASH, self::LIVE);
+            return true;
+        });
     }
 
-    /** Deleting a submission deletes its files too. */
+    /** Deleting a submission deletes its files too, wherever they are. */
     public function destroy(string $id, string $dir = self::TRASH): bool
     {
-        $rec = $this->load($id, $dir);
-        if (!$rec) return false;
-        foreach (is_array($rec['files'] ?? null) ? $rec['files'] : [] as $f) {
-            $stored = (string) ($f['stored'] ?? '');
-            if (preg_match(self::STORED_RE, $stored)) @unlink($this->store->path("$dir/files/$stored"));
-        }
-        @unlink($this->store->path("$dir/$id.json"));
-        return true;
+        return $this->store->withLock('anfragen', function () use ($id, $dir) {
+            $rec = $this->load($id, $dir);
+            if (!$rec) return false;
+            foreach (is_array($rec['files'] ?? null) ? $rec['files'] : [] as $f) {
+                $stored = (string) ($f['stored'] ?? '');
+                if (!preg_match(self::STORED_RE, $stored)) continue;
+                foreach ([self::LIVE, self::TRASH] as $d) @unlink($this->store->path("$d/files/$stored"));
+            }
+            @unlink($this->store->path("$dir/$id.json"));
+            return true;
+        });
+    }
+
+    /**
+     * What no readable record accounts for: a broken record past every period (by the date in its
+     * name), files no record lists, temp files left by a crash. A day's grace for writes in progress.
+     */
+    private function sweep(array $retention): int
+    {
+        $n = 0;
+        $grace = $this->now - 86400;
+        $oldest = (new DateTimeImmutable('@' . $this->now))->modify('-' . max($retention) . ' months')->getTimestamp();
+        return $this->store->withLock('anfragen', function () use (&$n, $grace, $oldest) {
+            $known = [];
+            foreach ([self::LIVE, self::TRASH] as $dir) {
+                foreach ($this->records($dir) as $r) {
+                    foreach (is_array($r['files'] ?? null) ? $r['files'] : [] as $f) $known[(string) ($f['stored'] ?? '')] = true;
+                }
+            }
+            foreach ([self::LIVE, self::TRASH] as $dir) {
+                foreach (@scandir($this->store->path($dir)) ?: [] as $name) {
+                    if ($name === '.' || $name === '..' || $name === 'files') continue;
+                    $file = $this->store->path("$dir/$name");
+                    $id = substr($name, 0, -5);
+                    if (preg_match(self::ID_RE, $id) && substr($name, -5) === '.json') {
+                        if (is_array(json_decode((string) @file_get_contents($file), true))) continue;
+                        $expired = (int) strtotime(substr($id, 0, 10)) < $oldest;
+                    } else {
+                        $expired = (int) @filemtime($file) < $grace;
+                    }
+                    if ($expired && @unlink($file)) $n++;
+                }
+                foreach (@scandir($this->store->path("$dir/files")) ?: [] as $name) {
+                    if ($name === '.' || $name === '..' || isset($known[$name])) continue;
+                    $file = $this->store->path("$dir/files/$name");
+                    if ((int) @filemtime($file) < $grace && @unlink($file)) $n++;
+                }
+            }
+            return $n;
+        });
     }
 
     /**
@@ -212,6 +260,7 @@ final class Anfragen
         foreach ($this->records(self::TRASH) as $r) {
             if (min($this->trashEnd($r['id']), $this->deleteAt($r, $retention)) <= $this->now && $this->destroy($r['id'], self::TRASH)) $n++;
         }
+        $n += $this->sweep($retention);
         if ($n) $this->store->log(['event' => 'anfragen-purge', 'deleted' => $n]);
         return $n;
     }

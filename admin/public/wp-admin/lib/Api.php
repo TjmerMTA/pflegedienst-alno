@@ -162,6 +162,15 @@ final class Api
         }
     }
 
+    /** One write at a time, each working from the branch as it is now, not as this request first read it. */
+    private function writeLock(callable $fn)
+    {
+        return $this->store->withLock('write', function () use ($fn) {
+            $this->gh->refresh();
+            return $fn();
+        });
+    }
+
     private function needUser(): array
     {
         if (!$this->user) throw new HttpError(401, 'login');
@@ -355,9 +364,9 @@ final class Api
         if ($problem) throw new HttpError(422, $problem);
         try {
             (new GitHub($this->store, $token))->verifyWriteAccess();
-        } catch (GitHubError $e) {
-            $this->store->log(['event' => 'setup-rejected', 'status' => $e->status, 'ip' => self::clientIp()]);
-            throw new HttpError(422, 'token', $e->getMessage());
+        } catch (GitHubError | ConflictError $e) {
+            $this->store->log(['event' => 'setup-rejected', 'status' => $e instanceof GitHubError ? $e->status : 409, 'ip' => self::clientIp()]);
+            throw new HttpError(422, 'token', $e instanceof GitHubError ? $e->getMessage() : 'Das Repository ist leer.');
         }
         $this->store->withLock('setup', function () use ($token, $name, $password) {
             if ($this->store->exists('config.json')) throw new HttpError(403, 'forbidden');
@@ -379,7 +388,8 @@ final class Api
         $ip = self::clientIp();
         $r = $this->auth->login($b['user'] ?? '', $b['password'] ?? '', $ip);
         if (!$r['ok']) {
-            $this->store->log(['event' => 'login-failed', 'user' => mb_substr((string) (is_string($b['user'] ?? null) ? $b['user'] : ''), 0, 40), 'ip' => $ip, 'reason' => $r['reason']]);
+            // Locked attempts cost nothing to send: logging each would let anyone flush the log.
+            if ($r['reason'] !== 'locked') $this->store->log(['event' => 'login-failed', 'user' => mb_substr((string) (is_string($b['user'] ?? null) ? $b['user'] : ''), 0, 40), 'ip' => $ip, 'reason' => $r['reason']]);
             if ($r['reason'] === 'locked') throw new HttpError(429, 'locked', '', ['retryMinutes' => (int) ceil($r['retry'] / 60)]);
             throw new HttpError(401, 'invalid');
         }
@@ -454,7 +464,7 @@ final class Api
     private function savePage(array $b): void
     {
         $id = (string) ($b['id'] ?? '');
-        $this->store->withLock('write', function () use ($id, $b) {
+        $this->writeLock(function () use ($id, $b) {
             $loaded = $this->site->page($id);
             if (!$loaded) throw new HttpError(404, 'not_found');
             if ($loaded['structureErrors']) throw new HttpError(422, 'structure', '', ['structureErrors' => $loaded['structureErrors']]);
@@ -466,7 +476,7 @@ final class Api
             $out = Site::serializePage($r['page']);
             if ($out === $loaded['text']) { self::json(200, ['ok' => true, 'unchanged' => true]); return; }
             $extra = $this->site->pendingFiles(Site::pageImageRefs($r['page']));
-            $label = $r['page']['label'] ?? $id;
+            $label = Site::commitLabel((string) ($r['page']['label'] ?? $id));
             $commit = $this->gh->commit([$loaded['path'] => $out] + $extra, "Admin: $label aktualisiert", $this->user['name'], [$loaded['path'] => $loaded['hash']]);
             $this->site->clearPending($extra);
             $this->store->log(['event' => 'save', 'user' => $this->user['name'], 'file' => $loaded['path'], 'commit' => $commit]);
@@ -550,7 +560,7 @@ final class Api
         $isNew = $existing === '';
         if ($isNew && empty($def['canCreate'])) throw new HttpError(403, 'forbidden');
         $input = (is_array($b['values'] ?? null) ? $b['values'] : []) + ['body' => $b['body'] ?? ''];
-        $this->store->withLock('write', function () use ($coll, $def, $existing, $isNew, $input, $b) {
+        $this->writeLock(function () use ($coll, $def, $existing, $isNew, $input, $b) {
             $entry = null;
             $slug = $existing;
             if (!$isNew) {
@@ -576,7 +586,7 @@ final class Api
             $title = '';
             foreach ($r['entries'] as [$k, $v]) if ($k === ($coll === 'team' ? 'name' : 'title')) $title = (string) $v;
             $extra = $this->site->pendingFiles($this->site->entryImageRefs($coll, $r['entries']));
-            $commit = $this->gh->commit([$path => $out] + $extra, 'Admin: ' . ($isNew ? 'neu' : 'aktualisiert') . " – $title ({$def['dir']}/$slug.md)", $this->user['name'], [$path => $entry['hash'] ?? null]);
+            $commit = $this->gh->commit([$path => $out] + $extra, 'Admin: ' . ($isNew ? 'neu' : 'aktualisiert') . ' – ' . Site::commitLabel($title) . " ({$def['dir']}/$slug.md)", $this->user['name'], [$path => $entry['hash'] ?? null]);
             $this->site->clearPending($extra);
             $this->store->log(['event' => $isNew ? 'create' : 'save', 'user' => $this->user['name'], 'file' => $path, 'commit' => $commit]);
             self::json(200, ['ok' => true, 'id' => $slug, 'job' => $commit]);
@@ -590,7 +600,7 @@ final class Api
         if (empty($def['canDelete'])) throw new HttpError(403, 'forbidden');
         $slug = (string) ($b['id'] ?? '');
         if (!preg_match(Rules::SLUG_RE, $slug)) throw new HttpError(404, 'not_found');
-        $this->store->withLock('write', function () use ($coll, $def, $slug) {
+        $this->writeLock(function () use ($coll, $def, $slug) {
             $path = $this->site->entryPath($coll, $slug);
             $f = $this->gh->file($path);
             if (!$f) throw new HttpError(404, 'not_found');
@@ -616,7 +626,7 @@ final class Api
         if (empty($def['canDelete'])) throw new HttpError(403, 'forbidden');
         $id = (string) ($b['trashId'] ?? '');
         if (!preg_match('/^\d+-[a-z0-9]+(?:-[a-z0-9]+)*$/D', $id)) throw new HttpError(404, 'not_found');
-        $this->store->withLock('write', function () use ($coll, $def, $id, $permanently) {
+        $this->writeLock(function () use ($coll, $def, $id, $permanently) {
             $dir = $this->trashDir($coll);
             $meta = $this->store->readJson("$dir/$id.json");
             if (!is_array($meta) || !preg_match(Rules::SLUG_RE, (string) ($meta['slug'] ?? ''))) throw new HttpError(404, 'not_found');
@@ -631,12 +641,30 @@ final class Api
             if (isset($this->gh->tree()[$path])) throw new HttpError(409, 'exists', Rules::MSG_SLUG_TAKEN);
             $content = $this->store->read("$dir/$id.md");
             if ($content === null) throw new HttpError(404, 'not_found');
+            $this->refuseMissingImages($coll, $content);
             $commit = $this->gh->commit([$path => $content], "Admin: aus dem Papierkorb wiederhergestellt – {$def['dir']}/{$meta['slug']}.md", $this->user['name'], [$path => null]);
             $this->store->delete("$dir/$id.md");
             $this->store->delete("$dir/$id.json");
             $this->store->log(['event' => 'untrash', 'user' => $this->user['name'], 'file' => $path, 'commit' => $commit]);
             self::json(200, ['ok' => true, 'id' => $meta['slug'], 'job' => $commit]);
         });
+    }
+
+    /** Its images may have gone while an entry lay in the trash; the build would fail on them. */
+    private function refuseMissingImages(string $coll, string $content): void
+    {
+        try {
+            $parts = Frontmatter::split($content);
+            $entries = Frontmatter::parse($parts['fm']);
+        } catch (FrontmatterError $e) {
+            return;
+        }
+        $exists = fn ($p) => $this->site->imageExists($p);
+        $errors = Rules::missingBodyImages($parts['body'], $exists);
+        foreach ($this->site->entryImageRefs($coll, $entries) as $r) {
+            if (!$exists($r['path'])) $errors[] = ['path' => 'image', 'label' => $r['where'], 'msg' => Rules::msgImageMissing($r['path'])];
+        }
+        if ($errors) throw new HttpError(422, 'validation', '', ['errors' => $errors]);
     }
 
     // ---------------- media ----------------
@@ -683,8 +711,8 @@ final class Api
     private function deleteMedia(array $b): void
     {
         $item = (string) ($b['path'] ?? '');
-        if (!$this->site->imageExists($item)) throw new HttpError(404, 'not_found');
-        $this->store->withLock('write', function () use ($item) {
+        $this->writeLock(function () use ($item) {
+            if (!$this->site->imageExists($item)) throw new HttpError(404, 'not_found');
             if ($this->site->usages($item)) throw new HttpError(409, 'in_use');
             $pending = $this->site->pending()[$item] ?? null;
             if ($pending) {
@@ -725,7 +753,7 @@ final class Api
                 if (($_GET['stage'] ?? '') === '1') {
                     $this->store->write("pending/$name", $bytes);
                 } else {
-                    $this->store->withLock('write', function () use ($p, $bytes, $name) {
+                    $this->writeLock(function () use ($p, $bytes, $name) {
                         $this->gh->commit([Site::IMG . $p => $bytes], "Admin: Bild hochgeladen – uploads/$name [skip ci]", $this->user['name'], [Site::IMG . $p => null]);
                     });
                 }
@@ -810,7 +838,7 @@ final class Api
             if ($isJson) {
                 $a = json_decode($old, true);
                 $b = json_decode($cur, true);
-                if (is_array($a) && is_array($b)) { $old = Site::pageLines($a); $cur = Site::pageLines($b); }
+                if (is_array($a) && is_array($b) && !Rules::checkStructure($a) && !Rules::checkStructure($b)) { $old = Site::pageLines($a); $cur = Site::pageLines($b); }
             }
             $same = $old === $cur;
             $diff = Diff::compact(Diff::lines($cur, $old), $isJson ? 1 : 3);
@@ -825,7 +853,7 @@ final class Api
         $file = (string) ($b['file'] ?? '');
         $rev = (string) ($b['rev'] ?? '');
         if (!preg_match(Rules::REV_FILE_RE, $file) || !preg_match(Rules::REV_RE, $rev)) throw new HttpError(404, 'not_found');
-        $this->store->withLock('write', function () use ($file, $rev) {
+        $this->writeLock(function () use ($file, $rev) {
             $old = $this->gh->fileAt($file, $rev);
             if ($old === null) throw new HttpError(404, 'not_found');
             $current = $this->gh->file($file);
@@ -843,14 +871,20 @@ final class Api
             } else {
                 $coll = explode('/', $file)[2];
                 $def = $this->site->collections()[$coll];
+                if (!$current && empty($def['canCreate'])) throw new HttpError(403, 'forbidden');
                 try {
                     $parts = Frontmatter::split($old);
                     $entries = Frontmatter::parse($parts['fm']);
                 } catch (FrontmatterError $e) {
                     $refuse([['path' => $file, 'msg' => $e->getMessage()]]);
                 }
-                $oldBody = ltrim($parts['body'], "\n");
+                $oldBody = Rules::sanitizeMarkdown(ltrim($parts['body'], "\n"));
                 $r = Rules::applyEntryValues($def, $entries, Site::formValues($def, $entries) + ['body' => $oldBody], $this->ctx() + ['oldBody' => $oldBody]);
+                $map = array_column($entries, 1, 0);
+                foreach ($def['fields'] as $f) {
+                    // Saves keep a path outside the library; a restored one is not trusted.
+                    if ($f['type'] === 'image' && !empty($map[$f['id']]) && Rules::imgFromFrontmatter($map[$f['id']]) === '') $r['errors'][] = ['path' => $f['id'], 'label' => $f['label'], 'msg' => Rules::MSG_BAD_IMAGE];
+                }
                 if ($r['errors']) $refuse($r['errors']);
                 $out = $this->site->serializeEntry($coll, $r['entries'], $r['body']);
             }
@@ -937,7 +971,7 @@ final class Api
         $d = (new Anfragen($this->store))->detail($id);
         if (!$d) throw new HttpError(404, 'not_found');
         // Who read which submission: the record of access, no content.
-        $this->store->log(['event' => 'anfrage-read', 'user' => $this->user['name'], 'id' => $id]);
+        $this->store->log(['event' => 'anfrage-read', 'user' => $this->user['name'], 'id' => $id], 'access');
         self::json(200, $d);
     }
 
@@ -946,7 +980,7 @@ final class Api
         $id = (string) ($_GET['id'] ?? '');
         $file = (new Anfragen($this->store))->attachment($id, (string) ($_GET['stored'] ?? ''));
         if (!$file) throw new HttpError(404, 'not_found');
-        $this->store->log(['event' => 'anfrage-file', 'user' => $this->user['name'], 'id' => $id]);
+        $this->store->log(['event' => 'anfrage-file', 'user' => $this->user['name'], 'id' => $id], 'access');
         // Always a download: the content is a stranger's, it is never opened here or inline.
         $name = (string) preg_replace('/[^\w.\- ]+/u', '_', $file['name']);
         header('Content-Type: ' . (preg_match('/^[a-z]+\/[a-z0-9.+-]+$/iD', $file['type']) ? $file['type'] : 'application/octet-stream'));
@@ -967,7 +1001,7 @@ final class Api
             default: $ok = $a->destroy($id);
         }
         if (!$ok) throw new HttpError(404, 'not_found');
-        $this->store->log(['event' => "anfrage-$act", 'user' => $this->user['name'], 'id' => $id]);
+        $this->store->log(['event' => "anfrage-$act", 'user' => $this->user['name'], 'id' => $id], 'access');
         self::json(200, ['ok' => true]);
     }
 

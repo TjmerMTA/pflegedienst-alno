@@ -66,7 +66,8 @@ final class Auth
         return $this->store->withLock('users', function () use ($name, $hash, $admin, $lang, $anfragen) {
             $users = $this->users();
             if (isset($users[$name])) return 'exists';
-            $users[$name] = ['hash' => $hash, 'lang' => $lang, 'admin' => $admin, 'anfragen' => $anfragen, 'pwv' => 1, 'created' => gmdate('c')];
+            // A random start: a session of an earlier user with this name must not fit the new one.
+            $users[$name] = ['hash' => $hash, 'lang' => $lang, 'admin' => $admin, 'anfragen' => $anfragen, 'pwv' => random_int(1, 1 << 48), 'created' => gmdate('c')];
             $this->saveUsers($users);
             return null;
         });
@@ -110,6 +111,13 @@ final class Auth
 
     // ---------------- lockout ----------------
 
+    /** One IPv6 customer owns a whole /64, so that is what counts as one address. */
+    public static function network(string $ip): string
+    {
+        $b = strpos($ip, ':') !== false ? @inet_pton($ip) : false;
+        return $b === false ? $ip : bin2hex(substr($b, 0, 8));
+    }
+
     private function lockedFor(array $table, string $key): int
     {
         $e = $table[$key] ?? null;
@@ -130,12 +138,14 @@ final class Auth
     /**
      * Returns ['ok' => true, 'user' => name] or ['ok' => false, 'reason' => 'invalid'|'locked', 'retry' => seconds].
      * The attempt is counted before the slow hash: otherwise parallel guesses all pass the check.
+     * The name's counter is per network, or a stranger could keep any account locked for good.
      */
     public function login($name, $password, string $ip): array
     {
         $uname = strtolower(Rules::trim(is_string($name) ? $name : ''));
-        $ukey = 'u:' . sha1($uname);
-        $ikey = 'ip:' . sha1($ip);
+        $net = self::network($ip);
+        $ukey = 'u:' . sha1("$uname|$net");
+        $ikey = 'ip:' . sha1($net);
         $locked = $this->store->withLock('lockout', function () use ($ukey, $ikey) {
             $t = $this->store->readJson('lockout.json', []);
             $left = max($this->lockedFor($t, $ukey), $this->lockedFor($t, $ikey));
