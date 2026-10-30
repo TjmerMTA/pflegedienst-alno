@@ -347,7 +347,7 @@
           "id": "pg1Button",
           "label": "Button im Hinweis",
           "type": "text",
-          "max": 32,
+          "max": 24,
           "value": "Zum Entlastungs-Rechner"
         },
         {
@@ -422,7 +422,7 @@
           "label": "Bezeichnung einmalig",
           "type": "text",
           "help": "In der Liste, im Plan und im Ergebnis",
-          "max": 24,
+          "max": 12,
           "value": "einmalig"
         },
         {
@@ -435,7 +435,7 @@
           "id": "minutes",
           "label": "Abkürzung Minuten",
           "type": "text",
-          "max": 24,
+          "max": 6,
           "value": "Min."
         },
         {
@@ -1057,7 +1057,7 @@
           "id": "perMonth",
           "label": "Betrag: pro Monat",
           "type": "text",
-          "max": 24,
+          "max": 12,
           "value": "pro Monat"
         },
         {

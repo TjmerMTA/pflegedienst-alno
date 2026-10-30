@@ -178,9 +178,10 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
   text, because the minifier undoes `\uXXXX` there.
 - **Labels that do not wrap** (buttons, menu items, the `.quick` tiles) get a `max`: `.btn` and `.nav a` are
   `nowrap` by design and no CSS can break a word there. Buttons 32, menu 24, tile title 24, tile text 40.
-  Check a button at 390 px with a real long word: next to an icon or in a tight card it may need 28 (`leistungen`
-  `list.button`, `detail.asideWhatsapp`, the `pflege-rechner` tabs). Every `<button>` counts, not only `.btn`: `button`
-  is exempt from `overflow-wrap`. Small `nowrap` labels in the Rechner (`.amt`, `.per`) get 24.
+  The narrowest width we guarantee is 360 px: check a label there with a real long word. `main` clips overflow, so the page
+  never scrolls and `scrollWidth` shows nothing: compare the element's edge with its card instead. Inside a card or next
+  to an icon a button may need less (`list.button`, `calc.button`: 24). Small `nowrap` labels in the Rechner get 6–12.
+  At 320 px a label at full length may stick out of its card, without page scroll.
 - **Shared blocks** (used on several pages) go to `_global.json`, page-specific headings around them stay
   in the page file (e.g. `testimonials.h2` is in `index.json`, the testimonials themselves in `_global.json`).
 
