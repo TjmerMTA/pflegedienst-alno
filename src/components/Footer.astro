@@ -1,56 +1,57 @@
 ---
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { SITE, whatsappUrl } from '../config/site';
+import { SITE, whatsappUrl, getGlobal } from '../config/site';
+const g = getGlobal();
 const year = new Date().getFullYear();
+// Подписи ссылок — через set:html={g.textHtml()}: «&» в них выходит как раньше, без &amp;
 ---
 <footer class="ftr">
   <div class="wrap cols">
     <div class="about">
       <Logo light />
-      <p>Ambulanter Pflegedienst in Dortmund. Wir pflegen, beraten und begleiten – zuverlässig, herzlich und direkt bei Ihnen zu Hause.</p>
+      <p>{g.text('footer.about')}</p>
       <div class="badges">
-        <span><Icon name="shield" size={16} /> Zugelassen bei allen Kassen</span>
-        <span><Icon name="clock" size={16} /> Telefon 8–22 Uhr</span>
+        {g.list<{ icon: string; text: string }>('footer.badges').map((b) => <span><Icon name={b.icon} size={16} /> {b.text}</span>)}
       </div>
     </div>
     <div>
-      <h2>Leistungen</h2>
+      <h2>{g.text('footer.colLeistungen')}</h2>
       <ul>
-        <li><a href="/leistungen/grundpflege/">Grundpflege</a></li>
-        <li><a href="/leistungen/behandlungspflege/">Behandlungspflege</a></li>
-        <li><a href="/leistungen/verhinderungspflege/">Verhinderungspflege</a></li>
-        <li><a href="/leistungen/betreuung-hauswirtschaft/">Betreuung & Haushalt</a></li>
-        <li><a href="/leistungen/entlastungsleistungen/">Entlastungsleistungen</a></li>
-        <li><a href="/leistungen/pflegeberatung-37-3/">Beratungsbesuch § 37.3</a></li>
+        <li><a href="/leistungen/grundpflege/" set:html={g.textHtml('footer.linkGrundpflege')} /></li>
+        <li><a href="/leistungen/behandlungspflege/" set:html={g.textHtml('footer.linkBehandlungspflege')} /></li>
+        <li><a href="/leistungen/verhinderungspflege/" set:html={g.textHtml('footer.linkVerhinderungspflege')} /></li>
+        <li><a href="/leistungen/betreuung-hauswirtschaft/" set:html={g.textHtml('footer.linkBetreuung')} /></li>
+        <li><a href="/leistungen/entlastungsleistungen/" set:html={g.textHtml('footer.linkEntlastung')} /></li>
+        <li><a href="/leistungen/pflegeberatung-37-3/" set:html={g.textHtml('footer.linkBeratung')} /></li>
       </ul>
     </div>
     <div>
-      <h2>Pflegedienst</h2>
+      <h2>{g.text('footer.colPflegedienst')}</h2>
       <ul>
-        <li><a href="/ueber-uns/">Über uns & Team</a></li>
-        <li><a href="/kosten-finanzierung/">Kosten & Finanzierung</a></li>
-        <li><a href="/erstbegutachtung/">Erstbegutachtung</a></li>
-        <li><a href="/pflege-rechner/">Pflege-Rechner</a></li>
-        <li><a href="/blog/">Pflege-Ratgeber</a></li>
-        <li><a href="/karriere/">Karriere</a></li>
-        <li><a href="/ausbildung/">Ausbildung</a></li>
-        <li><a href="/kontakt/">Kontakt & Anfahrt</a></li>
+        <li><a href="/ueber-uns/" set:html={g.textHtml('footer.linkUeberUns')} /></li>
+        <li><a href="/kosten-finanzierung/" set:html={g.textHtml('footer.linkKosten')} /></li>
+        <li><a href="/erstbegutachtung/" set:html={g.textHtml('footer.linkErstbegutachtung')} /></li>
+        <li><a href="/pflege-rechner/" set:html={g.textHtml('footer.linkRechner')} /></li>
+        <li><a href="/blog/" set:html={g.textHtml('footer.linkRatgeber')} /></li>
+        <li><a href="/karriere/" set:html={g.textHtml('footer.linkKarriere')} /></li>
+        <li><a href="/ausbildung/" set:html={g.textHtml('footer.linkAusbildung')} /></li>
+        <li><a href="/kontakt/" set:html={g.textHtml('footer.linkKontakt')} /></li>
       </ul>
     </div>
     <div>
-      <h2>Kontakt</h2>
+      <h2>{g.text('footer.colKontakt')}</h2>
       <ul class="contact">
         <li><Icon name="pin" size={18} /><span>{SITE.street}<br />{SITE.zip} {SITE.city}</span></li>
         <li><Icon name="phone" size={18} /><a href={SITE.phoneHref}>{SITE.phone}</a></li>
-        <li><Icon name="whatsapp" size={18} /><a href={whatsappUrl} rel="noopener" target="_blank">WhatsApp schreiben</a></li>
+        <li><Icon name="whatsapp" size={18} /><a href={whatsappUrl} rel="noopener" target="_blank">{g.text('footer.whatsappLink')}</a></li>
         <li><Icon name="mail" size={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
       </ul>
     </div>
   </div>
   <div class="wrap legal">
     <span>© {year} {SITE.name}</span>
-    <nav aria-label="Rechtliches"><a href="/impressum/">Impressum</a><a href="/datenschutz/">Datenschutz</a>{SITE.gaId ? <button type="button" data-consent-open>Cookie-Einstellungen</button> : <a href="/datenschutz/#cookies">Cookies</a>}</nav>
+    <nav aria-label="Rechtliches"><a href="/impressum/">{g.text('footer.legalImpressum')}</a><a href="/datenschutz/">{g.text('footer.legalDatenschutz')}</a>{SITE.gaId ? <button type="button" data-consent-open>{g.text('footer.legalCookieSettings')}</button> : <a href="/datenschutz/#cookies">{g.text('footer.legalCookies')}</a>}</nav>
   </div>
 </footer>
 <style>

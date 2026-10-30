@@ -1,31 +1,40 @@
 // Единый источник данных компании (NAP) — используется в шапке, подвале, Schema.org и формах.
+// Значения — в src/content/pages/_global.json (группа contact, правится в админке), здесь только тонкий слой.
 // Всё, что помечено TODO, нужно подтвердить у клиента до запуска.
+import { getGlobal } from '../lib/content';
+
+// Компоненты, которые уже импортируют site.ts, берут getGlobal отсюда: лишний import в .astro
+// сдвигает порядок <style> в собранном HTML (Astro сортирует CSS по позиции импорта)
+export { getGlobal };
+
+const g = getGlobal();
+const c = (id: string) => g.text(`contact.${id}`);
+// Координаты в админке — строкой; запятую вместо точки тоже понимаем
+const num = (id: string) => Number(c(id).replace(',', '.'));
 
 export const SITE = {
-  name: 'Pflegedienst ALNO GmbH',
-  shortName: 'Pflegedienst ALNO',
-  slogan: 'Ambulante Pflege in Dortmund – mit Herz und Kompetenz',
-  street: 'Sulpkestraße 50',
-  zip: '44269',
-  city: 'Dortmund',
-  region: 'NRW',
-  country: 'DE',
-  geo: { lat: 51.4786, lng: 7.5186 }, // TODO: точные координаты офиса
-  phone: '0231 54 67 686',
-  phoneHref: 'tel:+492315467686',
-  phone2: '0231 580 69 165',
-  fax: '0231 580 69 169',
-  email: 'info@pflegedienst-nogina.de',
+  name: c('name'),
+  shortName: c('shortName'),
+  street: c('street'),
+  zip: c('zip'),
+  city: c('city'),
+  region: c('region'),
+  country: c('country'),
+  geo: { lat: num('lat'), lng: num('lng') }, // TODO: точные координаты офиса
+  phone: c('phone'),
+  phoneIntl: c('phoneIntl'),
+  phoneHref: `tel:${c('phoneIntl').replace(/[^\d+]/g, '')}`,
+  phone2: c('phone2'),
+  fax: c('fax'),
+  faxIntl: c('faxIntl'),
+  email: c('email'),
   // TODO: мобильный номер для WhatsApp (стационарный WhatsApp не принимает)
-  whatsapp: '492315467686',
-  whatsappText: 'Hallo, ich interessiere mich für eine kostenlose Pflegeberatung.',
-  ceo: 'Alla Nogina',
-  hrb: 'HRB 29328',
-  court: 'Amtsgericht Dortmund',
-  hours: [
-    { days: 'Büro Mo – Fr', time: '08:00 – 16:00 Uhr' },
-    { days: 'Telefonisch', time: '08:00 – 22:00 Uhr' },
-  ],
+  whatsapp: c('whatsapp').replace(/\D/g, ''),
+  whatsappText: c('whatsappText'),
+  ceo: c('ceo'),
+  hrb: c('hrb'),
+  court: c('court'),
+  hours: g.list<{ days: string; time: string }>('contact.hoursList'),
   // Сюда адрес обработчика форм (Web3Forms / Formspree / свой endpoint). Пусто — режим превью.
   formEndpoint: import.meta.env.PUBLIC_FORM_ENDPOINT || '',
   // ID Google Analytics 4. Пусто — GA и cookie-баннер не подключаются.
@@ -37,19 +46,27 @@ export const NOINDEX = (import.meta.env.SITE || '').includes('siteboosty');
 
 export const whatsappUrl = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(SITE.whatsappText)}`;
 
+// Адреса пунктов меню — в коде, подписи — в админке (группа header)
 export const NAV = [
-  { href: '/leistungen/', label: 'Leistungen' },
-  { href: '/kosten-finanzierung/', label: 'Kosten & Finanzierung' },
-  { href: '/ueber-uns/', label: 'Über uns' },
-  { href: '/blog/', label: 'Ratgeber' },
-  { href: '/kontakt/', label: 'Kontakt' },
+  { href: '/leistungen/', label: g.text('header.navLeistungen') },
+  { href: '/kosten-finanzierung/', label: g.text('header.navKosten') },
+  { href: '/ueber-uns/', label: g.text('header.navUeberUns') },
+  { href: '/blog/', label: g.text('header.navRatgeber') },
+  { href: '/kontakt/', label: g.text('header.navKontakt') },
 ];
 
 // Районы обслуживания (реальные зоны клиента): три Stadtbezirke Дортмунда и город Schwerte.
-// key связывает группу с фигурой на схеме в ServiceArea.astro.
+// key связывает группу с фигурой на схеме в ServiceArea.astro, поэтому набор районов задан в коде,
+// а названия и списки Stadtteile — в админке (группы areaAplerbeck … areaSchwerte).
+const area = (key: string, group: string) => ({
+  key,
+  name: g.text(`${group}.mapName`),
+  title: g.text(`${group}.title`),
+  districts: g.list<{ name: string }>(`${group}.districts`).map((d) => d.name),
+});
 export const AREAS = [
-  { key: 'aplerbeck', title: 'Stadtbezirk Aplerbeck', districts: ['Aplerbeck', 'Berghofen', 'Schüren', 'Sölde', 'Sölderholz'] },
-  { key: 'hoerde', title: 'Stadtbezirk Hörde', districts: ['Benninghofen', 'Hacheney', 'Hörde', 'Holzen', 'Syburg', 'Wellinghofen', 'Wichlinghofen'] },
-  { key: 'hombruch', title: 'Stadtbezirk Hombruch', districts: ['Barop', 'Bittermark', 'Brünninghausen', 'Hombruch', 'Persebeck-Kruckel-Schnee', 'Kirchhörde-Löttringhausen', 'Rombergpark-Lücklemberg', 'Menglinghausen'] },
-  { key: 'schwerte', title: 'Stadt Schwerte', districts: ['Schwerte-Mitte', 'Ergste', 'Geisecke', 'Holzen (Schwerte)', 'Lichtendorf', 'Villigst', 'Wandhofen', 'Westhofen'] },
+  area('aplerbeck', 'areaAplerbeck'),
+  area('hoerde', 'areaHoerde'),
+  area('hombruch', 'areaHombruch'),
+  area('schwerte', 'areaSchwerte'),
 ];

@@ -1,16 +1,14 @@
 ---
 import Icon from './Icon.astro';
 // TODO: заменить на сканы реальных документов / печати (Versorgungsvertrag, MD-Prüfbericht и т. д.)
-const items = [
-  { icon: 'shield', t: 'Versorgungsvertrag § 72 SGB XI', d: 'Zugelassen bei allen Pflegekassen' },
-  { icon: 'clipboard', t: 'Vertrag § 132a SGB V', d: 'Behandlungspflege mit allen Krankenkassen' },
-  { icon: 'award', t: 'Qualitätsprüfung MD', d: 'Regelmäßig geprüft durch den Medizinischen Dienst' },
-  { icon: 'users', t: 'Examinierte Fachkräfte', d: '3-jährig examinierte Kranken- und Altenpflege' },
-];
+// Пункты — в _global.json (группа certificates). Импорт динамический: новый статический import
+// сдвинул бы порядок <style> в собранных страницах (Astro сортирует CSS по позиции импорта)
+const { getGlobal } = await import('../lib/content');
+const items = getGlobal().list<{ icon: string; title: string; text: string }>('certificates.items');
 ---
 <ul class="certs">
   {items.map((c) => (
-    <li><span class="ico ico--green"><Icon name={c.icon} /></span><span><b>{c.t}</b><small>{c.d}</small></span></li>
+    <li><span class="ico ico--green"><Icon name={c.icon} /></span><span><b>{c.title}</b><small>{c.text}</small></span></li>
   ))}
 </ul>
 <style>

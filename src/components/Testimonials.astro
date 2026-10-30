@@ -1,11 +1,9 @@
 ---
 import Icon from './Icon.astro';
 // TODO: заменить реальными отзывами (с согласием авторов) или подключить Google-отзывы.
-const items = [
-  { text: 'Seit Mamas Schlaganfall kommt das ALNO-Team zweimal täglich. Pünktlich, freundlich und immer mit einem offenen Ohr – wir als Familie sind unglaublich entlastet.', name: 'Sabine K.', rel: 'Tochter einer Patientin, Hörde' },
-  { text: 'Die Beratung zum Pflegegrad war Gold wert. Frau Nogina hat uns alles in Ruhe erklärt und beim Antrag geholfen. Ohne sie hätten wir viel Geld verschenkt.', name: 'Thomas W.', rel: 'Sohn eines Patienten, Aplerbeck' },
-  { text: 'Ich werde nach meiner Hüft-OP zu Hause versorgt und fühle mich richtig gut aufgehoben. Die Schwestern sind kompetent und herzlich.', name: 'Irmgard B.', rel: 'Patientin, 81 Jahre, Hombruch' },
-];
+// Отзывы — в _global.json (группа testimonials). Импорт динамический — см. Certificates.astro
+const { getGlobal } = await import('../lib/content');
+const items = getGlobal().list<{ text: string; name: string; rel: string }>('testimonials.items');
 ---
 <div class="grid grid-3">
   {items.map((t) => (

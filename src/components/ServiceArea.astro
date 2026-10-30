@@ -1,25 +1,25 @@
 ---
 // Схематичная карта Einsatzgebiet (без внешних карт → без cookie и согласий).
 // Положение фигур — приблизительное, как в реальности: Hombruch запад, Hörde центр, Aplerbeck восток, Schwerte юго-восток за Ruhr.
-import { AREAS, SITE } from '../config/site';
+import { AREAS, SITE, getGlobal } from '../config/site';
+const g = getGlobal();
 const shapes: Record<string, { pts: string; label: [number, number] }> = {
   hombruch: { pts: '20,130 250,100 235,235 190,340 40,300', label: [135, 215] },
   hoerde: { pts: '250,100 410,105 425,240 360,335 190,340 235,235', label: [338, 245] },
   aplerbeck: { pts: '410,105 600,120 615,250 520,305 360,335 425,240', label: [515, 205] },
   schwerte: { pts: '250,385 410,372 560,345 625,360 610,445 310,455 230,430', label: [432, 418] },
 };
-const names: Record<string, string> = { hombruch: 'Hombruch', hoerde: 'Hörde', aplerbeck: 'Aplerbeck', schwerte: 'Schwerte' };
 ---
 <div class="area">
   <figure class="map">
     <svg viewBox="0 0 640 470" role="img" aria-labelledby="area-t">
-      <title id="area-t">Schematische Karte des Einsatzgebiets: Dortmund-Hombruch im Westen, Hörde in der Mitte mit unserem Büro, Aplerbeck im Osten und Schwerte südlich der Ruhr</title>
+      <title id="area-t">{g.text('area.mapTitle')}</title>
       <path class="ruhr" d="M-10 352 C 110 340 170 366 260 354 S 430 346 520 330 S 620 322 650 316" />
-      <text class="ruhr-t" x="72" y="384">Ruhr</text>
+      <text class="ruhr-t" x="72" y="384">{g.text('area.river')}</text>
       {AREAS.map((a) => (
         <g class={`shape s-${a.key}`}>
           <polygon points={shapes[a.key].pts} />
-          <text x={shapes[a.key].label[0]} y={shapes[a.key].label[1]} text-anchor="middle">{names[a.key]}</text>
+          <text x={shapes[a.key].label[0]} y={shapes[a.key].label[1]} text-anchor="middle">{a.name}</text>
         </g>
       ))}
       <g class="pin" transform="translate(320 150)">
@@ -32,8 +32,8 @@ const names: Record<string, string> = { hombruch: 'Hombruch', hoerde: 'Hörde', 
       </g>
     </svg>
     <figcaption class="legend">
-      <span><i class="pinl"></i> Unser Büro: {SITE.street}, Hörde</span>
-      <span><i class="river"></i> Ruhr</span>
+      <span><i class="pinl"></i> {g.text('area.officeLegend')}</span>
+      <span><i class="river"></i> {g.text('area.river')}</span>
     </figcaption>
   </figure>
 
@@ -46,7 +46,7 @@ const names: Record<string, string> = { hombruch: 'Hombruch', hoerde: 'Hörde', 
     ))}
   </div>
 
-  <p class="note">Ihr Ort ist nicht dabei? <a href={SITE.phoneHref}>Rufen Sie uns an</a> – wir prüfen das gern.</p>
+  <p class="note">{g.text('area.noteBefore')} <a href={SITE.phoneHref}>{g.text('area.noteLink')}</a> {g.text('area.noteAfter')}</p>
 </div>
 <style>
   .area { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }

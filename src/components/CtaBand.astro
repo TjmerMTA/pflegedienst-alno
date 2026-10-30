@@ -1,8 +1,9 @@
 ---
 import Icon from './Icon.astro';
-import { SITE, whatsappUrl } from '../config/site';
+import { SITE, whatsappUrl, getGlobal } from '../config/site';
+const g = getGlobal();
 interface Props { title?: string; text?: string }
-const { title = 'Lassen Sie uns gemeinsam die beste Pflege planen', text = 'Kostenlose Erstbegutachtung bei Ihnen zu Hause – unverbindlich im Dortmunder Süden und in Schwerte.' } = Astro.props;
+const { title = g.text('cta.title'), text = g.text('cta.text') } = Astro.props;
 ---
 <section class="section">
   <div class="wrap">
@@ -12,9 +13,9 @@ const { title = 'Lassen Sie uns gemeinsam die beste Pflege planen', text = 'Kost
         <p>{text}</p>
       </div>
       <div class="btn-row">
-        <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> Termin vereinbaren</a>
+        <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> {g.text('cta.button')}</a>
         <a class="btn btn--white" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
-        <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> WhatsApp</a>
+        <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> {g.text('cta.whatsapp')}</a>
       </div>
     </div>
   </div>

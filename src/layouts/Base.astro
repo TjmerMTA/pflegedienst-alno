@@ -5,7 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import MobileBar from '../components/MobileBar.astro';
 import Consent from '../components/Consent.astro';
-import { SITE, NOINDEX } from '../config/site';
+import { SITE, NOINDEX, getGlobal } from '../config/site';
 
 interface Props {
   title: string;
@@ -30,8 +30,8 @@ const business = {
   url: new URL('/', Astro.site).href,
   logo: new URL('/logo-mark.png', Astro.site).href,
   image: ogImage.href,
-  telephone: '+49 231 5467686',
-  faxNumber: '+49 231 58069169',
+  telephone: SITE.phoneIntl,
+  faxNumber: SITE.faxIntl,
   email: SITE.email,
   address: { '@type': 'PostalAddress', streetAddress: SITE.street, postalCode: SITE.zip, addressLocality: SITE.city, addressRegion: SITE.region, addressCountry: SITE.country },
   geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
@@ -66,7 +66,7 @@ const business = {
     {schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
   </head>
   <body>
-    <a class="sr-only skip" href="#main">Zum Inhalt springen</a>
+    <a class="sr-only skip" href="#main">{getGlobal().text('header.skipLink')}</a>
     {NOINDEX && <div class="devbar">Entwurf zur Abstimmung · Texte, Bewertungen und Teamfotos sind Platzhalter</div>}
     <Header />
     <main id="main">

@@ -1,0 +1,1004 @@
+{
+  "label": "Allgemein (alle Seiten)",
+  "url": null,
+  "order": 0,
+  "groups": [
+    {
+      "id": "contact",
+      "label": "Kontaktdaten",
+      "fields": [
+        {
+          "id": "name",
+          "label": "Firmenname",
+          "type": "text",
+          "help": "Token {{name}}",
+          "required": true,
+          "value": "Pflegedienst ALNO GmbH"
+        },
+        {
+          "id": "shortName",
+          "label": "Kurzname (Ende des Seitentitels)",
+          "type": "text",
+          "required": true,
+          "value": "Pflegedienst ALNO"
+        },
+        {
+          "id": "street",
+          "label": "Straße und Hausnummer",
+          "type": "text",
+          "help": "Token {{street}}",
+          "required": true,
+          "value": "Sulpkestraße 50"
+        },
+        {
+          "id": "zip",
+          "label": "PLZ",
+          "type": "text",
+          "required": true,
+          "value": "44269"
+        },
+        {
+          "id": "city",
+          "label": "Ort",
+          "type": "text",
+          "required": true,
+          "value": "Dortmund"
+        },
+        {
+          "id": "region",
+          "label": "Bundesland (für Google)",
+          "type": "text",
+          "value": "NRW"
+        },
+        {
+          "id": "country",
+          "label": "Ländercode (für Google)",
+          "type": "text",
+          "value": "DE"
+        },
+        {
+          "id": "lat",
+          "label": "Breitengrad des Büros",
+          "type": "text",
+          "help": "Für Karte und Google, z. B. 51.4786",
+          "value": "51.4786"
+        },
+        {
+          "id": "lng",
+          "label": "Längengrad des Büros",
+          "type": "text",
+          "help": "Für Karte und Google, z. B. 7.5186",
+          "value": "7.5186"
+        },
+        {
+          "id": "phone",
+          "label": "Telefon",
+          "type": "text",
+          "help": "So wie die Nummer auf der Seite steht. Token {{phone}}",
+          "required": true,
+          "value": "0231 54 67 686"
+        },
+        {
+          "id": "phoneIntl",
+          "label": "Telefon international",
+          "type": "text",
+          "help": "Für den Anruf-Link und Google: +49, Vorwahl ohne 0, Nummer",
+          "required": true,
+          "value": "+49 231 5467686"
+        },
+        {
+          "id": "phone2",
+          "label": "Zweite Telefonnummer",
+          "type": "text",
+          "value": "0231 580 69 165"
+        },
+        {
+          "id": "fax",
+          "label": "Fax",
+          "type": "text",
+          "value": "0231 580 69 169"
+        },
+        {
+          "id": "faxIntl",
+          "label": "Fax international (für Google)",
+          "type": "text",
+          "value": "+49 231 58069169"
+        },
+        {
+          "id": "email",
+          "label": "E-Mail",
+          "type": "text",
+          "help": "Token {{email}}",
+          "required": true,
+          "value": "info@pflegedienst-nogina.de"
+        },
+        {
+          "id": "whatsapp",
+          "label": "WhatsApp-Nummer",
+          "type": "text",
+          "help": "Mit Ländervorwahl, ohne + und ohne führende 0, z. B. 4917612345678",
+          "required": true,
+          "value": "492315467686"
+        },
+        {
+          "id": "whatsappText",
+          "label": "WhatsApp: vorausgefüllte Nachricht",
+          "type": "textarea",
+          "value": "Hallo, ich interessiere mich für eine kostenlose Pflegeberatung."
+        },
+        {
+          "id": "ceo",
+          "label": "Geschäftsführung",
+          "type": "text",
+          "value": "Alla Nogina"
+        },
+        {
+          "id": "hrb",
+          "label": "Handelsregister",
+          "type": "text",
+          "value": "HRB 29328"
+        },
+        {
+          "id": "court",
+          "label": "Registergericht",
+          "type": "text",
+          "value": "Amtsgericht Dortmund"
+        },
+        {
+          "id": "hours",
+          "label": "Telefonisch erreichbar (kurz)",
+          "type": "text",
+          "help": "Token {{hours}}, z. B. in „Telefon {{hours}}“",
+          "required": true,
+          "value": "8–22 Uhr"
+        },
+        {
+          "id": "officeHours",
+          "label": "Bürozeiten (kurz)",
+          "type": "text",
+          "help": "Token {{officeHours}}, z. B. in „Büro {{officeHours}}“",
+          "required": true,
+          "value": "Mo–Fr 8–16 Uhr"
+        },
+        {
+          "id": "hoursList",
+          "label": "Erreichbarkeit (Kontaktseite)",
+          "type": "list",
+          "max": 4,
+          "itemLabel": "Zeile",
+          "min": 1,
+          "fields": [
+            {
+              "id": "days",
+              "label": "Wann",
+              "type": "text"
+            },
+            {
+              "id": "time",
+              "label": "Uhrzeit",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "days": "Büro Mo – Fr",
+              "time": "08:00 – 16:00 Uhr"
+            },
+            {
+              "days": "Telefonisch",
+              "time": "08:00 – 22:00 Uhr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "header",
+      "label": "Kopfbereich (Header)",
+      "fields": [
+        {
+          "id": "skipLink",
+          "label": "Sprunglink zum Inhalt",
+          "type": "text",
+          "help": "Nur bei Bedienung mit der Tastatur sichtbar",
+          "value": "Zum Inhalt springen"
+        },
+        {
+          "id": "topHours",
+          "label": "Obere Leiste: Erreichbarkeit",
+          "type": "text",
+          "value": "Büro {{officeHours}} · Telefon {{hours}}"
+        },
+        {
+          "id": "navLeistungen",
+          "label": "Menü: Leistungen",
+          "type": "text",
+          "required": true,
+          "value": "Leistungen"
+        },
+        {
+          "id": "navKosten",
+          "label": "Menü: Kosten & Finanzierung",
+          "type": "text",
+          "required": true,
+          "value": "Kosten & Finanzierung"
+        },
+        {
+          "id": "navUeberUns",
+          "label": "Menü: Über uns",
+          "type": "text",
+          "required": true,
+          "value": "Über uns"
+        },
+        {
+          "id": "navRatgeber",
+          "label": "Menü: Ratgeber",
+          "type": "text",
+          "required": true,
+          "value": "Ratgeber"
+        },
+        {
+          "id": "navKontakt",
+          "label": "Menü: Kontakt",
+          "type": "text",
+          "required": true,
+          "value": "Kontakt"
+        },
+        {
+          "id": "navKarriere",
+          "label": "Menü: Karriere",
+          "type": "text",
+          "required": true,
+          "value": "Karriere"
+        },
+        {
+          "id": "navAusbildung",
+          "label": "Menü: Ausbildung",
+          "type": "text",
+          "required": true,
+          "value": "Ausbildung"
+        },
+        {
+          "id": "callLabel",
+          "label": "Hinweis über der Telefonnummer",
+          "type": "text",
+          "value": "Rufen Sie uns an"
+        },
+        {
+          "id": "cta",
+          "label": "Button",
+          "type": "text",
+          "required": true,
+          "value": "Kostenlose Beratung"
+        }
+      ]
+    },
+    {
+      "id": "footer",
+      "label": "Fußbereich (Footer)",
+      "fields": [
+        {
+          "id": "about",
+          "label": "Text unter dem Logo",
+          "type": "textarea",
+          "value": "Ambulanter Pflegedienst in Dortmund. Wir pflegen, beraten und begleiten – zuverlässig, herzlich und direkt bei Ihnen zu Hause."
+        },
+        {
+          "id": "badges",
+          "label": "Plaketten unter dem Text",
+          "type": "list",
+          "max": 4,
+          "itemLabel": "Plakette",
+          "min": 0,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "icon": "shield",
+              "text": "Zugelassen bei allen Kassen"
+            },
+            {
+              "icon": "clock",
+              "text": "Telefon {{hours}}"
+            }
+          ]
+        },
+        {
+          "id": "colLeistungen",
+          "label": "Spalte 1: Überschrift",
+          "type": "text",
+          "value": "Leistungen"
+        },
+        {
+          "id": "linkGrundpflege",
+          "label": "Spalte 1: Grundpflege",
+          "type": "text",
+          "required": true,
+          "value": "Grundpflege"
+        },
+        {
+          "id": "linkBehandlungspflege",
+          "label": "Spalte 1: Behandlungspflege",
+          "type": "text",
+          "required": true,
+          "value": "Behandlungspflege"
+        },
+        {
+          "id": "linkVerhinderungspflege",
+          "label": "Spalte 1: Verhinderungspflege",
+          "type": "text",
+          "required": true,
+          "value": "Verhinderungspflege"
+        },
+        {
+          "id": "linkBetreuung",
+          "label": "Spalte 1: Betreuung & Hauswirtschaft",
+          "type": "text",
+          "required": true,
+          "value": "Betreuung & Haushalt"
+        },
+        {
+          "id": "linkEntlastung",
+          "label": "Spalte 1: Entlastungsleistungen",
+          "type": "text",
+          "required": true,
+          "value": "Entlastungsleistungen"
+        },
+        {
+          "id": "linkBeratung",
+          "label": "Spalte 1: Pflegeberatung § 37.3",
+          "type": "text",
+          "required": true,
+          "value": "Beratungsbesuch § 37.3"
+        },
+        {
+          "id": "colPflegedienst",
+          "label": "Spalte 2: Überschrift",
+          "type": "text",
+          "value": "Pflegedienst"
+        },
+        {
+          "id": "linkUeberUns",
+          "label": "Spalte 2: Über uns",
+          "type": "text",
+          "required": true,
+          "value": "Über uns & Team"
+        },
+        {
+          "id": "linkKosten",
+          "label": "Spalte 2: Kosten & Finanzierung",
+          "type": "text",
+          "required": true,
+          "value": "Kosten & Finanzierung"
+        },
+        {
+          "id": "linkErstbegutachtung",
+          "label": "Spalte 2: Erstbegutachtung",
+          "type": "text",
+          "required": true,
+          "value": "Erstbegutachtung"
+        },
+        {
+          "id": "linkRechner",
+          "label": "Spalte 2: Pflege-Rechner",
+          "type": "text",
+          "required": true,
+          "value": "Pflege-Rechner"
+        },
+        {
+          "id": "linkRatgeber",
+          "label": "Spalte 2: Ratgeber",
+          "type": "text",
+          "required": true,
+          "value": "Pflege-Ratgeber"
+        },
+        {
+          "id": "linkKarriere",
+          "label": "Spalte 2: Karriere",
+          "type": "text",
+          "required": true,
+          "value": "Karriere"
+        },
+        {
+          "id": "linkAusbildung",
+          "label": "Spalte 2: Ausbildung",
+          "type": "text",
+          "required": true,
+          "value": "Ausbildung"
+        },
+        {
+          "id": "linkKontakt",
+          "label": "Spalte 2: Kontakt",
+          "type": "text",
+          "required": true,
+          "value": "Kontakt & Anfahrt"
+        },
+        {
+          "id": "colKontakt",
+          "label": "Spalte 3: Überschrift",
+          "type": "text",
+          "value": "Kontakt"
+        },
+        {
+          "id": "whatsappLink",
+          "label": "Spalte 3: WhatsApp-Link",
+          "type": "text",
+          "required": true,
+          "value": "WhatsApp schreiben"
+        },
+        {
+          "id": "legalImpressum",
+          "label": "Unten: Impressum",
+          "type": "text",
+          "required": true,
+          "value": "Impressum"
+        },
+        {
+          "id": "legalDatenschutz",
+          "label": "Unten: Datenschutz",
+          "type": "text",
+          "required": true,
+          "value": "Datenschutz"
+        },
+        {
+          "id": "legalCookieSettings",
+          "label": "Unten: Cookie-Einstellungen",
+          "type": "text",
+          "help": "Nur sichtbar, wenn Google Analytics eingeschaltet ist",
+          "required": true,
+          "value": "Cookie-Einstellungen"
+        },
+        {
+          "id": "legalCookies",
+          "label": "Unten: Cookies",
+          "type": "text",
+          "help": "Nur sichtbar, wenn Google Analytics ausgeschaltet ist",
+          "required": true,
+          "value": "Cookies"
+        }
+      ]
+    },
+    {
+      "id": "mobileBar",
+      "label": "Mobile Kontaktleiste (unten am Handy)",
+      "fields": [
+        {
+          "id": "call",
+          "label": "Anrufen",
+          "type": "text",
+          "required": true,
+          "value": "Anrufen"
+        },
+        {
+          "id": "whatsapp",
+          "label": "WhatsApp",
+          "type": "text",
+          "required": true,
+          "value": "WhatsApp"
+        },
+        {
+          "id": "cta",
+          "label": "Beratung",
+          "type": "text",
+          "required": true,
+          "value": "Beratung"
+        }
+      ]
+    },
+    {
+      "id": "consent",
+      "label": "Cookie-Hinweis (nur mit Google Analytics)",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Datenschutz-Einstellungen"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "required": true,
+          "value": "Wir möchten mit Google Analytics anonymisiert messen, wie unsere Website genutzt wird. Das geschieht nur mit Ihrer Einwilligung, die Sie jederzeit widerrufen können."
+        },
+        {
+          "id": "more",
+          "label": "Link zur Datenschutzerklärung",
+          "type": "text",
+          "required": true,
+          "value": "Mehr erfahren"
+        },
+        {
+          "id": "accept",
+          "label": "Button: zustimmen",
+          "type": "text",
+          "required": true,
+          "value": "Akzeptieren"
+        },
+        {
+          "id": "decline",
+          "label": "Button: ablehnen",
+          "type": "text",
+          "required": true,
+          "value": "Nur notwendige"
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Aufruf-Band (unten auf den Seiten)",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Lassen Sie uns gemeinsam die beste Pflege planen"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "value": "Kostenlose Erstbegutachtung bei Ihnen zu Hause – unverbindlich im Dortmunder Süden und in Schwerte."
+        },
+        {
+          "id": "button",
+          "label": "Button (Termin)",
+          "type": "text",
+          "required": true,
+          "value": "Termin vereinbaren"
+        },
+        {
+          "id": "whatsapp",
+          "label": "Button (WhatsApp)",
+          "type": "text",
+          "required": true,
+          "value": "WhatsApp"
+        }
+      ]
+    },
+    {
+      "id": "certificates",
+      "label": "Zulassungen & Qualität",
+      "fields": [
+        {
+          "id": "items",
+          "label": "Zulassungen",
+          "type": "list",
+          "max": 8,
+          "itemLabel": "Zulassung",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "icon": "shield",
+              "title": "Versorgungsvertrag § 72 SGB XI",
+              "text": "Zugelassen bei allen Pflegekassen"
+            },
+            {
+              "icon": "clipboard",
+              "title": "Vertrag § 132a SGB V",
+              "text": "Behandlungspflege mit allen Krankenkassen"
+            },
+            {
+              "icon": "award",
+              "title": "Qualitätsprüfung MD",
+              "text": "Regelmäßig geprüft durch den Medizinischen Dienst"
+            },
+            {
+              "icon": "users",
+              "title": "Examinierte Fachkräfte",
+              "text": "3-jährig examinierte Kranken- und Altenpflege"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "testimonials",
+      "label": "Bewertungen von Angehörigen",
+      "fields": [
+        {
+          "id": "items",
+          "label": "Bewertungen",
+          "type": "list",
+          "max": 6,
+          "itemLabel": "Bewertung",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text (ohne Anführungszeichen)",
+              "type": "textarea"
+            },
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text"
+            },
+            {
+              "id": "rel",
+              "label": "Wer (Beziehung, Ort)",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Seit Mamas Schlaganfall kommt das ALNO-Team zweimal täglich. Pünktlich, freundlich und immer mit einem offenen Ohr – wir als Familie sind unglaublich entlastet.",
+              "name": "Sabine K.",
+              "rel": "Tochter einer Patientin, Hörde"
+            },
+            {
+              "text": "Die Beratung zum Pflegegrad war Gold wert. Frau Nogina hat uns alles in Ruhe erklärt und beim Antrag geholfen. Ohne sie hätten wir viel Geld verschenkt.",
+              "name": "Thomas W.",
+              "rel": "Sohn eines Patienten, Aplerbeck"
+            },
+            {
+              "text": "Ich werde nach meiner Hüft-OP zu Hause versorgt und fühle mich richtig gut aufgehoben. Die Schwestern sind kompetent und herzlich.",
+              "name": "Irmgard B.",
+              "rel": "Patientin, 81 Jahre, Hombruch"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "area",
+      "label": "Einsatzgebiet (Karte)",
+      "fields": [
+        {
+          "id": "mapTitle",
+          "label": "Beschreibung der Karte (für Screenreader)",
+          "type": "textarea",
+          "value": "Schematische Karte des Einsatzgebiets: Dortmund-Hombruch im Westen, Hörde in der Mitte mit unserem Büro, Aplerbeck im Osten und Schwerte südlich der Ruhr"
+        },
+        {
+          "id": "river",
+          "label": "Fluss auf der Karte",
+          "type": "text",
+          "value": "Ruhr"
+        },
+        {
+          "id": "officeLegend",
+          "label": "Legende: Büro",
+          "type": "text",
+          "value": "Unser Büro: {{street}}, Hörde"
+        },
+        {
+          "id": "noteBefore",
+          "label": "Hinweis unten: Text vor dem Link",
+          "type": "text",
+          "value": "Ihr Ort ist nicht dabei?"
+        },
+        {
+          "id": "noteLink",
+          "label": "Hinweis unten: Link (Anruf)",
+          "type": "text",
+          "required": true,
+          "value": "Rufen Sie uns an"
+        },
+        {
+          "id": "noteAfter",
+          "label": "Hinweis unten: Text nach dem Link",
+          "type": "text",
+          "value": "– wir prüfen das gern."
+        }
+      ]
+    },
+    {
+      "id": "areaAplerbeck",
+      "label": "Einsatzgebiet: Aplerbeck",
+      "fields": [
+        {
+          "id": "mapName",
+          "label": "Name auf der Karte",
+          "type": "text",
+          "required": true,
+          "value": "Aplerbeck"
+        },
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Stadtbezirk Aplerbeck"
+        },
+        {
+          "id": "districts",
+          "label": "Stadtteile",
+          "type": "list",
+          "max": 15,
+          "itemLabel": "Stadtteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "name": "Aplerbeck"
+            },
+            {
+              "name": "Berghofen"
+            },
+            {
+              "name": "Schüren"
+            },
+            {
+              "name": "Sölde"
+            },
+            {
+              "name": "Sölderholz"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "areaHoerde",
+      "label": "Einsatzgebiet: Hörde",
+      "fields": [
+        {
+          "id": "mapName",
+          "label": "Name auf der Karte",
+          "type": "text",
+          "required": true,
+          "value": "Hörde"
+        },
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Stadtbezirk Hörde"
+        },
+        {
+          "id": "districts",
+          "label": "Stadtteile",
+          "type": "list",
+          "max": 15,
+          "itemLabel": "Stadtteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "name": "Benninghofen"
+            },
+            {
+              "name": "Hacheney"
+            },
+            {
+              "name": "Hörde"
+            },
+            {
+              "name": "Holzen"
+            },
+            {
+              "name": "Syburg"
+            },
+            {
+              "name": "Wellinghofen"
+            },
+            {
+              "name": "Wichlinghofen"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "areaHombruch",
+      "label": "Einsatzgebiet: Hombruch",
+      "fields": [
+        {
+          "id": "mapName",
+          "label": "Name auf der Karte",
+          "type": "text",
+          "required": true,
+          "value": "Hombruch"
+        },
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Stadtbezirk Hombruch"
+        },
+        {
+          "id": "districts",
+          "label": "Stadtteile",
+          "type": "list",
+          "max": 15,
+          "itemLabel": "Stadtteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "name": "Barop"
+            },
+            {
+              "name": "Bittermark"
+            },
+            {
+              "name": "Brünninghausen"
+            },
+            {
+              "name": "Hombruch"
+            },
+            {
+              "name": "Persebeck-Kruckel-Schnee"
+            },
+            {
+              "name": "Kirchhörde-Löttringhausen"
+            },
+            {
+              "name": "Rombergpark-Lücklemberg"
+            },
+            {
+              "name": "Menglinghausen"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "areaSchwerte",
+      "label": "Einsatzgebiet: Schwerte",
+      "fields": [
+        {
+          "id": "mapName",
+          "label": "Name auf der Karte",
+          "type": "text",
+          "required": true,
+          "value": "Schwerte"
+        },
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Stadt Schwerte"
+        },
+        {
+          "id": "districts",
+          "label": "Stadtteile",
+          "type": "list",
+          "max": 15,
+          "itemLabel": "Stadtteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "name": "Schwerte-Mitte"
+            },
+            {
+              "name": "Ergste"
+            },
+            {
+              "name": "Geisecke"
+            },
+            {
+              "name": "Holzen (Schwerte)"
+            },
+            {
+              "name": "Lichtendorf"
+            },
+            {
+              "name": "Villigst"
+            },
+            {
+              "name": "Wandhofen"
+            },
+            {
+              "name": "Westhofen"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Häufige Fragen (Startseite)",
+      "fields": [
+        {
+          "id": "items",
+          "label": "Fragen und Antworten",
+          "type": "list",
+          "help": "Erscheinen auf der Startseite und als FAQ-Daten für Google",
+          "max": 12,
+          "itemLabel": "Frage",
+          "min": 1,
+          "fields": [
+            {
+              "id": "q",
+              "label": "Frage",
+              "type": "text"
+            },
+            {
+              "id": "a",
+              "label": "Antwort",
+              "type": "richtext"
+            }
+          ],
+          "value": [
+            {
+              "q": "Was kostet mich der Pflegedienst?",
+              "a": "<p>In den meisten Fällen übernehmen Pflegekasse und Krankenkasse den Großteil der Kosten. Behandlungspflege auf ärztliche Verordnung zahlt die Krankenkasse vollständig. Bei Grundpflege und Betreuung rechnen wir direkt mit der Pflegekasse ab – im Beratungsgespräch zeigen wir Ihnen transparent, ob und welcher Eigenanteil entsteht.</p>"
+            },
+            {
+              "q": "Wie schnell können Sie mit der Pflege beginnen?",
+              "a": "<p>Oft schon innerhalb weniger Tage. Nach einem Krankenhausaufenthalt organisieren wir die Versorgung gern bereits vor der Entlassung, damit zu Hause alles vorbereitet ist.</p>"
+            },
+            {
+              "q": "Was passiert bei der kostenlosen Erstbegutachtung?",
+              "a": "<p>Eine Pflegefachkraft besucht Sie zu Hause, lernt Sie und Ihre Angehörigen kennen und erfasst den Hilfebedarf. Gemeinsam planen wir die passenden Leistungen und klären die Finanzierung. Der Besuch ist kostenlos und unverbindlich.</p>"
+            },
+            {
+              "q": "Brauche ich einen Pflegegrad?",
+              "a": "<p>Für Behandlungspflege genügt eine ärztliche Verordnung. Für Leistungen der Pflegekasse ist ein Pflegegrad nötig – wir helfen Ihnen beim Antrag und bereiten Sie auf die Begutachtung durch den Medizinischen Dienst vor.</p>"
+            },
+            {
+              "q": "In welchen Stadtteilen sind Sie unterwegs?",
+              "a": "<p>Unser Büro liegt in Hörde. Wir sind in den Dortmunder Stadtbezirken Hörde, Hombruch und Aplerbeck sowie in der Stadt Schwerte für Sie da – alle Stadtteile finden Sie auf der Startseite unter „Einsatzgebiet“. Ihr Ort ist nicht dabei? Rufen Sie uns einfach an, wir prüfen das gern.</p>"
+            },
+            {
+              "q": "Wann sind Sie erreichbar?",
+              "a": "<p>Telefonisch erreichen Sie uns von 8 bis 22 Uhr. Unser Büro in der {{street}} ist montags bis freitags von 8 bis 16 Uhr geöffnet – zu diesen Zeiten können Sie gern auch persönlich zur Beratung vorbeikommen.</p>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
