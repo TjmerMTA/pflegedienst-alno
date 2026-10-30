@@ -152,3 +152,8 @@ p { margin: 0 0 1em; text-wrap: pretty; }
   .page-hero--photo { padding-block: clamp(51px, 7.2vw, 102px) clamp(45px, 6.4vw, 90px); }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+/* Длинное слово без пробелов переносится и не раздвигает страницу. Исключения держат ширину по слову:
+   у таблиц своя прокрутка, в плитках и на кнопках короткие подписи */
+main, footer { overflow-wrap: anywhere; }
+table, .quick, button { overflow-wrap: normal; }

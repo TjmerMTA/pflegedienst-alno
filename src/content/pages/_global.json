@@ -216,6 +216,7 @@
           "id": "topHours",
           "label": "Obere Leiste: Erreichbarkeit",
           "type": "text",
+          "max": 60,
           "value": "Büro {{officeHours}} · Telefon {{hours}}"
         },
         {
@@ -223,6 +224,7 @@
           "label": "Menü: Leistungen",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Leistungen"
         },
         {
@@ -230,6 +232,7 @@
           "label": "Menü: Kosten & Finanzierung",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Kosten & Finanzierung"
         },
         {
@@ -237,6 +240,7 @@
           "label": "Menü: Über uns",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Über uns"
         },
         {
@@ -244,6 +248,7 @@
           "label": "Menü: Ratgeber",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Ratgeber"
         },
         {
@@ -251,6 +256,7 @@
           "label": "Menü: Kontakt",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Kontakt"
         },
         {
@@ -258,6 +264,7 @@
           "label": "Menü: Karriere",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Karriere"
         },
         {
@@ -265,12 +272,14 @@
           "label": "Menü: Ausbildung",
           "type": "text",
           "required": true,
+          "max": 24,
           "value": "Ausbildung"
         },
         {
           "id": "callLabel",
           "label": "Hinweis über der Telefonnummer",
           "type": "text",
+          "max": 32,
           "value": "Rufen Sie uns an"
         },
         {
@@ -278,6 +287,7 @@
           "label": "Button",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Kostenlose Beratung"
         }
       ]
@@ -487,6 +497,7 @@
           "label": "Anrufen",
           "type": "text",
           "required": true,
+          "max": 16,
           "value": "Anrufen"
         },
         {
@@ -494,6 +505,7 @@
           "label": "WhatsApp",
           "type": "text",
           "required": true,
+          "max": 16,
           "value": "WhatsApp"
         },
         {
@@ -501,6 +513,7 @@
           "label": "Beratung",
           "type": "text",
           "required": true,
+          "max": 16,
           "value": "Beratung"
         }
       ]
@@ -535,6 +548,7 @@
           "label": "Button: zustimmen",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Akzeptieren"
         },
         {
@@ -542,6 +556,7 @@
           "label": "Button: ablehnen",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Nur notwendige"
         }
       ]
@@ -568,6 +583,7 @@
           "label": "Button (Termin)",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Termin vereinbaren"
         },
         {
@@ -575,6 +591,7 @@
           "label": "Button (WhatsApp)",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "WhatsApp"
         }
       ]
@@ -1304,6 +1321,7 @@
           "label": "Button: Beratung",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Kostenlos beraten lassen"
         },
         {
@@ -1311,6 +1329,7 @@
           "label": "Button: Rückruf",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Rückruf anfordern"
         },
         {
@@ -1318,6 +1337,7 @@
           "label": "Button: Erstbegutachtung",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Termin anfragen"
         },
         {
@@ -1325,6 +1345,7 @@
           "label": "Button: Pflege-Rechner, Ergebnis",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Ergebnis anzeigen"
         },
         {
@@ -1332,6 +1353,7 @@
           "label": "Button: Pflege-Rechner, Termin",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Beratungstermin anfragen"
         },
         {
@@ -1541,6 +1563,7 @@
           "label": "Button",
           "type": "text",
           "required": true,
+          "max": 32,
           "value": "Bewerbung absenden"
         },
         {
