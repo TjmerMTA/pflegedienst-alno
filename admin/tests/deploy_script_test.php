@@ -251,13 +251,14 @@ test('the site never touches the admin folder inside its docroot, whatever the m
     [$d, $h] = setup();
     eq($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno'), 0, (string) @file_get_contents("$d/err"));
     mkdir("$d/host/public_html/admin-alno/wp-admin", 0755, true);
-    foreach (['.htaccess', 'wp-admin/api.php'] as $f) file_put_contents("$d/host/public_html/admin-alno/$f", 'admin');
+    foreach (['.htaccess', 'wp-admin/api.php', 'robots.txt', 'wp-login.php'] as $f) file_put_contents("$d/host/public_html/admin-alno/$f", 'admin');
     $hash = str_repeat('0', 64);
-    file_put_contents("$d/host/.alno-deploy-manifest", "$hash  admin-alno/wp-admin/api.php\n$hash  admin-alno/.htaccess\n$hash  admin-alno\n", FILE_APPEND);
+    $poison = ['admin-alno/wp-admin/api.php', 'admin-alno/.htaccess', 'admin-alno', './admin-alno/.htaccess', './admin-alno/wp-admin/api.php', './/admin-alno/robots.txt', '././admin-alno/wp-login.php', 'x//admin-alno', 'admin-alno//.htaccess'];
+    file_put_contents("$d/host/.alno-deploy-manifest", implode('', array_map(static fn ($p) => "$hash  $p\n", $poison)), FILE_APPEND);
     eq($h->run([], null, 'public_html', '.alno-deploy-manifest', 'admin-alno'), 0, (string) @file_get_contents("$d/err"));
-    foreach (['.htaccess', 'wp-admin/api.php'] as $f) eq(file_get_contents("$d/host/public_html/admin-alno/$f"), 'admin', $f);
+    foreach (['.htaccess', 'wp-admin/api.php', 'robots.txt', 'wp-login.php'] as $f) eq(file_get_contents("$d/host/public_html/admin-alno/$f"), 'admin', $f);
     hasNot(implode("\n", $h->log()), 'admin-alno');
-    has((string) file_get_contents("$d/err"), '3 unsafe paths');
+    has((string) file_get_contents("$d/err"), '9 unsafe paths');
     hasNot((string) file_get_contents("$d/host/.alno-deploy-manifest"), 'admin-alno');
     exec('rm -rf ' . escapeshellarg($d));
 });

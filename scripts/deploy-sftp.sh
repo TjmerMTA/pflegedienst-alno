@@ -74,7 +74,8 @@ sed 's/^[0-9a-f]*  //' "$work/old.sorted" | LC_ALL=C sort -u > "$work/old.paths"
 LC_ALL=C sort -u "$work/files" > "$work/new.paths"
 # What this script could not have uploaded is not its own: never deleted, never counted, and gone from
 # the manifest after this run. Only the number is printed: the text comes from the host, the log is public.
-grep -E '^[A-Za-z0-9._@+/-]+$' "$work/old.paths" | grep -v '^/' | grep -v '\.\.' > "$work/old.safe" || true
+# Written as find writes them, or `./admin-alno/x` would slip past the check of the foreign folder below.
+grep -E '^[A-Za-z0-9._@+/-]+$' "$work/old.paths" | grep -v '^/' | grep -v '\.\.' | grep -vE '(^|/)\.?(/|$)' > "$work/old.safe" || true
 if [ -n "$foreign" ]; then
   grep -v -e "^$foreign/" -e "^$foreign\$" "$work/old.safe" > "$work/old.own" || true
   mv "$work/old.own" "$work/old.safe"
