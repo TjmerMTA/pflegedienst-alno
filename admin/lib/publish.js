@@ -22,7 +22,11 @@ export function runCommand(cmd, { cwd, timeoutMs, env }) {
       try { process.kill(-child.pid, 'SIGTERM'); } catch {}
       setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 5000).unref();
     }, timeoutMs);
-    child.on('error', (e) => { add(`\n${e.message}\n`); });
+    child.on('error', (e) => {
+      add(`\n${e.message}\n`);
+      // Could not be started at all: `close` is not guaranteed then.
+      if (!child.pid) { clearTimeout(timer); resolve({ ok: false, code: null, signal: null, durationMs: Date.now() - started, log: out.slice(-TAIL) }); }
+    });
     child.on('close', (code, signal) => {
       clearTimeout(timer);
       if (timedOut) out += `\n[Abgebrochen: Zeitlimit von ${Math.round(timeoutMs / 1000)} s überschritten]\n`;
@@ -39,7 +43,9 @@ export function createPublisher({ siteDir, dataDir, buildCmd, deployCmd, gitPush
 
   async function load() {
     if (status) return status;
-    status = await readJsonFile(statusFile, null) || { seq: 0, state: 'idle', history: [] };
+    // A damaged status file is lost history, not a reason to refuse saving.
+    status = await readJsonFile(statusFile, null).catch((e) => { log({ event: 'status-read-failed', error: e.message }); return null; })
+      || { seq: 0, state: 'idle', history: [] };
     if (status.state !== 'idle') {
       // The admin was stopped during a run: nothing was deployed by us after that point.
       status.history.unshift({ id: status.seq, from: status.runningFrom ?? status.seq, upTo: status.seq, at: new Date().toISOString(), ok: false, phase: 'build', log: 'Unterbrochen: der Admin wurde während der Aktualisierung beendet.' });
@@ -49,7 +55,9 @@ export function createPublisher({ siteDir, dataDir, buildCmd, deployCmd, gitPush
     status.history = status.history || [];
     return status;
   }
-  const save = () => writeJsonPrivate(statusFile, status);
+  // The status file is only for display. Failing to write it (disk full, permissions) must neither
+  // stop the admin nor change what gets deployed.
+  const save = () => writeJsonPrivate(statusFile, status).catch((e) => log({ event: 'status-write-failed', error: e.message }));
 
   async function request(reason, user) {
     await load();
@@ -63,7 +71,7 @@ export function createPublisher({ siteDir, dataDir, buildCmd, deployCmd, gitPush
 
   function kick() {
     if (running) return;
-    running = loop().finally(() => {
+    running = loop().catch((e) => log({ event: 'publish-error', error: e.stack || e.message })).finally(() => {
       running = null;
       if (pendingReasons.length) kick();
     });

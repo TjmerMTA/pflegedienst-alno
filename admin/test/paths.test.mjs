@@ -20,7 +20,7 @@ before(async () => {
   fs.writeFileSync(path.join(site.root, 'geheim.jpg'), 'secret');
   fs.writeFileSync(path.join(site.root, 'geheim.md'), '---\nname: x\n---\n');
 });
-after(async () => { await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
+after(async () => { await srv.app.publisher.idle(); await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
 
 test('safeJoin refuses everything that leaves the base', () => {
   const base = site.siteDir;

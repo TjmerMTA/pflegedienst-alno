@@ -44,17 +44,17 @@ export function slugify(s) {
 export async function writeAtomic(file, data) {
   await fsp.mkdir(path.dirname(file), { recursive: true });
   const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.${crypto.randomBytes(4).toString('hex')}.tmp`);
-  const fh = await fsp.open(tmp, 'wx', 0o644);
   try {
-    await fh.writeFile(data);
-    await fh.sync();
-  } finally {
-    await fh.close();
-  }
-  try {
+    const fh = await fsp.open(tmp, 'wx', 0o644);
+    try {
+      await fh.writeFile(data);
+      await fh.sync();
+    } finally {
+      await fh.close();
+    }
     await fsp.rename(tmp, file);
   } catch (e) {
-    await fsp.rm(tmp, { force: true });
+    await fsp.rm(tmp, { force: true }).catch(() => {});
     throw e;
   }
 }

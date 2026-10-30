@@ -15,7 +15,7 @@ before(async () => {
   c = new Client(srv.base);
   await c.login();
 });
-after(async () => { await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
+after(async () => { await srv.app.publisher.idle(); await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
 beforeEach(async () => { await srv.app.publisher.idle(); });
 
 const save = (fields) => c.post('/wp-admin/post.php', fields);

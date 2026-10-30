@@ -11,7 +11,7 @@ before(async () => {
   srv = await startApp(site);
   await srv.app.auth.addUser('tester', PASSWORD);
 });
-after(async () => { await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
+after(async () => { await srv.app.publisher.idle(); await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
 
 test('passwords are stored as salted scrypt hashes', async () => {
   const a = await hashPassword('geheim-geheim');

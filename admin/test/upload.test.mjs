@@ -16,7 +16,7 @@ before(async () => {
   nonce = await c.nonce();
   sharp = await loadSharp();
 });
-after(async () => { await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
+after(async () => { await srv.app.publisher.idle(); await srv.close(); fs.rmSync(site.root, { recursive: true, force: true }); });
 
 const img = (w, h, fmt = 'jpeg') => sharp({ create: { width: w, height: h, channels: 3, background: '#88aacc' } })[fmt]().toBuffer();
 const opts = () => ({ maxBytes: LIMIT, siteDir: site.siteDir });
