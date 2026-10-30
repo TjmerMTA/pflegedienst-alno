@@ -12,23 +12,27 @@ test('ALNO_DATA_DIR wins', function () {
     eq(Store::defaultDir(), '/x/y');
     putenv('ALNO_DATA_DIR');
 });
-test('an admin docroot inside public_html does not count as a place outside the web', function () {
-    eq(Store::outerWebRoot('/usr/home/x/public_html/admin-alno'), '/usr/home/x/public_html');
-    eq(Store::outerWebRoot('/usr/home/x/public_html'), '/usr/home/x/public_html');
-    eq(Store::outerWebRoot('/usr/home/x/public_html/a/b'), '/usr/home/x/public_html');
-    eq(dirname(Store::outerWebRoot('/usr/home/x/public_html/admin-alno')), '/usr/home/x');
-    eq(Store::outerWebRoot('/usr/home/x/admin_html'), '/usr/home/x/admin_html');
-    eq(Store::outerWebRoot('/usr/home/x/public_html_alt/a'), '/usr/home/x/public_html_alt/a');
-    eq(Store::outerWebRoot(''), '');
-});
-test('without HOME and posix the folder is still found above public_html, never in it', function () {
+test('without HOME and posix nothing guesses a folder, and nothing can be written', function () {
     $root = realpath(sys_get_temp_dir()) . '/alno-store-' . bin2hex(random_bytes(4));
-    mkdir("$root/public_html/admin-alno/wp-admin/lib", 0755, true);
-    copy(__DIR__ . '/../public/wp-admin/lib/Store.php', "$root/public_html/admin-alno/wp-admin/lib/Store.php");
-    $code = 'putenv("ALNO_DATA_DIR"); putenv("HOME"); require $argv[1]; echo Store::defaultDir();';
-    $out = shell_exec(escapeshellarg(PHP_BINARY) . ' -d disable_functions=posix_getpwuid -r ' . escapeshellarg($code) . ' ' . escapeshellarg("$root/public_html/admin-alno/wp-admin/lib/Store.php"));
+    mkdir("$root/www/x/admin-alno/wp-admin/lib", 0755, true);
+    copy(__DIR__ . '/../public/wp-admin/lib/Store.php', "$root/www/x/admin-alno/wp-admin/lib/Store.php");
+    $code = 'putenv("ALNO_DATA_DIR"); putenv("HOME"); require $argv[1]; $s = new Store(); echo json_encode([$s->dir, $s->exists("config.json"), $s->readJson("config.json")]);
+        try { $s->write("x", "y"); echo " written"; } catch (RuntimeException $e) { echo " " . $e->getMessage(); }';
+    $out = shell_exec(escapeshellarg(PHP_BINARY) . ' -d disable_functions=posix_getpwuid -r ' . escapeshellarg($code) . ' ' . escapeshellarg("$root/www/x/admin-alno/wp-admin/lib/Store.php"));
+    $folders = (string) shell_exec('find ' . escapeshellarg($root) . " -name 'alno-data*'");
     exec('rm -rf ' . escapeshellarg($root));
-    eq($out, "$root/alno-data");
+    eq($out, '["",false,null] Datenordner unbekannt');
+    eq($folders, '', 'a folder was made');
+});
+test('cron without a data folder stops and writes nothing', function () {
+    $root = realpath(sys_get_temp_dir()) . '/alno-cron-' . bin2hex(random_bytes(4));
+    mkdir($root);
+    file_put_contents("$root/prep.php", '<?php putenv("HOME"); putenv("ALNO_DATA_DIR");');
+    $cron = __DIR__ . '/../public/wp-admin/cron.php';
+    exec(escapeshellarg(PHP_BINARY) . ' -d disable_functions=posix_getpwuid -d auto_prepend_file=' . escapeshellarg("$root/prep.php") . ' ' . escapeshellarg($cron) . ' 2>&1', $o, $code);
+    exec('rm -rf ' . escapeshellarg($root));
+    eq(implode("\n", $o), 'no data folder');
+    eq($code, 0);
 });
 test('the admin and the endpoint agree on the folder', function () {
     // Both copies of the search must stay the same; the endpoint is on another branch until merged.
@@ -37,5 +41,6 @@ test('the admin and the endpoint agree on the folder', function () {
     has($src, "posix_getpwuid(posix_geteuid())");
     has($src, "getenv('ALNO_DATA_DIR')");
     has($src, "'/alno-data'");
+    hasNot($src, 'dirname(web_root())', 'a guess of its own');
 });
 finish();

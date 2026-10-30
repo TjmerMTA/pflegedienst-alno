@@ -168,7 +168,7 @@ Without `SFTP_KNOWN_HOSTS` the workflow warns and trusts whatever key answers th
 
 Russian labels of the page files and the schema are in `wp-admin/assets/labels-ru.json`: key = the exact German `label`, `help` or `itemLabel`, German where a key is missing. `admin/tests/labels_ru_check.mjs` runs with the admin tests, so a new German label without Russian fails them.
 
-The nesting has three consequences, all handled: `public_html/.htaccess` is inherited by the admin folder, so its redirect and headers apply only to `pflegedienst-alno.de` and `www.`; `pflegedienst-alno.de/admin-alno/…` is refused in both `.htaccess` files, on top of the admin's own host check; and the site's deploy neither uploads to nor deletes from that folder. A data folder inside `public_html` is refused by the setup screen. The `index.htm` Hetzner puts in `public_html` does not get in the way, because the site's `.htaccess` sets `DirectoryIndex index.html`, but it stays reachable under its own name: delete it by hand.
+The nesting has three consequences, all handled: `public_html/.htaccess` is inherited by the admin folder, so its redirect and headers apply to every host except our own subdomains and local addresses; `pflegedienst-alno.de/admin-alno/…` is refused in both `.htaccess` files, on top of the admin's own host check; and the site's deploy neither uploads to nor deletes from that folder. A data folder inside `public_html` is refused by the setup screen, also behind a link: the check is the parent of the admin's docroot, not the folder's name. Before go-live: `https://pflegedienst-alno.de/alno-data/config.json` must give 403 or 404, `~/alno-data/config.json` must exist, and a test form must show up under Anfragen. The `index.htm` Hetzner puts in `public_html` does not get in the way, because the site's `.htaccess` sets `DirectoryIndex index.html`, but it stays reachable under its own name: delete it by hand.
 
 **3. PHP.** In konsoleH, for the subdomain too: PHP 8.2 or newer, `upload_max_filesize` at least 12M (konsoleH sets `post_max_size` with it). The setup screen shows what the host really has: GD or Imagick, WebP, limits.
 
@@ -204,6 +204,7 @@ or, where cron runs PHP scripts directly, `php ~/public_html/admin-alno/wp-admin
 - `scripts/assemble-upload.sh` prepares the two docroots, `scripts/deploy-sftp.sh` uploads each of them with its own manifest.
 - Only changed files go up, assets before pages. The only files ever deleted are ones an earlier deploy uploaded, listed in the manifest of that docroot. Anything else in `public_html` stays, and `~/alno-data` is never touched.
 - The first deploy therefore leaves old files of a previous site in place. Remove them by hand.
+- If the admin was ever uploaded to `~/admin_html`, that folder and `~/.alno-deploy-manifest-admin` stay on the host unused. Delete them by hand.
 - Start the workflow by hand with `full` to upload everything again.
 - A deploy stops before it touches the host when the folder has no `index.html` (site) or `wp-admin/index.html` (admin), or holds less than half the files of the last upload. A real clean-up of that size: start the workflow by hand with `allow_shrink`.
 - One deploy at a time; a running deploy is never cut off, and a newer push replaces a waiting one.
@@ -225,7 +226,7 @@ or, where cron runs PHP scripts directly, `php ~/public_html/admin-alno/wp-admin
 
 - **HTTPS:** `public_html/admin-alno/.htaccess` redirects HTTP and sets HSTS.
 - **Logs:** `~/alno-data/logs/admin.log` for events, `access.log` for who read which submission (ids only).
-- **Data folder:** `~/alno-data`, found exactly as `public/api/anfrage.php` finds it (`ALNO_DATA_DIR`, the user's home from `posix_getpwuid`, `$HOME`, the parent of the web root). Both must agree; if the home is detected wrongly, set `ALNO_DATA_DIR` with `SetEnv` in `.htaccess`. Setup refuses a folder inside the web root.
+- **Data folder:** `~/alno-data`, found exactly as `public/api/anfrage.php` finds it (`ALNO_DATA_DIR`, the user's home from `posix_getpwuid`, `$HOME`; if none of them answers, nothing is guessed: setup refuses and the forms answer with an error until `ALNO_DATA_DIR` is set). Both must agree; if the home is detected wrongly, set `ALNO_DATA_DIR` with `SetEnv` in `.htaccess`. Setup refuses a folder inside the web root.
 - **Token expired:** the admin says so. Create a new one and replace `token` in `~/alno-data/config.json` by SFTP.
 - **Locked out, no administrator left:** by SFTP delete `~/alno-data/users.json` and `~/alno-data/config.json`, open the setup screen, paste a token. Content and Anfragen are not affected.
 - **Backups:** `~/alno-data` is not in Git. It holds health data, so keep the backup as protected as the host.

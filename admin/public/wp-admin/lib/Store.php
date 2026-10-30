@@ -9,20 +9,19 @@ final class Store
     public function __construct(?string $dir = null)
     {
         $this->dir = rtrim($dir ?? self::defaultDir(), '/');
-        if (!is_dir($this->dir)) @mkdir($this->dir, 0700, true);
+        if ($this->dir !== '' && !is_dir($this->dir)) @mkdir($this->dir, 0700, true);
     }
 
     /** Whether the data folder is $root or lies below it. */
     public function isInside(string $root): bool
     {
         $base = $root !== '' ? realpath($root) : false;
-        $dir = realpath($this->dir);
+        $dir = $this->dir !== '' ? realpath($this->dir) : false; // realpath('') is the working directory
         return $base !== false && $dir !== false && strncmp("$dir/", "$base/", strlen($base) + 1) === 0;
     }
 
     /**
      * ~/alno-data, found exactly as public/api/anfrage.php finds it: the form endpoint writes here.
-     * Not from this file's path: on the host a docroot can be a link into another tree.
      */
     public static function defaultDir(): string
     {
@@ -34,29 +33,26 @@ final class Store
             $home = is_array($user) ? (string) $user['dir'] : '';
         }
         if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
-        if ($home === '' || !@is_dir($home)) $home = dirname(self::outerWebRoot(dirname(__DIR__, 2))); // lib/ is <docroot>/wp-admin/lib
+        // No guess from here: the code's path says nothing about where the web root ends, and a folder
+        // guessed wrongly is served to anyone. '' means unknown; setup then asks for ALNO_DATA_DIR.
+        if ($home === '' || !@is_dir($home)) return '';
         return rtrim($home, '/') . '/alno-data';
-    }
-
-    /** The admin's docroot can lie inside public_html, and what is there the public site serves. */
-    public static function outerWebRoot(string $root): string
-    {
-        return preg_match('~^(.*?/public_html)(?:/|$)~', $root, $m) ? $m[1] : $root;
     }
 
     public function path(string $rel): string
     {
+        if ($this->dir === '') throw new RuntimeException('Datenordner unbekannt');
         return $this->dir . '/' . $rel;
     }
 
     public function exists(string $rel): bool
     {
-        return is_file($this->path($rel));
+        return $this->dir !== '' && is_file($this->path($rel));
     }
 
     public function read(string $rel): ?string
     {
-        $v = @file_get_contents($this->path($rel));
+        $v = $this->dir === '' ? false : @file_get_contents($this->path($rel));
         return $v === false ? null : $v;
     }
 

@@ -167,11 +167,52 @@ test('a data folder inside the folder above the code is refused, whatever the do
     rmTree($root);
 });
 
-test('a data folder in public_html is refused when the admin docroot lies inside it', function () use ($exposed) {
+foreach (['named public_html' => 'public_html', 'under any other name, as behind a link' => 'www/users/x'] as $name => $web) {
+    test("a data folder in the site's web root is refused when the admin docroot lies inside it: $name", function () use ($exposed, $web) {
+        $root = tmpDir('alno-root');
+        mkdir("$root/$web/admin-alno", 0755, true);
+        exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/$web/admin-alno/wp-admin"));
+        $exposed("$root/$web/admin-alno", "$root/$web/alno-data");
+        rmTree($root);
+    });
+}
+test('a linked public_html as the document root changes nothing', function () use ($exposed) {
     $root = tmpDir('alno-root');
-    mkdir("$root/public_html/admin-alno", 0755, true);
-    exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/public_html/admin-alno/wp-admin"));
-    $exposed("$root/public_html/admin-alno", "$root/public_html/alno-data");
+    mkdir("$root/www/x/admin-alno", 0755, true);
+    exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/www/x/admin-alno/wp-admin"));
+    mkdir("$root/home");
+    symlink("$root/www/x", "$root/home/public_html");
+    $exposed("$root/home/public_html/admin-alno", "$root/home/public_html/alno-data");
+    rmTree($root);
+});
+test('a data folder beside the site is fine', function () use ($post, $form) {
+    $root = tmpDir('alno-root');
+    mkdir("$root/www/x/admin-alno", 0755, true);
+    exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/www/x/admin-alno/wp-admin"));
+    $gh = new Env(false);
+    $admin = new Server(['-t', "$root/www/x/admin-alno"], ['ALNO_DATA_DIR' => "$root/www/alno-data", 'ALNO_GITHUB_API' => "http://127.0.0.1:{$gh->gh->port}"]);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    eq($c->get('session')['json']['checks']['dataOutside'], true);
+    $admin->stop();
+    $gh->stop();
+    rmTree($root);
+});
+test('with no home to be found setup asks for ALNO_DATA_DIR, and no folder appears', function () use ($post, $form) {
+    $root = tmpDir('alno-root');
+    mkdir("$root/www/x/admin-alno", 0755, true);
+    exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/www/x/admin-alno/wp-admin"));
+    file_put_contents("$root/prep.php", '<?php putenv("HOME"); putenv("ALNO_DATA_DIR");');
+    $gh = new Env(false);
+    $admin = new Server(['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$root/prep.php", '-t', "$root/www/x/admin-alno"], ['ALNO_GITHUB_API' => "http://127.0.0.1:{$gh->gh->port}"]);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    eq($c->get('session')['json']['checks']['dataOutside'] ?? null, false);
+    $r = $post($c, $form());
+    $admin->stop();
+    $gh->stop();
+    eq($r['status'], 422, $r['body']);
+    eq($r['json']['error'], 'data_dir');
+    has($r['body'], 'ALNO_DATA_DIR');
+    eq((string) shell_exec('find ' . escapeshellarg($root) . " -name 'alno-data*'"), '');
     rmTree($root);
 });
 

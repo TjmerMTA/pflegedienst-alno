@@ -293,11 +293,15 @@ final class Api
 
     // ---------------- setup, login ----------------
 
-    /** The data folder holds the token and the submissions: no URL may reach it. */
+    /**
+     * The data folder holds the token and the submissions: no URL may reach it. The admin's docroot
+     * lies inside the site's, whatever either is called or linked to, so its parent is a web root too.
+     */
     private function dataExposed(): bool
     {
+        if ($this->store->dir === '') return true;
         foreach ([(string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), dirname(__DIR__, 2)] as $root) {
-            if ($this->store->isInside($root) || $this->store->isInside(Store::outerWebRoot($root))) return true;
+            if ($this->store->isInside($root) || $this->store->isInside(dirname($root))) return true;
         }
         return false;
     }
@@ -368,7 +372,7 @@ final class Api
     private function setup(): void
     {
         $this->checkLoginNonce();
-        if ($this->dataExposed()) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Root. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb setzen.');
+        if ($this->dataExposed()) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb von public_html setzen.');
         $b = self::readJson(65536);
         $token = trim((string) ($b['token'] ?? ''));
         $name = strtolower(trim((string) ($b['user'] ?? '')));

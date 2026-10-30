@@ -20,9 +20,9 @@ file_put_contents("$www/api/anfrage-site.json", json_encode(['email' => 'info@si
 file_put_contents("$tmp/sendmail", "#!/bin/sh\nn=\$(ls '$mails' | wc -l | tr -d ' ')\n{ echo \"ARGS: \$*\"; cat; } > '$mails/'\$n.eml\n[ -f '$tmp/mail-fails' ] && exit 1\nexit 0\n");
 chmod("$tmp/sendmail", 0755);
 
-function serve(string $docroot, string $dataDir, int $port): mixed {
+function serve(string $docroot, string $dataDir, int $port, array $php = []): mixed {
   global $tmp;
-  $cmd = [PHP_BINARY, '-S', "127.0.0.1:$port", '-t', $docroot, '-d', "sendmail_path=$tmp/sendmail -t -i", '-d', 'post_max_size=64M', '-d', 'opcache.enable=0',
+  $cmd = [PHP_BINARY, ...$php, '-S', "127.0.0.1:$port", '-t', $docroot, '-d', "sendmail_path=$tmp/sendmail -t -i", '-d', 'post_max_size=64M', '-d', 'opcache.enable=0',
     '-d', 'upload_max_filesize=20M', '-d', 'display_errors=0', '-d', 'log_errors=1', '-d', "error_log=$tmp/php-errors.log"];
   $p = proc_open($cmd, [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes, null, ['ALNO_DATA_DIR' => $dataDir, 'PATH' => getenv('PATH')]);
   for ($i = 0; $i < 100; $i++) { $s = @fsockopen('127.0.0.1', $port); if ($s) { fclose($s); return $p; } usleep(50000); }
@@ -268,6 +268,20 @@ t('data directory inside the web root: fails closed', function () {
   proc_terminate($p);
   is_same($r['status'], 500); is_same($r['json']['ok'] ?? null, false);
   ok(!is_dir("$root/data/anfragen"), 'data written into the web root');
+  is_same(count(mails()), 0);
+});
+t('no home to be found and no ALNO_DATA_DIR: fails closed, no guess at a folder', function () {
+  global $tmp;
+  $root = "$tmp/hosted/users/x"; mkdir("$root/api", 0777, true);
+  copy(ROOT . '/public/api/anfrage.php', "$root/api/anfrage.php");
+  copy("$tmp/www/api/anfrage-site.json", "$root/api/anfrage-site.json");
+  file_put_contents("$tmp/prep.php", '<?php putenv("HOME"); putenv("ALNO_DATA_DIR");');
+  $p = serve($root, '', PORT + 9, ['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$tmp/prep.php"]);
+  $r = post(rueckruf(), [], [], PORT + 9);
+  proc_terminate($p);
+  is_same($r['status'], 500); is_same($r['json']['ok'] ?? null, false);
+  ok(!is_dir("$tmp/hosted/users/alno-data"), 'a folder above the web root was guessed');
+  ok(!is_dir("$root/alno-data"), 'a folder in the web root');
   is_same(count(mails()), 0);
 });
 t('storage impossible: 500 and no mail', function () {

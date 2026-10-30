@@ -58,7 +58,8 @@ function data_dir(): string {
     $home = is_array($user) ? (string) $user['dir'] : '';
   }
   if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
-  if ($home === '' || !@is_dir($home)) $home = dirname(web_root());
+  // Без догадок: родитель корня сайта не обязан быть вне сайта. Пусто — хранить негде, и форма честно отвечает ошибкой
+  if ($home === '' || !@is_dir($home)) return '';
   return rtrim($home, '/') . '/alno-data';
 }
 
@@ -410,7 +411,7 @@ function handle(): never {
   if (!same_origin()) fail(403, 'origin', 'Anfrage nicht erlaubt.');
 
   $data = data_dir();
-  if (inside_web_root($data)) throw new RuntimeException('data directory inside the web root');
+  if ($data === '' || inside_web_root($data)) throw new RuntimeException('data directory unknown or inside the web root');
   prepare_storage($data);
   $config = load_config($data);
   $salt = salt($data);
