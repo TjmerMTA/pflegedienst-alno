@@ -48,9 +48,23 @@ export function bodyImagePath(md) {
 }
 
 // The Markdown of a chosen image. Alt text keeps to what the closed form allows.
+export const imageAlt = (alt) => String(alt).replace(/[[\]`\\]/g, '').replace(/\s+/g, ' ').trim();
 export function imageMarkdown(path, alt) {
   const src = IMG_PREFIX + path;
-  return `![${String(alt).replace(/[[\]`\\]/g, '').replace(/\s+/g, ' ').trim()}](${/[\s()]/.test(src) ? `<${src}>` : src})`;
+  return `![${imageAlt(alt)}](${/[\s()]/.test(src) ? `<${src}>` : src})`;
+}
+
+// Before a line of text, as in the Text tab with the cursor before `## Titel`, an image would swallow it.
+export const imageAtCursor = (md, before, after) => md + (/(^|\n)$/.test(before) && /^[^\n]/.test(after) ? '\n\n' : '');
+
+// What contenteditable wrote, in the form the converters take. Only the text changes: data-md keeps its bytes.
+export const visualSource = (s) => s.replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>').replace(/<[^>]*>|&nbsp;|\u00a0/g, (m) => (m[0] === '<' ? m : ' '));
+
+// A paste into a Markdown body. data-md becomes Markdown as it stands, so it has to be one image and nothing
+// else; which images a text may hold stays the server's decision on save.
+export function pastedMarkdownHtml(html) {
+  return sanitizeHtml(html.replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>'), MD_VISUAL_TAGS)
+    .replace(/<img data-md="([^"]*)" alt="[^"]*">/g, (m, md) => { const s = decodeEntities(md); return s.match(MD_IMAGE)?.[0] === s ? m : ''; });
 }
 
 // What the server refuses as well, so it can only be a file written by hand.

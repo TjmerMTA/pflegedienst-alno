@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { markdownToHtml, htmlToMarkdown, unsupportedMarkdown, bodyImagePath, imageMarkdown, bodyImages } from '../public/wp-admin/assets/js/markdown.js';
+import { markdownToHtml, htmlToMarkdown, unsupportedMarkdown, bodyImagePath, imageMarkdown, bodyImages, imageAlt, imageAtCursor, visualSource, pastedMarkdownHtml } from '../public/wp-admin/assets/js/markdown.js';
 import { sanitizeHtml, MD_VISUAL_TAGS, MD_TAGS } from '../public/wp-admin/assets/js/rules.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -102,4 +102,36 @@ test('an image from the media modal is written in the closed form, whatever the 
   assert.equal(bodyImagePath(imageMarkdown('uploads/a.jpg', 'Foto')), 'uploads/a.jpg');
   assert.equal(bodyImagePath('![a](/bild.png)'), null);
   assert.deepEqual(bodyImages(imageMarkdown('team/a b.jpg', 'x')).length, 1);
+});
+
+test('an alt the closed form empties counts as no alt, so the modal can refuse it', () => {
+  assert.equal(imageAlt('[]'), '');
+  assert.equal(imageAlt(' ` \\ '), '');
+  assert.equal(imageAlt(' Foto [2026] '), 'Foto 2026');
+});
+
+test('in the Text tab an image stays out of the line after it', () => {
+  assert.equal(imageAtCursor('M', '', '## Titel'), 'M\n\n');
+  assert.equal(imageAtCursor('M', 'a\n\n', '## Titel'), 'M\n\n');
+  assert.equal(imageAtCursor('M', 'Text ', 'mehr'), 'M');
+  assert.equal(imageAtCursor('M', '', ''), 'M');
+  assert.equal(imageAtCursor('M', 'a\n', '\nb'), 'M');
+});
+
+test('only text changes on the way out of Visuell: an image keeps a no-break space', () => {
+  assert.equal(visualSource('<div>a&nbsp;b c</div>'), '<p>a b c</p>');
+  assert.equal(visualSource('<img data-md="![a&nbsp;b](c.jpg)" alt="a&nbsp;b">x&nbsp;y'), '<img data-md="![a&nbsp;b](c.jpg)" alt="a&nbsp;b">x y');
+  const md = '![a b](../../assets/img/c.jpg)';
+  assert.equal(htmlToMarkdown(visualSource(markdownToHtml(md).replace(/ /g, '&nbsp;'))).trimEnd(), md);
+});
+
+test('a paste keeps images whole and lets nothing but an image in through data-md', () => {
+  const md = '![Team &amp; &quot;Co&quot;](../../assets/img/a.jpg)';
+  const img = `<img data-md="${md}" alt="Team">`;
+  assert.equal(pastedMarkdownHtml(`<meta charset="utf-8"><!--StartFragment--><p style="color:red">Text <img style="x" src="http://x/y.jpg" data-md="${md}" alt="Team"></p><!--EndFragment-->`), `<p>Text ${img}</p>`);
+  assert.equal(htmlToMarkdown(pastedMarkdownHtml(img)).trimEnd(), '![Team & "Co"](../../assets/img/a.jpg)');
+  assert.equal(pastedMarkdownHtml('<img data-md="![a](/bild.png)" alt="">'), '<img data-md="![a](/bild.png)" alt="">', 'the server decides on what the text may hold');
+  for (const bad of ['# Titel', 'x ![a](b.jpg)', '![a](b.jpg) &lt;script&gt;', '![a](b.jpg)![c](d.jpg)', 'x']) assert.equal(pastedMarkdownHtml(`<img data-md="${bad}" alt="a">`), '', bad);
+  assert.equal(pastedMarkdownHtml('<img src="https://evil.example/x.png" onerror="alert(1)">'), '');
+  assert.equal(pastedMarkdownHtml('<div>a</div><script>alert(1)</script>'), '<p>a</p>');
 });

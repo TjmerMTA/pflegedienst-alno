@@ -1,7 +1,7 @@
 // Browser behaviour of the screens: metaboxes, counters, classic editor, media modal, lists, uploads,
 // status polling. Document listeners are installed once; mount() wires up each freshly rendered screen.
-import { sanitizeHtml, safeHref, slugify, PAGE_TAGS, MD_TAGS, MD_VISUAL_TAGS } from './rules.js';
-import { markdownToHtml, htmlToMarkdown, bodyImagePath, imageMarkdown } from './markdown.js';
+import { sanitizeHtml, safeHref, slugify, PAGE_TAGS, MD_VISUAL_TAGS } from './rules.js';
+import { markdownToHtml, htmlToMarkdown, bodyImagePath, imageMarkdown, imageAlt, imageAtCursor, visualSource, pastedMarkdownHtml } from './markdown.js';
 import { thumbUrl } from './views/fields.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -50,7 +50,7 @@ function initEditor(wrap) {
     $$('img[data-md]', visual).forEach(showImage);
   };
   const fromVisual = () => {
-    const raw = visual.innerHTML.replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>').replace(/&nbsp;| /g, ' ');
+    const raw = visualSource(visual.innerHTML);
     area.value = format === 'markdown' ? htmlToMarkdown(raw) : sanitizeHtml(raw, PAGE_TAGS).replace(/<p>\s*(<br>)?\s*<\/p>/g, '');
     area.dispatchEvent(new Event('change', { bubbles: true }));
   };
@@ -66,14 +66,15 @@ function initEditor(wrap) {
   function insertImage(im, alt) {
     const md = imageMarkdown(im.path, alt);
     if (mode() === 'text') {
-      area.setRangeText(md, area.selectionStart, area.selectionEnd, 'end');
+      const { selectionStart: from, selectionEnd: to, value } = area;
+      area.setRangeText(imageAtCursor(md, value.slice(0, from), value.slice(to)), from, to, 'end');
       area.focus();
       area.dispatchEvent(new Event('change', { bubbles: true }));
       return;
     }
     const img = document.createElement('img');
     img.dataset.md = md;
-    img.alt = alt;
+    img.alt = imageAlt(alt);
     showImage(img);
     if (cursor && visual.contains(cursor.startContainer) && cursor.startContainer !== visual) {
       cursor.deleteContents();
@@ -93,7 +94,7 @@ function initEditor(wrap) {
     cursor = after.cloneRange();
     fromVisual();
   }
-  $('.js-add-media', wrap)?.addEventListener('click', () => openModal(null, insertImage));
+  $('.js-add-media', wrap)?.addEventListener('click', (e) => openModal(null, insertImage, e.currentTarget));
   const setMode = (m) => {
     if (m === 'visual' && wrap.dataset.visual === 'off') return;
     if (m === mode()) return;
@@ -111,9 +112,10 @@ function initEditor(wrap) {
     if (!data) return;
     e.preventDefault();
     const htmlData = data.getData('text/html');
-    const clean = htmlData ? sanitizeHtml(htmlData.replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>'), format === 'markdown' ? MD_TAGS : PAGE_TAGS)
+    const clean = htmlData ? (format === 'markdown' ? pastedMarkdownHtml(htmlData) : sanitizeHtml(htmlData.replace(/<div\b[^>]*>/gi, '<p>').replace(/<\/div>/gi, '</p>'), PAGE_TAGS))
       : data.getData('text/plain').split(/\n{2,}/).map((p) => `<p>${p.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>')}</p>`).join('');
     document.execCommand('insertHTML', false, clean);
+    $$('img[data-md]:not([src])', visual).forEach(showImage);
     fromVisual();
   });
   $$('.wp-switch-editor', wrap).forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
@@ -211,6 +213,7 @@ function initEditor(wrap) {
 let modal = null;
 let modalTarget = null;
 let modalInsert = null; // from the editor: what to do with the chosen image and its alt text
+let modalOpener = null;
 let modalSelected = null;
 let mediaCache = null;
 
@@ -257,10 +260,11 @@ function modalTab(tab) {
   $('.media-tab-library', modal).hidden = tab !== 'library';
 }
 
-async function openModal(field, insert = null) {
+async function openModal(field, insert = null, opener = null) {
   if (!modal) return;
   modalTarget = field;
   modalInsert = insert;
+  modalOpener = opener;
   $('#media-modal-title', modal).textContent = opts.t(insert ? 'modal.insert.title' : 'modal.title');
   $('.js-modal-choose', modal).textContent = opts.t(insert ? 'modal.insert.choose' : 'modal.choose');
   $('.media-alt', modal).hidden = !insert;
@@ -270,16 +274,17 @@ async function openModal(field, insert = null) {
   $('.modal-grid', modal).replaceChildren(Object.assign(document.createElement('li'), { className: 'no-media', textContent: opts.t('js.loading') }));
   await loadMedia(true);
   renderModalGrid($('.js-modal-filter', modal).value);
-  selectInModal($('.js-image-value', field).value);
+  selectInModal(field ? $('.js-image-value', field).value : '');
   $('.js-modal-filter', modal).focus();
 }
 function closeModal() {
   if (!modal) return;
   modal.hidden = true;
   document.body.classList.remove('modal-open');
-  const btn = modalTarget && $('.js-image-choose', modalTarget);
+  const btn = modalTarget ? $('.js-image-choose', modalTarget) : modalOpener;
   modalTarget = null;
   modalInsert = null;
+  modalOpener = null;
   btn?.focus();
 }
 function setImage(field, im) {
@@ -305,10 +310,11 @@ function useSelected() {
   if (!modalSelected) return;
   if (modalInsert) {
     const input = $('.js-modal-alt', modal);
-    const alt = input.value.trim();
+    const alt = imageAlt(input.value);
     $('.js-modal-alt-error', modal).hidden = !!alt;
     if (!alt) { input.focus(); return; }
     modalInsert(modalSelected, alt);
+    modalOpener = null; // the cursor is in the editor now
   } else if (modalTarget) setImage(modalTarget, modalSelected);
   else return;
   closeModal();
