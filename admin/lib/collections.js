@@ -177,7 +177,7 @@ export function applyForm(coll, oldEntries, input, ctx = {}) {
         break;
       }
       case 'strings': {
-        const items = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : (typeof raw === 'string' && raw ? [raw] : []));
+        const items = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.entries(raw).filter(([k]) => k !== '_').map(([, x]) => x) : (typeof raw === 'string' && raw ? [raw] : []));
         const list = items.map((x) => clean(typeof x === 'object' ? x?.text : x)).filter(Boolean);
         if (f.required && !list.length) err(f, 'mindestens ein Eintrag');
         if (list.some(looksLikeHtml)) err(f, 'HTML ist hier nicht erlaubt');

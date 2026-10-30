@@ -85,6 +85,11 @@ export function createAuth({ dataDir, sessionIdleMs = 8 * 3600e3, now = () => Da
     });
   }
 
+  async function checkPassword(name, password) {
+    const users = await loadUsers();
+    return users[name] ? verifyPassword(String(password || ''), users[name].hash) : false;
+  }
+
   async function getUser(name) {
     const users = await loadUsers();
     return users[name] ? { name, lang: users[name].lang || 'de', created: users[name].created } : null;
@@ -185,7 +190,7 @@ export function createAuth({ dataDir, sessionIdleMs = 8 * 3600e3, now = () => Da
     });
   }
 
-  return { addUser, setPassword, deleteUser, getUser, listUsers, setLang, login, createSession, getSession, destroySession, lockedFor };
+  return { addUser, setPassword, checkPassword, deleteUser, getUser, listUsers, setLang, login, createSession, getSession, destroySession, lockedFor };
 }
 
 export function csrfEqual(a, b) {

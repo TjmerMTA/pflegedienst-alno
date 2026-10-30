@@ -144,7 +144,7 @@ function setFieldValue(f, v, p, errors) {
       return;
     }
     case 'list': {
-      const items = Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : (v === '' ? [] : null));
+      const items = Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.entries(v).filter(([k]) => k !== '_').map(([, x]) => x) : (v === '' ? [] : null));
       if (!items) { errors.push({ path: p, msg: 'ungültige Liste' }); return; }
       const old = Array.isArray(f.value) ? f.value : [];
       f.value = items.map((item, i) => {

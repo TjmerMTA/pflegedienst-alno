@@ -26,6 +26,8 @@ export function loadConfig(env = process.env) {
     siteUrl: (env.ADMIN_SITE_URL || env.SITE_URL || 'https://dev.siteboosty.com').replace(/\/+$/, ''),
     // Set when the admin runs behind an https reverse proxy (nginx): trusts X-Forwarded-Proto/-For.
     trustProxy: bool(env.ADMIN_TRUST_PROXY, false),
+    // Extra Host headers accepted besides 127.0.0.1/localhost (e.g. the nginx server_name). Protects against DNS rebinding.
+    allowedHosts: String(env.ADMIN_ALLOWED_HOSTS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
     cookieSecure: bool(env.ADMIN_COOKIE_SECURE, false),
     uploadMaxBytes: Number(env.ADMIN_UPLOAD_MAX_MB || 10) * 1024 * 1024,
     buildTimeoutMs: Number(env.ADMIN_BUILD_TIMEOUT_S || 900) * 1000,
