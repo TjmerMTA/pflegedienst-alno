@@ -1,11 +1,11 @@
 // Единый источник данных компании (NAP) — используется в шапке, подвале, Schema.org и формах.
 // Значения — в src/content/pages/_global.json (группа contact, правится в админке), здесь только тонкий слой.
 // Всё, что помечено TODO, нужно подтвердить у клиента до запуска.
-import { getGlobal, getPage, escText } from '../lib/content';
+import { getGlobal, getPage, escText, jsonForScript } from '../lib/content';
 
 // Страницы и компоненты, которые уже импортируют site.ts, берут это отсюда: лишний import в .astro
 // сдвигает порядок <style> в собранном HTML (Astro сортирует CSS по позиции импорта)
-export { getGlobal, getPage, escText };
+export { getGlobal, getPage, escText, jsonForScript };
 
 const g = getGlobal();
 const c = (id: string) => g.text(`contact.${id}`);

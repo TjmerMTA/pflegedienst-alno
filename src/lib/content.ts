@@ -3,6 +3,8 @@
 // значения правит админка, и сайт обязан собраться с любым значением, которое она может сохранить.
 import type { ImageMetadata } from 'astro';
 
+export { jsonForScript } from './json-for-script.mjs';
+
 type FieldType = 'text' | 'textarea' | 'richtext' | 'image' | 'list';
 interface Field {
   id: string;

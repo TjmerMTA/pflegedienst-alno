@@ -35,7 +35,7 @@ before(async () => {
   root = mkdtempSync(join(tmpdir(), 'content-test-'));
   mkdirSync(join(root, 'src/content/pages'), { recursive: true });
   mkdirSync(join(root, 'src/assets/img'), { recursive: true });
-  cpSync('src/lib/content.ts', join(root, 'src/lib/content.ts'));
+  cpSync('src/lib', join(root, 'src/lib'), { recursive: true });
   writeFileSync(join(root, 'src/assets/img/a.jpg'), 'jpg');
   writeFileSync(join(root, 'src/content/pages/_global.json'), page('Allgemein', [
     { id: 'contact', label: 'Kontakt', fields: [{ id: 'street', label: 'Straße', type: 'text', value: 'Teststraße 1' }] },
