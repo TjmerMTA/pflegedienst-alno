@@ -2,31 +2,33 @@
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import { SITE } from '../config/site';
+import { getPage } from '../lib/content';
+
+// Тексты — в src/content/pages/impressum.json (правятся в админке)
+const p = getPage('impressum');
 ---
-<Base title="Impressum" description="Impressum des Pflegedienstes ALNO GmbH, Sulpkestraße 50, 44269 Dortmund – Angaben gemäß § 5 DDG.">
-  <PageHero title="Impressum" crumbs={[{ label: 'Impressum' }]} />
+<Base title={p.text('seo.title')} description={p.text('seo.description')}>
+  <PageHero title={p.text('hero.title')} crumbs={[{ label: p.text('hero.crumb') }]} />
   <section class="section">
     <div class="wrap prose">
-      <h2>Angaben gemäß § 5 DDG</h2>
-      <p>{SITE.name}<br />{SITE.street}<br />{SITE.zip} {SITE.city}</p>
-      <p>Handelsregister: {SITE.hrb}<br />Registergericht: {SITE.court}</p>
-      <p><b>Vertreten durch:</b><br />{SITE.ceo} (Geschäftsführerin)</p>
-      <h2>Kontakt</h2>
-      <p>Telefon: <a href={SITE.phoneHref}>{SITE.phone}</a><br />Telefax: {SITE.fax}<br />E-Mail: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
-      <h2>Aufsichtsbehörde</h2>
-      <p>WTG-Behörde der Stadt Dortmund (Heimaufsicht)<br /><span class="muted">[Anschrift vom Kunden zu bestätigen]</span></p>
-      <h2>Berufsbezeichnung und berufsrechtliche Regelungen</h2>
-      <p>Die Pflegefachkräfte führen die Berufsbezeichnung „Pflegefachfrau/Pflegefachmann“, „Gesundheits- und Krankenpfleger/in“ bzw. „Altenpfleger/in“, verliehen in der Bundesrepublik Deutschland. Es gelten das Pflegeberufegesetz (PflBG) sowie das SGB V und SGB XI.</p>
-      <h2>Angaben zur Berufshaftpflichtversicherung</h2>
-      <p><span class="muted">[Name und Sitz des Versicherers vom Kunden zu ergänzen]</span><br />Geltungsraum der Versicherung: Deutschland</p>
-      <h2>Verbraucherstreitbeilegung</h2>
-      <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
-      <h2>Haftung für Inhalte</h2>
-      <p>Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Bei Bekanntwerden von Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
-      <h2>Haftung für Links</h2>
-      <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.</p>
-      <h2>Urheberrecht</h2>
-      <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+      <h2>{p.text('angaben.title')}</h2>
+      <Fragment set:html={p.html('angaben.text')} />
+      <h2>{p.text('kontakt.title')}</h2>
+      <p>{p.text('kontakt.phoneLabel')} <a href={SITE.phoneHref}>{SITE.phone}</a><br />{p.text('kontakt.faxLabel')} {SITE.fax}<br />{p.text('kontakt.emailLabel')} <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+      <h2>{p.text('aufsicht.title')}</h2>
+      <p>{p.text('aufsicht.text')}<br /><span class="muted">{p.text('aufsicht.note')}</span></p>
+      <h2>{p.text('beruf.title')}</h2>
+      <Fragment set:html={p.html('beruf.text')} />
+      <h2>{p.text('versicherung.title')}</h2>
+      <p><span class="muted">{p.text('versicherung.note')}</span><br />{p.text('versicherung.text')}</p>
+      <h2>{p.text('streit.title')}</h2>
+      <Fragment set:html={p.html('streit.text')} />
+      <h2>{p.text('inhalte.title')}</h2>
+      <Fragment set:html={p.html('inhalte.text')} />
+      <h2>{p.text('links.title')}</h2>
+      <Fragment set:html={p.html('links.text')} />
+      <h2>{p.text('urheber.title')}</h2>
+      <Fragment set:html={p.html('urheber.text')} />
     </div>
   </section>
 </Base>

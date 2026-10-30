@@ -1,0 +1,236 @@
+{
+  "label": "Impressum",
+  "url": "/impressum/",
+  "order": 90,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Impressum"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Impressum des Pflegedienstes ALNO GmbH, {{street}}, {{zip}} {{city}} – Angaben gemäß § 5 DDG."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Seitenkopf",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Impressum"
+        },
+        {
+          "id": "crumb",
+          "label": "Name in der Brotkrumen-Navigation",
+          "type": "text",
+          "value": "Impressum"
+        }
+      ]
+    },
+    {
+      "id": "angaben",
+      "label": "Angaben zum Unternehmen",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Angaben gemäß § 5 DDG"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>{{name}}<br>{{street}}<br>{{zip}} {{city}}</p><p>Handelsregister: {{hrb}}<br>Registergericht: {{court}}</p><p><b>Vertreten durch:</b><br>{{ceo}} (Geschäftsführerin)</p>"
+        }
+      ]
+    },
+    {
+      "id": "kontakt",
+      "label": "Kontakt",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Kontakt"
+        },
+        {
+          "id": "phoneLabel",
+          "label": "Bezeichnung Telefon",
+          "type": "text",
+          "help": "Die Nummern und die E-Mail-Adresse kommen aus „Allgemein → Kontaktdaten“",
+          "value": "Telefon:"
+        },
+        {
+          "id": "faxLabel",
+          "label": "Bezeichnung Telefax",
+          "type": "text",
+          "value": "Telefax:"
+        },
+        {
+          "id": "emailLabel",
+          "label": "Bezeichnung E-Mail",
+          "type": "text",
+          "value": "E-Mail:"
+        }
+      ]
+    },
+    {
+      "id": "aufsicht",
+      "label": "Aufsichtsbehörde",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Aufsichtsbehörde"
+        },
+        {
+          "id": "text",
+          "label": "Behörde",
+          "type": "text",
+          "value": "WTG-Behörde der Stadt Dortmund (Heimaufsicht)"
+        },
+        {
+          "id": "note",
+          "label": "Anschrift (graue Zeile)",
+          "type": "text",
+          "value": "[Anschrift vom Kunden zu bestätigen]"
+        }
+      ]
+    },
+    {
+      "id": "beruf",
+      "label": "Berufsbezeichnung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Berufsbezeichnung und berufsrechtliche Regelungen"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Die Pflegefachkräfte führen die Berufsbezeichnung „Pflegefachfrau/Pflegefachmann“, „Gesundheits- und Krankenpfleger/in“ bzw. „Altenpfleger/in“, verliehen in der Bundesrepublik Deutschland. Es gelten das Pflegeberufegesetz (PflBG) sowie das SGB V und SGB XI.</p>"
+        }
+      ]
+    },
+    {
+      "id": "versicherung",
+      "label": "Berufshaftpflichtversicherung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Angaben zur Berufshaftpflichtversicherung"
+        },
+        {
+          "id": "note",
+          "label": "Versicherer (graue Zeile)",
+          "type": "text",
+          "value": "[Name und Sitz des Versicherers vom Kunden zu ergänzen]"
+        },
+        {
+          "id": "text",
+          "label": "Geltungsraum",
+          "type": "text",
+          "value": "Geltungsraum der Versicherung: Deutschland"
+        }
+      ]
+    },
+    {
+      "id": "streit",
+      "label": "Verbraucherstreitbeilegung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Verbraucherstreitbeilegung"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>"
+        }
+      ]
+    },
+    {
+      "id": "inhalte",
+      "label": "Haftung für Inhalte",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Haftung für Inhalte"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Bei Bekanntwerden von Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>"
+        }
+      ]
+    },
+    {
+      "id": "links",
+      "label": "Haftung für Links",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Haftung für Links"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.</p>"
+        }
+      ]
+    },
+    {
+      "id": "urheber",
+      "label": "Urheberrecht",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Urheberrecht"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "richtext",
+          "value": "<p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>"
+        }
+      ]
+    }
+  ]
+}
