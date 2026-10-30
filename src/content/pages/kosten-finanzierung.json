@@ -1,0 +1,418 @@
+{
+  "label": "Kosten & Finanzierung",
+  "url": "/kosten-finanzierung/",
+  "order": 4,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Kosten & Finanzierung der ambulanten Pflege"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Was kostet ein Pflegedienst in Dortmund? Pflegegeld, Pflegesachleistung, Entlastungsbetrag und Verhinderungspflege 2026 im Überblick – verständlich erklärt vom Pflegedienst ALNO."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Seitenkopf",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Kosten & Finanzierung"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Die gute Nachricht zuerst: Ambulante Pflege wird zum größten Teil von Pflege- und Krankenkasse bezahlt. Wir rechnen direkt mit den Kassen ab und zeigen Ihnen, welche Ansprüche Sie haben."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in der Brotkrumen-Navigation",
+          "type": "text",
+          "value": "Kosten & Finanzierung"
+        }
+      ]
+    },
+    {
+      "id": "cards",
+      "label": "Wer zahlt was (Karten)",
+      "fields": [
+        {
+          "id": "items",
+          "label": "Karten",
+          "type": "list",
+          "itemLabel": "Karte",
+          "min": 1,
+          "max": 6,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Überschrift",
+              "type": "text"
+            },
+            {
+              "id": "before",
+              "label": "Text vor dem fett gedruckten Wort",
+              "type": "text"
+            },
+            {
+              "id": "bold",
+              "label": "Fett gedrucktes Wort",
+              "type": "text"
+            },
+            {
+              "id": "after",
+              "label": "Text nach dem fett gedruckten Wort",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "icon": "cross",
+              "title": "Behandlungspflege",
+              "before": "Zahlt die",
+              "bold": "Krankenkasse",
+              "after": "– auf ärztliche Verordnung, auch ohne Pflegegrad."
+            },
+            {
+              "icon": "heart",
+              "title": "Grundpflege",
+              "before": "Zahlt die",
+              "bold": "Pflegekasse",
+              "after": "über die Pflegesachleistung – ab Pflegegrad 2."
+            },
+            {
+              "icon": "home",
+              "title": "Betreuung & Haushalt",
+              "before": "Über den",
+              "bold": "Entlastungsbetrag",
+              "after": "von 131 € im Monat – schon ab Pflegegrad 1."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "table",
+      "label": "Tabelle: Monatliche Beträge",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Leistungen der Pflegeversicherung"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Monatliche Beträge nach Pflegegrad"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Übersicht der wichtigsten Leistungen bei häuslicher Pflege (Stand 2026)."
+        },
+        {
+          "id": "colGrad",
+          "label": "Spalte 1: Überschrift",
+          "type": "text",
+          "value": "Pflegegrad"
+        },
+        {
+          "id": "colGeld",
+          "label": "Spalte 2: Überschrift",
+          "type": "text",
+          "value": "Pflegegeld"
+        },
+        {
+          "id": "colGeldSub",
+          "label": "Spalte 2: Zusatz",
+          "type": "text",
+          "value": "wenn Angehörige pflegen"
+        },
+        {
+          "id": "colSach",
+          "label": "Spalte 3: Überschrift",
+          "type": "text",
+          "value": "Pflegesachleistung"
+        },
+        {
+          "id": "colSachSub",
+          "label": "Spalte 3: Zusatz",
+          "type": "text",
+          "value": "wenn ein Pflegedienst pflegt"
+        },
+        {
+          "id": "colEnt",
+          "label": "Spalte 4: Überschrift",
+          "type": "text",
+          "value": "Entlastungsbetrag"
+        },
+        {
+          "id": "colEntSub",
+          "label": "Spalte 4: Zusatz",
+          "type": "text",
+          "value": "zweckgebunden"
+        },
+        {
+          "id": "rows",
+          "label": "Zeilen",
+          "type": "list",
+          "help": "Stand: Werte seit 01.01.2025 (Pflegeunterstützungs- und -entlastungsgesetz). Jährlich prüfen. Die Beträge des Pflege-Rechners stehen auf der Seite „Pflege-Rechner“.",
+          "itemLabel": "Zeile",
+          "min": 1,
+          "max": 8,
+          "fields": [
+            {
+              "id": "grad",
+              "label": "Pflegegrad",
+              "type": "text"
+            },
+            {
+              "id": "geld",
+              "label": "Pflegegeld",
+              "type": "text"
+            },
+            {
+              "id": "sach",
+              "label": "Pflegesachleistung",
+              "type": "text"
+            },
+            {
+              "id": "ent",
+              "label": "Entlastungsbetrag",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "grad": "Pflegegrad 1",
+              "geld": "–",
+              "sach": "–",
+              "ent": "131 €"
+            },
+            {
+              "grad": "Pflegegrad 2",
+              "geld": "347 €",
+              "sach": "796 €",
+              "ent": "131 €"
+            },
+            {
+              "grad": "Pflegegrad 3",
+              "geld": "599 €",
+              "sach": "1.497 €",
+              "ent": "131 €"
+            },
+            {
+              "grad": "Pflegegrad 4",
+              "geld": "800 €",
+              "sach": "1.859 €",
+              "ent": "131 €"
+            },
+            {
+              "grad": "Pflegegrad 5",
+              "geld": "990 €",
+              "sach": "2.299 €",
+              "ent": "131 €"
+            }
+          ]
+        },
+        {
+          "id": "note",
+          "label": "Hinweis unter der Tabelle",
+          "type": "textarea",
+          "value": "Angaben ohne Gewähr. Eine individuelle Berechnung erhalten Sie in unserem kostenlosen Beratungsgespräch."
+        }
+      ]
+    },
+    {
+      "id": "calc",
+      "label": "Hinweis auf den Pflege-Rechner",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Pflege-Rechner: Was zahlt die Pflegekasse?"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "value": "Pflegegrad wählen, Leistungen zusammenstellen – und sofort sehen, was die Kasse übernimmt und was Sie selbst zahlen."
+        },
+        {
+          "id": "button",
+          "label": "Button",
+          "type": "text",
+          "value": "Jetzt berechnen"
+        }
+      ]
+    },
+    {
+      "id": "prose",
+      "label": "Weitere Kostenträger",
+      "fields": [
+        {
+          "id": "verhinderungTitle",
+          "label": "Verhinderungspflege: Überschrift",
+          "type": "text",
+          "value": "Verhinderungs- und Kurzzeitpflege"
+        },
+        {
+          "id": "verhinderungBefore",
+          "label": "Verhinderungspflege: Text vor dem fett gedruckten Teil",
+          "type": "textarea",
+          "value": "Seit dem 1. Juli 2025 gibt es einen"
+        },
+        {
+          "id": "verhinderungBold",
+          "label": "Verhinderungspflege: fett gedruckter Teil",
+          "type": "text",
+          "value": "gemeinsamen Jahresbetrag von 3.539 €"
+        },
+        {
+          "id": "verhinderungAfter",
+          "label": "Verhinderungspflege: Text nach dem fett gedruckten Teil",
+          "type": "textarea",
+          "value": "für Verhinderungs- und Kurzzeitpflege (ab Pflegegrad 2). Sie entscheiden flexibel, wofür Sie das Budget einsetzen – zum Beispiel für stundenweise Entlastung durch unseren Pflegedienst. Mehr dazu unter"
+        },
+        {
+          "id": "verhinderungLink",
+          "label": "Verhinderungspflege: Linktext",
+          "type": "text",
+          "help": "Führt zur Leistung Verhinderungspflege",
+          "value": "Verhinderungspflege"
+        },
+        {
+          "id": "behandlungTitle",
+          "label": "Behandlungspflege: Überschrift",
+          "type": "text",
+          "value": "Behandlungspflege über die Krankenkasse"
+        },
+        {
+          "id": "behandlungText",
+          "label": "Behandlungspflege: Text",
+          "type": "textarea",
+          "value": "Die Kosten der medizinischen Behandlungspflege trägt die Krankenkasse, sobald eine ärztliche Verordnung vorliegt und genehmigt ist. Die Erstverordnung gilt meist 14 Tage, danach stellt der Arzt bei Bedarf eine Folgeverordnung aus."
+        },
+        {
+          "id": "beratungTitle",
+          "label": "Beratungsbesuch: Überschrift",
+          "type": "text",
+          "value": "Beratungsbesuch nach § 37.3 SGB XI"
+        },
+        {
+          "id": "beratungText",
+          "label": "Beratungsbesuch: Text",
+          "type": "textarea",
+          "value": "Wer ausschließlich Pflegegeld bezieht, muss regelmäßig einen Beratungsbesuch nachweisen. Die Kosten übernimmt die Pflegekasse."
+        },
+        {
+          "id": "beratungLink",
+          "label": "Beratungsbesuch: Linktext",
+          "type": "text",
+          "help": "Führt zur Leistung Beratungsbesuch",
+          "value": "Mehr erfahren"
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "label": "Kasten: Noch kein Pflegegrad?",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Noch kein Pflegegrad?"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "value": "Wir helfen beim Antrag und bereiten Sie auf den Besuch des Medizinischen Dienstes vor. Viele Familien bekommen dadurch deutlich mehr Unterstützung, als sie erwartet hätten."
+        },
+        {
+          "id": "button",
+          "label": "Button",
+          "type": "text",
+          "value": "Kostenlos beraten lassen"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Fragen zu Kosten",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Fragen zu Kosten"
+        },
+        {
+          "id": "items",
+          "label": "Fragen",
+          "type": "list",
+          "help": "Erscheinen auf dieser Seite und als FAQ-Daten für Google",
+          "itemLabel": "Frage",
+          "min": 0,
+          "max": 20,
+          "fields": [
+            {
+              "id": "q",
+              "label": "Frage",
+              "type": "text"
+            },
+            {
+              "id": "a",
+              "label": "Antwort",
+              "type": "richtext"
+            }
+          ],
+          "value": [
+            {
+              "q": "Muss ich beim Pflegedienst etwas zuzahlen?",
+              "a": "<p>Solange die Leistungen im Budget der Pflegesachleistung bleiben, entstehen für die Pflege keine Kosten. Nur wenn Sie mehr Leistungen wünschen, als die Kasse übernimmt, fällt ein Eigenanteil an – das besprechen wir vorher transparent mit Ihnen.</p>"
+            },
+            {
+              "q": "Kann ich Pflegegeld und Pflegedienst kombinieren?",
+              "a": "<p>Ja, über die Kombinationsleistung. Nutzen Sie z. B. nur 60 % der Sachleistung, erhalten Sie zusätzlich 40 % des Pflegegeldes ausgezahlt.</p>"
+            },
+            {
+              "q": "Wer stellt den Antrag auf einen Pflegegrad?",
+              "a": "<p>Den Antrag stellt die pflegebedürftige Person (oder ein Angehöriger mit Vollmacht) bei der Pflegekasse – ein formloser Anruf genügt. Wir helfen beim Ausfüllen und bereiten Sie auf die Begutachtung durch den Medizinischen Dienst vor.</p>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
