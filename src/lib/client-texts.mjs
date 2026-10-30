@@ -68,7 +68,7 @@ export function clientTexts() {
 const RECHNER_SOURCES = /\/src\/(components\/Rechner\.astro\?astro&type=script|config\/rechner\.ts$)/;
 const PAGE = 'pflege-rechner';
 
-const escText = (s) => s.replace(/</g, '&lt;').replace(/&(?=[#a-zA-Z0-9])/g, '&amp;');
+const escText = (s) => s.replace(/&(?=[#a-zA-Z0-9])/g, '&amp;').replace(/</g, '&lt;');
 const inTemplate = (s) => s.replace(/[\\`]|\$\{/g, '\\$&');
 
 // Сайт обязан собраться с любым значением из админки: не число — предупреждение и 0
