@@ -1,0 +1,409 @@
+{
+  "label": "Ausbildung",
+  "url": "/ausbildung/",
+  "order": 8,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "help": "Ohne „ALNO“ im Titel hängt die Seite „| Pflegedienst ALNO Dortmund“ an",
+          "required": true,
+          "max": 70,
+          "value": "Ausbildung & Praktikum in der Pflege"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 190,
+          "value": "Ausbildung zur Pflegefachfrau / zum Pflegefachmann in Dortmund beim Pflegedienst ALNO – auch Praktikum, FSJ und Quereinstieg. Mit Praxisanleitung und familiärem Team. Jetzt bewerben."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Ausbildung: Starten Sie Ihre Zukunft in der Pflege"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Pflegefachfrau / Pflegefachmann werden, ein Praktikum machen, ein FSJ absolvieren oder als Quereinsteiger/in neu anfangen – bei uns in Dortmund-Hörde."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in den Brotkrumen",
+          "type": "text",
+          "required": true,
+          "value": "Ausbildung"
+        },
+        {
+          "id": "buttonApply",
+          "label": "Button: bewerben",
+          "type": "text",
+          "required": true,
+          "value": "Jetzt bewerben"
+        },
+        {
+          "id": "buttonWays",
+          "label": "Button: Wege",
+          "type": "text",
+          "required": true,
+          "value": "Alle Wege zu uns"
+        }
+      ]
+    },
+    {
+      "id": "ways",
+      "label": "Ihre Möglichkeiten",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Ihre Möglichkeiten"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Vier Wege in die Pflege"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Egal ob direkt nach der Schule oder mitten im Berufsleben: Wir finden gemeinsam das passende Angebot."
+        },
+        {
+          "id": "items",
+          "label": "Wege",
+          "type": "list",
+          "max": 8,
+          "itemLabel": "Weg",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            },
+            {
+              "id": "tag",
+              "label": "Name im Bewerbungsformular",
+              "type": "text",
+              "required": true
+            }
+          ],
+          "value": [
+            {
+              "icon": "award",
+              "title": "Pflegefachfrau / Pflegefachmann",
+              "text": "Die generalistische Pflegeausbildung dauert 3 Jahre und verbindet Theorie an der Pflegeschule mit viel Praxis bei uns.",
+              "tag": "Ausbildung"
+            },
+            {
+              "icon": "clipboard",
+              "title": "Praktikum",
+              "text": "Sie wollen die Pflege erst kennenlernen? Im Praktikum begleiten Sie unsere Teams und sehen, wie der Alltag wirklich aussieht.",
+              "tag": "Praktikum"
+            },
+            {
+              "icon": "heart",
+              "title": "FSJ / Bundesfreiwilligendienst",
+              "text": "Ein Jahr Orientierung nach der Schule: Sie helfen mit, lernen viel und finden heraus, ob die Pflege zu Ihnen passt.",
+              "tag": "FSJ / BFD"
+            },
+            {
+              "icon": "home",
+              "title": "Quereinstieg",
+              "text": "Neuer Beruf mit Sinn: Auch mit Erfahrung aus anderen Branchen finden wir gemeinsam Ihren Weg in die Pflege.",
+              "tag": "Quereinstieg"
+            }
+          ]
+        },
+        {
+          "id": "button",
+          "label": "Link in den Karten",
+          "type": "text",
+          "required": true,
+          "value": "Dafür bewerben"
+        }
+      ]
+    },
+    {
+      "id": "training",
+      "label": "Die Pflegeausbildung",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Pflegefachfrau / Pflegefachmann"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Die generalistische Pflegeausbildung"
+        },
+        {
+          "id": "textBefore",
+          "label": "Erster Absatz: Text vor dem fetten Teil",
+          "type": "text",
+          "value": "Die Ausbildung dauert"
+        },
+        {
+          "id": "textBold",
+          "label": "Erster Absatz: fetter Teil",
+          "type": "text",
+          "value": "3 Jahre"
+        },
+        {
+          "id": "textAfter",
+          "label": "Erster Absatz: Text nach dem fetten Teil",
+          "type": "textarea",
+          "value": "und bereitet Sie auf die Pflege von Menschen aller Altersgruppen vor. Den praktischen Teil absolvieren Sie bei uns im Pflegedienst; die Theorie lernen Sie an einer Pflegeschule."
+        },
+        {
+          "id": "text2",
+          "label": "Zweiter Absatz",
+          "type": "textarea",
+          "value": "Für den theoretischen Teil arbeiten wir mit einer Pflegeschule in der Region zusammen – die Details nennen wir Ihnen gern im persönlichen Gespräch."
+        },
+        {
+          "id": "note",
+          "label": "Hinweis",
+          "type": "textarea",
+          "value": "Ausbildungsbeginn und freie Plätze besprechen wir gern persönlich mit Ihnen."
+        },
+        {
+          "id": "stages",
+          "label": "Ablauf nach Jahren",
+          "type": "list",
+          "max": 4,
+          "itemLabel": "Jahr",
+          "min": 1,
+          "fields": [
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "title": "Jahr 1",
+              "text": "Grundlagen der Pflege, erste Einsätze in unserem Pflegedienst, Orientierung im Alltag."
+            },
+            {
+              "title": "Jahr 2",
+              "text": "Mehr Verantwortung bei der Versorgung, Einsätze in weiteren Bereichen (z. B. Klinik, Pflegeheim)."
+            },
+            {
+              "title": "Jahr 3",
+              "text": "Selbstständige Pflege kleiner Touren unter Anleitung, Vorbereitung auf die Abschlussprüfung."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gets",
+      "label": "Das bekommen Sie",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Das bekommen Sie"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Was wir Auszubildenden bieten"
+        },
+        {
+          "id": "items",
+          "label": "Vorteile",
+          "type": "list",
+          "max": 8,
+          "itemLabel": "Vorteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "icon": "users",
+              "title": "Praxisanleitung",
+              "text": "Eine feste Praxisanleiterin begleitet Sie durch die Ausbildung und ist Ihre erste Ansprechpartnerin."
+            },
+            {
+              "icon": "euro",
+              "title": "Ausbildungsvergütung",
+              "text": "Sie erhalten während der gesamten Ausbildung eine angemessene Ausbildungsvergütung, die von Jahr zu Jahr steigt. Die aktuellen Beträge nennen wir Ihnen gern im Gespräch."
+            },
+            {
+              "icon": "shield",
+              "title": "Sicherer Einstieg",
+              "text": "Pflegefachkräfte werden dringend gebraucht. Mit Ihrem Abschluss haben Sie beste Chancen – gern bei uns."
+            },
+            {
+              "icon": "heart",
+              "title": "Familiäres Team",
+              "text": "Fehler dürfen passieren, Fragen sind erwünscht: Bei uns lernen Sie in einer Atmosphäre ohne Druck."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reqs",
+      "label": "Voraussetzungen",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Voraussetzungen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Das bringen Sie mit"
+        },
+        {
+          "id": "items",
+          "label": "Voraussetzungen",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Voraussetzung",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Freude am Umgang mit Menschen, Einfühlungsvermögen und Verantwortungsbewusstsein"
+            },
+            {
+              "text": "Für die Pflegefachausbildung: mindestens Mittlerer Schulabschluss oder Hauptschulabschluss mit zusätzlicher Qualifikation (z. B. Pflegehelfer-Ausbildung)"
+            },
+            {
+              "text": "Zuverlässigkeit, Teamgeist und Lernbereitschaft"
+            },
+            {
+              "text": "Gute Deutschkenntnisse (empfohlen: Niveau B2)"
+            },
+            {
+              "text": "Für Tourenbegleitung von Vorteil: Führerschein Klasse B"
+            }
+          ]
+        },
+        {
+          "id": "note",
+          "label": "Hinweis",
+          "type": "textarea",
+          "value": "Unsicher, ob es bei Ihnen passt? Rufen Sie uns an – wir klären gemeinsam, welcher Weg für Sie möglich ist."
+        }
+      ]
+    },
+    {
+      "id": "ask",
+      "label": "Fragen zur Ausbildung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Fragen zur Ausbildung?"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "help": "Darunter steht ein Button mit der Telefonnummer",
+          "value": "Wir beraten Sie gern persönlich – auch Eltern sind willkommen."
+        },
+        {
+          "id": "button",
+          "label": "Button zu den Stellen",
+          "type": "text",
+          "required": true,
+          "value": "Zu den offenen Stellen"
+        }
+      ]
+    },
+    {
+      "id": "apply",
+      "label": "Bewerbung",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Felder des Formulars: „Allgemein → Bewerbungsformular“",
+          "required": true,
+          "value": "Jetzt bewerben"
+        }
+      ]
+    }
+  ]
+}

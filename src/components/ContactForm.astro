@@ -4,12 +4,17 @@
 // rechnertermin (запрос консультации из Pflege-Rechner). Для rechner-вариантов скрипт Rechner.astro кладёт результат расчёта
 // в скрытое поле rechner_ergebnis; после успешной отправки форма шлёт событие lead-sent.
 // Защита от спама: honeypot-поле + минимальное время заполнения. Отправка — fetch на SITE.formEndpoint.
-import { SITE } from '../config/site';
+import { SITE, getGlobal } from '../config/site';
 interface Props { variant?: 'beratung' | 'rueckruf' | 'erstbegutachtung' | 'rechner' | 'rechnertermin'; id?: string }
 const { variant = 'beratung', id = 'anfrage' } = Astro.props;
 const subject = { beratung: 'Kostenlose Beratung', rueckruf: 'Rückruf-Anfrage', erstbegutachtung: 'Termin Erstbegutachtung', rechner: 'Pflege-Rechner (Kontaktdaten)', rechnertermin: 'Pflege-Rechner (Beratungstermin)' }[variant];
 const isRechner = variant === 'rechner' || variant === 'rechnertermin';
-const okText = isRechner ? 'Vielen Dank! Wir haben Ihre Angaben erhalten und melden uns in Kürze bei Ihnen.' : undefined;
+// Тексты — в _global.json (группы forms и contactForm); subject — тема письма, на сайте не виден
+const g = getGlobal();
+const f = (id: string) => g.text(`forms.${id}`);
+const c = (id: string) => g.text(`contactForm.${id}`);
+const options = (id: string) => g.list<{ text: string }>(`contactForm.${id}`).map((o) => o.text);
+const okText = isRechner ? c('okRechner') : undefined;
 ---
 <form class="form" id={id} data-lead-form data-endpoint={SITE.formEndpoint} data-ok={okText} novalidate>
   <input type="hidden" name="subject" value={`Website: ${subject}`} />
@@ -17,20 +22,20 @@ const okText = isRechner ? 'Vielen Dank! Wir haben Ihre Angaben erhalten und mel
   {isRechner && <input type="hidden" name="rechner_ergebnis" value="" />}
   {variant !== 'rueckruf' && !isRechner && (
     <fieldset class="seg field">
-      <legend>Worum geht es? </legend>
-      {['Grundpflege', 'Behandlungspflege', 'Verhinderungspflege', 'Betreuung', 'Entlastungsleistungen', 'Noch unklar'].map((v, i, all) => (
+      <legend>{c('topicLegend')} </legend>
+      {options('topics').map((v, i, all) => (
         <label><input type="radio" name="leistung" value={v} checked={i === all.length - 1} /><span>{v}</span></label>
       ))}
     </fieldset>
   )}
   <div class="row">
     <div class="field">
-      <label for={`${id}-name`}>Ihr Name <span class="req">*</span></label>
+      <label for={`${id}-name`}>{f('nameLabel')} <span class="req">*</span></label>
       <input id={`${id}-name`} name="name" autocomplete="name" required minlength="2" />
       <span class="err" aria-live="polite"></span>
     </div>
     <div class="field">
-      <label for={`${id}-phone`}>Telefon <span class="req">*</span></label>
+      <label for={`${id}-phone`}>{f('phoneLabel')} <span class="req">*</span></label>
       <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +\(\)\/\-]{6,}" />
       <span class="err" aria-live="polite"></span>
     </div>
@@ -38,13 +43,13 @@ const okText = isRechner ? 'Vielen Dank! Wir haben Ihre Angaben erhalten und mel
   {variant === 'rechnertermin' && (
     <div class="row">
       <div class="field">
-        <label for={`${id}-datum`}>Wunschtermin</label>
+        <label for={`${id}-datum`}>{c('dateLabel')}</label>
         <input id={`${id}-datum`} name="wunschtermin" type="date" />
       </div>
       <div class="field">
-        <label for={`${id}-zeit`}>Tageszeit</label>
+        <label for={`${id}-zeit`}>{c('timeLabel')}</label>
         <select id={`${id}-zeit`} name="tageszeit">
-          <option>Egal</option><option>Vormittags</option><option>Mittags</option><option>Nachmittags</option>
+          {options('timeOptions').map((o) => <option>{o}</option>)}
         </select>
       </div>
     </div>
@@ -52,37 +57,37 @@ const okText = isRechner ? 'Vielen Dank! Wir haben Ihre Angaben erhalten und mel
   {variant === 'erstbegutachtung' && (
     <div class="row">
       <div class="field">
-        <label for={`${id}-stadtteil`}>Ort / Stadtteil <span class="req">*</span></label>
-        <input id={`${id}-stadtteil`} name="stadtteil" required placeholder="z. B. Hörde oder Schwerte" />
+        <label for={`${id}-stadtteil`}>{c('placeLabel')} <span class="req">*</span></label>
+        <input id={`${id}-stadtteil`} name="stadtteil" required placeholder={c('placePlaceholder')} />
         <span class="err" aria-live="polite"></span>
       </div>
       <div class="field">
-        <label for={`${id}-datum`}>Wunschtermin</label>
+        <label for={`${id}-datum`}>{c('dateLabel')}</label>
         <input id={`${id}-datum`} name="wunschtermin" type="date" />
       </div>
       <div class="field">
-        <label for={`${id}-zeit`}>Tageszeit</label>
+        <label for={`${id}-zeit`}>{c('timeLabel')}</label>
         <select id={`${id}-zeit`} name="tageszeit">
-          <option>Egal</option><option>Vormittags</option><option>Mittags</option><option>Nachmittags</option>
+          {options('timeOptions').map((o) => <option>{o}</option>)}
         </select>
       </div>
       <div class="field">
-        <label for={`${id}-pg`}>Pflegegrad vorhanden?</label>
+        <label for={`${id}-pg`}>{c('careLevelLabel')}</label>
         <select id={`${id}-pg`} name="pflegegrad">
-          <option>Weiß ich nicht</option><option>Noch keiner / beantragt</option><option>Pflegegrad 1</option><option>Pflegegrad 2</option><option>Pflegegrad 3</option><option>Pflegegrad 4</option><option>Pflegegrad 5</option>
+          {options('careLevelOptions').map((o) => <option>{o}</option>)}
         </select>
       </div>
     </div>
   )}
   {variant === 'rueckruf' ? (
     <div class="field">
-      <label for={`${id}-zeit`}>Wann dürfen wir anrufen?</label>
-      <select id={`${id}-zeit`} name="rueckrufzeit"><option>So bald wie möglich</option><option>Vormittags</option><option>Nachmittags</option></select>
+      <label for={`${id}-zeit`}>{c('callbackLabel')}</label>
+      <select id={`${id}-zeit`} name="rueckrufzeit">{options('callbackOptions').map((o) => <option>{o}</option>)}</select>
     </div>
   ) : variant === 'rechnertermin' ? null : (
     <div class="row">
       <div class="field">
-        <label for={`${id}-email`}>E-Mail <span class="muted">(optional)</span></label>
+        <label for={`${id}-email`}>{f('emailLabel')} <span class="muted">{f('optional')}</span></label>
         <input id={`${id}-email`} name="email" type="email" autocomplete="email" />
         <span class="err" aria-live="polite"></span>
       </div>
@@ -90,27 +95,20 @@ const okText = isRechner ? 'Vielen Dank! Wir haben Ihre Angaben erhalten und mel
   )}
   {variant !== 'rueckruf' && !isRechner && (
     <div class="field">
-      <label for={`${id}-msg`}>Ihre Nachricht <span class="muted">(optional)</span></label>
-      <textarea id={`${id}-msg`} name="message" placeholder="Für wen suchen Sie Pflege? Was wird gebraucht?"></textarea>
+      <label for={`${id}-msg`}>{f('messageLabel')} <span class="muted">{f('optional')}</span></label>
+      <textarea id={`${id}-msg`} name="message" placeholder={c('messagePlaceholder')}></textarea>
     </div>
   )}
   <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off" /></label></div>
-  <label class="consent"><input type="checkbox" name="datenschutz" required /> <span>Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert werden. Details in der <a href="/datenschutz/" target="_blank">Datenschutzerklärung</a>. <span class="req">*</span></span></label>
-  <button class="btn btn--primary" type="submit">{{ rueckruf: 'Rückruf anfordern', erstbegutachtung: 'Termin anfragen', rechner: 'Ergebnis anzeigen', rechnertermin: 'Beratungstermin anfragen' }[variant] ?? 'Kostenlos beraten lassen'}</button>
+  <label class="consent"><input type="checkbox" name="datenschutz" required /> <span>{c('consentBefore')} <a href="/datenschutz/" target="_blank">{f('consentLink')}</a>. <span class="req">*</span></span></label>
+  <button class="btn btn--primary" type="submit">{{ rueckruf: c('submitRueckruf'), erstbegutachtung: c('submitTermin'), rechner: c('submitRechner'), rechnertermin: c('submitRechnerTermin') }[variant] ?? c('submitBeratung')}</button>
   <p class="form-status" role="status" aria-live="polite"></p>
-  <p class="muted note">Kostenlos und unverbindlich. Wir melden uns in der Regel noch am selben Werktag.</p>
+  <p class="muted note">{c('note')}</p>
 </form>
 <script>
-  const MSG = {
-    required: 'Bitte füllen Sie dieses Feld aus.',
-    phone: 'Bitte geben Sie eine gültige Telefonnummer an.',
-    email: 'Bitte prüfen Sie die E-Mail-Adresse.',
-    consent: 'Bitte stimmen Sie der Datenverarbeitung zu.',
-    ok: 'Vielen Dank! Ihre Anfrage ist bei uns angekommen. Wir rufen Sie schnellstmöglich zurück.',
-    preview: 'Vorschau-Modus: Das Formular ist geprüft, wird aber noch nicht versendet (Empfänger wird beim Livegang hinterlegt).',
-    fail: 'Leider ist ein Fehler aufgetreten. Bitte rufen Sie uns an: 0231 54 67 686.',
-    spam: 'Bitte nehmen Sie sich einen Moment Zeit und versuchen Sie es erneut.',
-  };
+  // Сообщения — из _global.json, подставляются при сборке (src/lib/client-texts.mjs)
+  declare const __CONTACT_FORM_MSG__: Record<'required' | 'phone' | 'email' | 'consent' | 'ok' | 'preview' | 'fail' | 'spam', string>;
+  const MSG = __CONTACT_FORM_MSG__;
   document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
     const started = Date.now();
     const status = form.querySelector<HTMLElement>('.form-status')!;

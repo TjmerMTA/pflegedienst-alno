@@ -204,6 +204,13 @@
           "value": "Zum Inhalt springen"
         },
         {
+          "id": "crumbHome",
+          "label": "Brotkrumen: erster Eintrag",
+          "type": "text",
+          "required": true,
+          "value": "Startseite"
+        },
+        {
           "id": "topHours",
           "label": "Obere Leiste: Erreichbarkeit",
           "type": "text",
@@ -997,6 +1004,562 @@
               "a": "<p>Telefonisch erreichen Sie uns von 8 bis 22 Uhr. Unser Büro in der {{street}} ist montags bis freitags von 8 bis 16 Uhr geöffnet – zu diesen Zeiten können Sie gern auch persönlich zur Beratung vorbeikommen.</p>"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "forms",
+      "label": "Formulare: gemeinsame Texte",
+      "fields": [
+        {
+          "id": "nameLabel",
+          "label": "Feld: Name",
+          "type": "text",
+          "required": true,
+          "value": "Ihr Name"
+        },
+        {
+          "id": "phoneLabel",
+          "label": "Feld: Telefon",
+          "type": "text",
+          "required": true,
+          "value": "Telefon"
+        },
+        {
+          "id": "emailLabel",
+          "label": "Feld: E-Mail",
+          "type": "text",
+          "required": true,
+          "value": "E-Mail"
+        },
+        {
+          "id": "messageLabel",
+          "label": "Feld: Nachricht",
+          "type": "text",
+          "required": true,
+          "value": "Ihre Nachricht"
+        },
+        {
+          "id": "optional",
+          "label": "Zusatz bei freiwilligen Feldern",
+          "type": "text",
+          "value": "(optional)"
+        },
+        {
+          "id": "consentLink",
+          "label": "Einwilligung: Link zur Datenschutzerklärung",
+          "type": "text",
+          "required": true,
+          "value": "Datenschutzerklärung"
+        },
+        {
+          "id": "errRequired",
+          "label": "Fehler: Feld leer",
+          "type": "text",
+          "required": true,
+          "value": "Bitte füllen Sie dieses Feld aus."
+        },
+        {
+          "id": "errPhone",
+          "label": "Fehler: Telefonnummer ungültig",
+          "type": "text",
+          "required": true,
+          "value": "Bitte geben Sie eine gültige Telefonnummer an."
+        },
+        {
+          "id": "errEmail",
+          "label": "Fehler: E-Mail ungültig",
+          "type": "text",
+          "required": true,
+          "value": "Bitte prüfen Sie die E-Mail-Adresse."
+        },
+        {
+          "id": "errConsent",
+          "label": "Fehler: Einwilligung fehlt",
+          "type": "text",
+          "required": true,
+          "value": "Bitte stimmen Sie der Datenverarbeitung zu."
+        },
+        {
+          "id": "msgPreview",
+          "label": "Meldung: Vorschau (Formular noch ohne Empfänger)",
+          "type": "textarea",
+          "required": true,
+          "value": "Vorschau-Modus: Das Formular ist geprüft, wird aber noch nicht versendet (Empfänger wird beim Livegang hinterlegt)."
+        },
+        {
+          "id": "msgFail",
+          "label": "Meldung: Fehler beim Senden",
+          "type": "text",
+          "required": true,
+          "value": "Leider ist ein Fehler aufgetreten. Bitte rufen Sie uns an: {{phone}}."
+        },
+        {
+          "id": "msgSpam",
+          "label": "Meldung: zu schnell abgeschickt",
+          "type": "text",
+          "required": true,
+          "value": "Bitte nehmen Sie sich einen Moment Zeit und versuchen Sie es erneut."
+        }
+      ]
+    },
+    {
+      "id": "contactForm",
+      "label": "Kontaktformular",
+      "fields": [
+        {
+          "id": "topicLegend",
+          "label": "Frage nach dem Thema",
+          "type": "text",
+          "required": true,
+          "value": "Worum geht es?"
+        },
+        {
+          "id": "topics",
+          "label": "Themen",
+          "type": "list",
+          "help": "Das letzte Thema ist vorausgewählt",
+          "max": 10,
+          "itemLabel": "Thema",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Grundpflege"
+            },
+            {
+              "text": "Behandlungspflege"
+            },
+            {
+              "text": "Verhinderungspflege"
+            },
+            {
+              "text": "Betreuung"
+            },
+            {
+              "text": "Entlastungsleistungen"
+            },
+            {
+              "text": "Noch unklar"
+            }
+          ]
+        },
+        {
+          "id": "placeLabel",
+          "label": "Feld: Ort",
+          "type": "text",
+          "required": true,
+          "value": "Ort / Stadtteil"
+        },
+        {
+          "id": "placePlaceholder",
+          "label": "Feld: Ort, Beispiel im Feld",
+          "type": "text",
+          "value": "z. B. Hörde oder Schwerte"
+        },
+        {
+          "id": "dateLabel",
+          "label": "Feld: Wunschtermin",
+          "type": "text",
+          "required": true,
+          "value": "Wunschtermin"
+        },
+        {
+          "id": "timeLabel",
+          "label": "Feld: Tageszeit",
+          "type": "text",
+          "required": true,
+          "value": "Tageszeit"
+        },
+        {
+          "id": "timeOptions",
+          "label": "Auswahl Tageszeit",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Auswahl",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Egal"
+            },
+            {
+              "text": "Vormittags"
+            },
+            {
+              "text": "Mittags"
+            },
+            {
+              "text": "Nachmittags"
+            }
+          ]
+        },
+        {
+          "id": "careLevelLabel",
+          "label": "Feld: Pflegegrad",
+          "type": "text",
+          "required": true,
+          "value": "Pflegegrad vorhanden?"
+        },
+        {
+          "id": "careLevelOptions",
+          "label": "Auswahl Pflegegrad",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Auswahl",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Weiß ich nicht"
+            },
+            {
+              "text": "Noch keiner / beantragt"
+            },
+            {
+              "text": "Pflegegrad 1"
+            },
+            {
+              "text": "Pflegegrad 2"
+            },
+            {
+              "text": "Pflegegrad 3"
+            },
+            {
+              "text": "Pflegegrad 4"
+            },
+            {
+              "text": "Pflegegrad 5"
+            }
+          ]
+        },
+        {
+          "id": "callbackLabel",
+          "label": "Rückruf: Frage nach der Zeit",
+          "type": "text",
+          "required": true,
+          "value": "Wann dürfen wir anrufen?"
+        },
+        {
+          "id": "callbackOptions",
+          "label": "Rückruf: Auswahl Zeit",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Auswahl",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "So bald wie möglich"
+            },
+            {
+              "text": "Vormittags"
+            },
+            {
+              "text": "Nachmittags"
+            }
+          ]
+        },
+        {
+          "id": "messagePlaceholder",
+          "label": "Feld: Nachricht, Beispiel im Feld",
+          "type": "text",
+          "value": "Für wen suchen Sie Pflege? Was wird gebraucht?"
+        },
+        {
+          "id": "consentBefore",
+          "label": "Einwilligung: Text vor dem Link",
+          "type": "textarea",
+          "required": true,
+          "value": "Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert werden. Details in der"
+        },
+        {
+          "id": "submitBeratung",
+          "label": "Button: Beratung",
+          "type": "text",
+          "required": true,
+          "value": "Kostenlos beraten lassen"
+        },
+        {
+          "id": "submitRueckruf",
+          "label": "Button: Rückruf",
+          "type": "text",
+          "required": true,
+          "value": "Rückruf anfordern"
+        },
+        {
+          "id": "submitTermin",
+          "label": "Button: Erstbegutachtung",
+          "type": "text",
+          "required": true,
+          "value": "Termin anfragen"
+        },
+        {
+          "id": "submitRechner",
+          "label": "Button: Pflege-Rechner, Ergebnis",
+          "type": "text",
+          "required": true,
+          "value": "Ergebnis anzeigen"
+        },
+        {
+          "id": "submitRechnerTermin",
+          "label": "Button: Pflege-Rechner, Termin",
+          "type": "text",
+          "required": true,
+          "value": "Beratungstermin anfragen"
+        },
+        {
+          "id": "note",
+          "label": "Hinweis unter dem Button",
+          "type": "text",
+          "value": "Kostenlos und unverbindlich. Wir melden uns in der Regel noch am selben Werktag."
+        },
+        {
+          "id": "ok",
+          "label": "Meldung: erfolgreich gesendet",
+          "type": "text",
+          "required": true,
+          "value": "Vielen Dank! Ihre Anfrage ist bei uns angekommen. Wir rufen Sie schnellstmöglich zurück."
+        },
+        {
+          "id": "okRechner",
+          "label": "Meldung: gesendet (Pflege-Rechner)",
+          "type": "text",
+          "required": true,
+          "value": "Vielen Dank! Wir haben Ihre Angaben erhalten und melden uns in Kürze bei Ihnen."
+        }
+      ]
+    },
+    {
+      "id": "applicationForm",
+      "label": "Bewerbungsformular",
+      "fields": [
+        {
+          "id": "positionLabel",
+          "label": "Feld: Stelle",
+          "type": "text",
+          "help": "Die Auswahl kommt aus den offenen Stellen der Seite Karriere",
+          "required": true,
+          "value": "Auf welche Stelle bewerben Sie sich?"
+        },
+        {
+          "id": "initiative",
+          "label": "Letzte Auswahl bei den Stellen",
+          "type": "text",
+          "required": true,
+          "value": "Initiativbewerbung"
+        },
+        {
+          "id": "wishLegend",
+          "label": "Ausbildung: Frage nach dem Interesse",
+          "type": "text",
+          "help": "Die Auswahl kommt aus den vier Wegen der Seite Ausbildung",
+          "required": true,
+          "value": "Wofür interessieren Sie sich?"
+        },
+        {
+          "id": "yearLabel",
+          "label": "Feld: Geburtsjahr",
+          "type": "text",
+          "required": true,
+          "value": "Geburtsjahr"
+        },
+        {
+          "id": "yearPlaceholder",
+          "label": "Feld: Geburtsjahr, Beispiel im Feld",
+          "type": "text",
+          "value": "z. B. 2008"
+        },
+        {
+          "id": "qualiLabel",
+          "label": "Feld: Qualifikation",
+          "type": "text",
+          "required": true,
+          "value": "Qualifikation und Berufserfahrung"
+        },
+        {
+          "id": "qualiPlaceholder",
+          "label": "Feld: Qualifikation, Beispiel im Feld",
+          "type": "text",
+          "value": "z. B. Altenpflegerin, 5 Jahre ambulant, Führerschein Klasse B"
+        },
+        {
+          "id": "startLabel",
+          "label": "Feld: Frühester Eintritt",
+          "type": "text",
+          "required": true,
+          "value": "Frühester Eintritt"
+        },
+        {
+          "id": "hoursLegend",
+          "label": "Frage nach der Arbeitszeit",
+          "type": "text",
+          "required": true,
+          "value": "Gewünschte Arbeitszeit"
+        },
+        {
+          "id": "hoursOptions",
+          "label": "Auswahl Arbeitszeit",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Auswahl",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Vollzeit"
+            },
+            {
+              "text": "Teilzeit"
+            },
+            {
+              "text": "Minijob"
+            }
+          ]
+        },
+        {
+          "id": "schoolLabel",
+          "label": "Feld: Schulabschluss",
+          "type": "text",
+          "required": true,
+          "value": "Schulabschluss"
+        },
+        {
+          "id": "schoolPrompt",
+          "label": "Feld: Schulabschluss, erste Zeile",
+          "type": "text",
+          "required": true,
+          "value": "Bitte wählen"
+        },
+        {
+          "id": "schoolOptions",
+          "label": "Auswahl Schulabschluss",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Auswahl",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Hauptschulabschluss"
+            },
+            {
+              "text": "Mittlere Reife (Realschulabschluss)"
+            },
+            {
+              "text": "Fachoberschulreife"
+            },
+            {
+              "text": "Fachhochschulreife / Abitur"
+            },
+            {
+              "text": "Noch in der Schule"
+            },
+            {
+              "text": "Sonstiger Abschluss"
+            }
+          ]
+        },
+        {
+          "id": "beginLabel",
+          "label": "Feld: Gewünschter Beginn",
+          "type": "text",
+          "required": true,
+          "value": "Gewünschter Beginn"
+        },
+        {
+          "id": "messagePlaceholderJob",
+          "label": "Feld: Nachricht, Beispiel (Karriere)",
+          "type": "text",
+          "value": "Was möchten Sie uns noch mitteilen?"
+        },
+        {
+          "id": "messagePlaceholderTraining",
+          "label": "Feld: Nachricht, Beispiel (Ausbildung)",
+          "type": "text",
+          "value": "Warum interessiert Sie die Pflege? Haben Sie schon Erfahrung?"
+        },
+        {
+          "id": "cvBefore",
+          "label": "Hinweis Lebenslauf: Text vor der E-Mail",
+          "type": "text",
+          "value": "Lebenslauf und Zeugnisse bitte gern per E-Mail an"
+        },
+        {
+          "id": "cvAfter",
+          "label": "Hinweis Lebenslauf: Text nach der E-Mail",
+          "type": "text",
+          "value": "oder per WhatsApp schicken – ein Datei-Upload ist hier leider nicht möglich."
+        },
+        {
+          "id": "consentBefore",
+          "label": "Einwilligung: Text vor dem Link",
+          "type": "textarea",
+          "required": true,
+          "value": "Ich bin einverstanden, dass meine Angaben zur Bearbeitung meiner Bewerbung gespeichert und verarbeitet werden. Details in der"
+        },
+        {
+          "id": "submit",
+          "label": "Button",
+          "type": "text",
+          "required": true,
+          "value": "Bewerbung absenden"
+        },
+        {
+          "id": "note",
+          "label": "Hinweis unter dem Button",
+          "type": "text",
+          "value": "Wir melden uns in der Regel innerhalb von 2 Werktagen bei Ihnen. Ihre Daten werden vertraulich behandelt."
+        },
+        {
+          "id": "errYear",
+          "label": "Fehler: Geburtsjahr ungültig",
+          "type": "text",
+          "required": true,
+          "value": "Bitte geben Sie ein gültiges Geburtsjahr an (vierstellig)."
+        },
+        {
+          "id": "ok",
+          "label": "Meldung: erfolgreich gesendet",
+          "type": "text",
+          "required": true,
+          "value": "Vielen Dank für Ihre Bewerbung! Sie ist bei uns angekommen. Wir melden uns schnellstmöglich bei Ihnen."
         }
       ]
     }
