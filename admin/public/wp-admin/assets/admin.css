@@ -383,6 +383,19 @@ body.modal-open { overflow: hidden; }
   #post-body.columns-2, #dashboard-widgets, .welcome-panel-column-container, .media-library-wrap, .attachment-details, .revisions-wrap { grid-template-columns: 1fr; }
   .media-modal, .media-modal.static { inset: 10px; }
 }
+/* Like wp-admin on a phone: one card per row, the actions always there, each cell with its column name. */
+@media (max-width: 782px) {
+  .wp-list-table, .wp-list-table tbody, .wp-list-table tr, .wp-list-table td { display: block; box-sizing: border-box; width: 100%; }
+  .wp-list-table thead { display: none; }
+  .wp-list-table tr { padding: 6px 0; border-bottom: 1px solid #c3c4c7; }
+  .wp-list-table td { padding: 3px 10px; overflow-wrap: anywhere; }
+  .wp-list-table td[data-colname]::before { content: attr(data-colname) ": "; font-weight: 600; }
+  .row-actions { left: 0; }
+  .subsubsub li { white-space: nowrap; }
+  .form-table, .form-table tbody, .form-table tr, .form-table th, .form-table td { display: block; box-sizing: border-box; width: 100%; }
+  .form-table th { padding-bottom: 0; }
+  .form-table input.regular-text, .form-table select { max-width: 100%; }
+}
 @media (max-width: 600px) {
   #wpadminbar .ab-site span, #wpadminbar .ab-new span, #wpadminbar .ab-status-text { display: none; }
   .image-picker { flex-direction: column; }

@@ -482,7 +482,18 @@ function installOnce() {
   });
 }
 
+// What the phone layout of a list table shows in front of each cell, see admin.css.
+function nameCells(root) {
+  for (const table of $$('.wp-list-table', root)) {
+    const names = $$('thead th', table).map((th) => th.textContent.trim());
+    for (const row of $$('tbody tr', table)) {
+      [...row.cells].forEach((td, i) => { if (names[i] && !td.classList.contains('column-primary') && td.colSpan === 1) td.dataset.colname = names[i]; });
+    }
+  }
+}
+
 export function mount(root, options) {
+  nameCells(root);
   opts = options;
   const g = ++generation;
   installOnce();
