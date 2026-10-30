@@ -10,6 +10,7 @@ final class Frontmatter
 {
     public static function split(string $text): array
     {
+        if (!mb_check_encoding($text, 'UTF-8')) throw new FrontmatterError('Die Datei ist nicht in UTF-8 gespeichert');
         $s = str_replace(["\r\n", "\r"], "\n", (string) preg_replace('/^\x{FEFF}/u', '', $text));
         if (!preg_match('/^---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/D', $s, $m)) return ['fm' => '', 'body' => $s, 'hasFm' => false];
         return ['fm' => $m[1], 'body' => substr($s, strlen($m[0])), 'hasFm' => true];

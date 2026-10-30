@@ -327,6 +327,17 @@ test('a page file that does not parse is shown as broken and not written over', 
     $e->git->push([$f => $good], 'Repariert');
 });
 
+test('a file that is not UTF-8 is refused, not shown empty and written over', function () use ($c, $e) {
+    $f = 'src/content/team/max-muster.md';
+    $good = $e->git->read($f);
+    $latin1 = "---\nname: J\xFCrgen\nrole: x\n---\n";
+    $e->git->push([$f => $latin1], 'Latin-1');
+    $r = $c->get('entry', ['type' => 'team', 'id' => 'max-muster']);
+    eq($r['status'], 422, $r['body']);
+    eq($r['json']['error'], 'unreadable');
+    $e->git->push([$f => $good], 'Repariert');
+});
+
 test('an entry the admin does not understand is refused, not rewritten', function () use ($c, $e) {
     $f = 'src/content/team/max-muster.md';
     $good = $e->git->read($f);

@@ -293,6 +293,45 @@ test('collections: a body with an unsafe link is refused', function () use ($for
     eq(array_column($r['errors'], 'msg'), [Rules::MSG_UNSAFE_LINK]);
 });
 
+test('page files are written exactly as JSON.stringify(data, null, 2) writes them', function () {
+    $data = ['s' => "a\"b\\c/d\n\t\r\u{8}\u{C}\u{1}\u{1F}", 'u' => "ä€😀\u{2028}\u{2029}\u{7F}", 'n' => [1, -2, 1.5, 0, true, false, null], 'e' => [], 'l' => [[], ['a' => []], [[1]]], 'o' => ['k' => ['x' => 'y']]];
+    $want = <<<'JSON'
+{
+  "s": "a\"b\\c/d\n\t\r\b\f\u0001\u001f",
+  "u": "ä€😀\u{2028}\u{2029}\u{7F}",
+  "n": [
+    1,
+    -2,
+    1.5,
+    0,
+    true,
+    false,
+    null
+  ],
+  "e": [],
+  "l": [
+    [],
+    {
+      "a": []
+    },
+    [
+      [
+        1
+      ]
+    ]
+  ],
+  "o": {
+    "k": {
+      "x": "y"
+    }
+  }
+}
+
+JSON;
+    $want = strtr($want, ['\u{2028}' => "\u{2028}", '\u{2029}' => "\u{2029}", '\u{7F}' => "\u{7F}"]);
+    eq(Site::serializePage($data), $want);
+});
+
 test('isImagePath accepts only clean relative image paths', function () {
     eq(Rules::isImagePath('team.jpg'), true);
     eq(Rules::isImagePath('uploads/ab12.webp'), true);
