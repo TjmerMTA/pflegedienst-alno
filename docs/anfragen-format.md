@@ -9,6 +9,7 @@ The admin's «Anfragen» screen reads these files. They hold personal data, some
 ~/alno-data/                     0700, created on the first submission
   config.php                     optional, section 5
   salt                           random, generated once. Never show it, never delete it
+  anfragen-warnung.json          only while the storage limit is reached, section 5
   ratelimit/<hash>               request times per IP hash, removed after 24 h
   anfragen/
     <id>.json                    one file per submission, 0600
@@ -36,6 +37,7 @@ answers 500.
         "email": "ben@example.org",
         "datenschutz": "ja"
     },
+    "invalid": [],
     "files": [
         { "name": "Lebenslauf.pdf", "stored": "6f1c0e5b9d3a4f7e8a2b1c0d9e8f7a6b", "size": 48213, "type": "application/pdf" }
     ],
@@ -51,14 +53,16 @@ answers 500.
 | `form` | one of the values in section 3 |
 | `page` | path of the page the form was sent from, no query string. `""` if it was not a clean path |
 | `fields` | `{ name: value }`, section 3. Empty optional fields are absent. `datenschutz` is always `"ja"`: the visitor ticked the consent box |
+| `invalid` | names of optional fields that failed their rule. The value stays in `fields` as given (cut to the limit), so show it marked, for example with `ungültig`. A flagged `email` is not a usable address: no mailto link, no reply button. `[]` on a clean enquiry |
 | `files` | array, `[]` when there are none. `name` is the visitor's cleaned file name (for display only), `stored` the name under `files/`, `size` bytes, `type` the type found by reading the content |
+| `files_refused` | only when the storage limit was reached: how many files were sent but not stored. Show it: the applicant believes they arrived |
 | `status` | `"neu"` on arrival. All other values belong to the admin |
 | `ip_hash` | 32 hex, salted HMAC of the IP. Pseudonymous, still personal data: do not show it. The raw IP is stored nowhere |
 
 ## 3. Forms and fields
 
-Values are plain text. `name`-type fields are one line; `message`, `qualifikation` and `rechner_ergebnis` may contain `\n`.
-Dates are `YYYY-MM-DD`. Field order in the file is the order below, then `datenschutz`.
+Values are plain text. `message`, `qualifikation` and `rechner_ergebnis` may contain `\n`, all others are one line. Dates are
+`YYYY-MM-DD`, unless the field is listed in `invalid`. Field order in the file is the order below, then `datenschutz`.
 
 | `form` | Fields (`*` always present) | Notes |
 |---|---|---|
@@ -74,8 +78,11 @@ Suggested German labels: Leistung, Name, Telefon, E-Mail, Nachricht, Rückrufzei
 Pflegegrad, Ergebnis des Pflege-Rechners, Stelle, Qualifikation, Eintrittstermin, Arbeitszeit, Wunsch, Geburtsjahr,
 Schulabschluss, Beginn, Datenschutz.
 
-A new form or field needs the same change in the component and in `FORMS` at the top of `anfrage.php`, or it is rejected.
-`npm run test:anfrage` fails when they drift apart: it posts every form it finds in `dist`.
+**One rule set:** `src/config/form-rules.json` holds the forms, their fields, which are required, and each field's minimum,
+maximum and pattern. The forms take their `minlength`, `maxlength` and `pattern` from it (`fieldAttrs()` in
+`src/config/site.ts`), and the endpoint reads the same file through `/api/anfrage-site.json`. A new form or field needs an
+entry there plus the input in the component. `npm run test:anfrage` fails when they drift apart: it posts every form it
+finds in `dist` and compares each input's attributes with the rules.
 
 ## 4. Rules for the admin
 
@@ -89,6 +96,8 @@ A new form or field needs the same change in the component and in `FORMS` at the
 - **Changing `status`:** write a temp file next to the record and `rename()` it, keep `0600`, keep all other keys.
 - **Deleting a submission deletes its `files/<stored>` too.**
 - **Ignore file names starting with a dot** in `anfragen/`: they are writes in progress.
+- **Show `anfragen-warnung.json` on the dashboard** while it exists, section 5. Deleting records frees the space; the
+  next submission removes the warning.
 
 ## 5. Configuration
 
@@ -97,14 +106,32 @@ A new form or field needs the same change in the component and in `FORMS` at the
 ```php
 <?php return [
   'anfragen_to' => 'buero@example.de',          // default: the contact e-mail of the site
+  'anfragen_max_mb' => 200,                     // limit for anfragen/, records and files together
   'mail_from'   => 'no-reply@example.de',       // default: no-reply@<domain of SITE_URL>
   'rate_max'    => 5,                           // requests per IP per window
   'rate_window' => 600,                         // seconds
+  'uploads'     => false,                       // section 8
 ];
 ```
 
 Fallback values come from `/api/anfrage-site.json`, generated at build time from `_global.json` (`contact.email`) and
 `SITE_URL`. A broken or invalid `config.php` falls back to them and the submission is kept.
+
+**Storage limit.** At `anfragen_max_mb`, files are no longer stored but text enquiries still are, so nothing is lost while
+someone reacts. At 110 % of the limit, or if a record cannot be written, the endpoint answers 503, stores nothing and sends
+no mail. From the limit on, `~/alno-data/anfragen-warnung.json` exists:
+
+```json
+{
+    "code": "anfragen_voll",
+    "since": "2026-10-30T13:28:24+01:00",
+    "used_mb": 201.3,
+    "limit_mb": 200,
+    "message": "Der Speicher für Anfragen ist voll: 201.3 von 200 MB. Bitte erledigte Anfragen löschen."
+}
+```
+
+It holds no personal data. The endpoint removes it with the first submission after the size is back under the limit.
 
 ## 6. Build and deployment
 
@@ -130,9 +157,14 @@ only, no personal data). If the home directory is detected wrongly, set `ALNO_DA
 ## 7. What the endpoint enforces
 
 Only `POST` as `multipart/form-data`, with `Origin` or `Referer` of the same host. 128 KB body without files, 32 MB with.
-Per-IP rate limit, rejected requests included. Honeypot `website` (answers success, stores nothing). `fill_ms`, the time
-the browser reports since page load, at least 3000: it stops simple bots, a script can fake it. Field names per form,
-types, length limits, consent. One invalid value rejects the whole submission.
+Rate limit per IP, per /64 for IPv6, rejected requests included. Honeypot `website` (answers success, stores nothing).
+`fill_ms`, the time the browser reports since page load, at least 3000: it stops simple bots, a script can fake it.
+Field names per form and the consent box are strict.
+
+**A required field that fails rejects the submission** with 422 and its name in `field`, and the form shows the error under
+that field. **An optional field never costs an enquiry:** the page stops the visitor first, and anything that still arrives
+is stored and flagged in `invalid`. The hidden `rechner_ergebnis` is cut at its limit without a flag: the visitor cannot see
+or fix it.
 
 | Status | `error` | Meaning |
 |---|---|---|
@@ -142,22 +174,28 @@ types, length limits, consent. One invalid value rejects the whole submission.
 | 413 | `too_large` | body too big |
 | 422 | `spam`, `invalid` (+ `field`) | failed a check |
 | 429 | `rate_limit` | too many requests, with `Retry-After` |
-| 500 | `storage` | nothing could be stored, no mail was sent |
+| 500 | `storage` | not set up: data folder or rules unavailable, nothing stored, no mail |
+| 503 | `storage_full` | over the hard stop or a failed write, nothing stored, no mail |
 
-Failures are `{ "ok": false, "error": "…", "message": "…" }`. The forms look only at the status and show their own
-message, which includes the phone number.
+Failures are `{ "ok": false, "error": "…", "message": "…" }`. For `invalid` the form shows its own text for that field
+(`errName`, `errPhone`, `errEmail`, `errInvalid` in `_global.json`, group `forms`); every other failure shows `msgFail` with
+the phone number. A form reports success only for `{ "ok": true }`, not for a 200 alone.
 
-The notification mail holds form, time, page, name, phone and e-mail. Free text, health details and files stay on the
-server, because the mail travels through outside servers. It is sent after storing, so a mail failure loses nothing:
+The notification mail holds form, time, page, name, phone and e-mail, a flagged e-mail marked `(ungültig)` and never used
+as `Reply-To`. Free text, health details and files stay on the server, because the mail travels through outside servers. It is sent after storing, so a mail failure loses nothing:
 the visitor still gets success and the error log records the id.
 
 ## 8. File uploads
 
-The endpoint accepts them on `karriere` and `ausbildung`, in the field `dateien[]`: pdf, jpg, png, docx, at most 3 files of
-10 MB each. The type is read from the content, the extension must match it, and macro documents are refused.
-**The forms have no file field today**: they ask applicants to send the CV by e-mail. Adding one means an
-`<input type="file" name="dateien[]" multiple>`, the visible text around it, and raising `upload_max_filesize` to 10 M
-and `post_max_size` to 33 M on the host.
+**Off.** No form has a file field, so any file part is refused with 422 and `field: "dateien"`, and the 128 KB body limit
+applies to every form. The forms ask applicants to send the CV by e-mail.
+
+To switch them on later: `'uploads' => true` in `config.php`, an `<input type="file" name="dateien[]" multiple>` with its
+visible text in `ApplicationForm.astro`, and `upload_max_filesize` 10 M and `post_max_size` 33 M on the host. They then
+work on `karriere` and `ausbildung` only: pdf, jpg, png, docx, at most 3 files of 10 MB each. The type is read from the
+content and the extension must match. A DOCX must be a real ZIP with the Word content type (this needs PHP's zip extension)
+and must not declare macros. A PDF needs its end marker. Check the storage limit first: at 200 MB a few applications with
+files will reach it.
 
 ## 9. Open before go-live
 
