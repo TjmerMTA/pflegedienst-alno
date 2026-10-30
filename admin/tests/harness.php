@@ -26,6 +26,47 @@ function rmTree(string $d): void
     rmdir($d);
 }
 
+/** What the browser sends for a page: {group: {field: value}}, images as {value, alt}. */
+function pageValues(array $page): array
+{
+    $values = [];
+    foreach ($page['groups'] as $g) {
+        foreach ($g['fields'] as $f) {
+            $values[$g['id']][$f['id']] = $f['type'] === 'image' ? ['value' => $f['value'] ?? '', 'alt' => $f['alt'] ?? ''] : ($f['value'] ?? '');
+        }
+    }
+    return $values;
+}
+
+/** Opens a page, lets $edit change the values, saves it with the hash it read. */
+function savePage(Client $c, string $id, callable $edit): array
+{
+    $p = $c->get('page', ['id' => $id])['json'];
+    $values = pageValues($p['page']);
+    $edit($values);
+    return $c->post('page', ['id' => $id, 'hash' => $p['hash'], 'values' => $values]);
+}
+
+/** The same for a collection entry. $edit gets values and body. */
+function saveEntry(Client $c, string $type, string $id, callable $edit): array
+{
+    $p = $c->get('entry', ['type' => $type, 'id' => $id])['json'];
+    $values = $p['values'];
+    $body = $p['body'];
+    $edit($values, $body);
+    return $c->post('entry', ['type' => $type, 'id' => $id, 'hash' => $p['hash'], 'values' => $values, 'body' => $body]);
+}
+
+/** A generated image of one colour: 'jpeg', 'png' or 'webp'. */
+function img(int $w, int $h, string $format = 'jpeg'): string
+{
+    $im = imagecreatetruecolor($w, $h);
+    imagefill($im, 0, 0, (int) imagecolorallocate($im, 136, 170, 204));
+    ob_start();
+    $format === 'jpeg' ? imagejpeg($im) : ($format === 'png' ? imagepng($im) : imagewebp($im));
+    return (string) ob_get_clean();
+}
+
 final class Server
 {
     public int $port;
@@ -112,6 +153,35 @@ final class Client
         return $this->raw('POST', '/wp-admin/api.php?r=' . rawurlencode($route), $body, $h);
     }
 
+    /** The same POST $n times at once, for races: the responses, as far as a test needs them. */
+    public function burst(string $route, array $data, int $n, array $headers = []): array
+    {
+        $body = json_encode($data, JSON_UNESCAPED_UNICODE);
+        $h = array_merge(['Content-Type: application/json'], $this->nonce ? ['X-WP-Nonce: ' . $this->nonce] : [], $headers);
+        if ($this->cookies) $h[] = 'Cookie: ' . implode('; ', array_map(static fn ($k, $v) => "$k=$v", array_keys($this->cookies), $this->cookies));
+        $multi = curl_multi_init();
+        $handles = [];
+        for ($i = 0; $i < $n; $i++) {
+            $c = curl_init($this->base . '/wp-admin/api.php?r=' . rawurlencode($route));
+            curl_setopt_array($c, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $h, CURLOPT_TIMEOUT => 120]);
+            curl_multi_add_handle($multi, $c);
+            $handles[] = $c;
+        }
+        do {
+            curl_multi_exec($multi, $running);
+            if ($running) curl_multi_select($multi, 0.05);
+        } while ($running);
+        $out = [];
+        foreach ($handles as $c) {
+            $raw = (string) curl_multi_getcontent($c);
+            $out[] = ['status' => (int) curl_getinfo($c, CURLINFO_RESPONSE_CODE), 'body' => $raw, 'json' => json_decode($raw, true)];
+            curl_multi_remove_handle($multi, $c);
+            curl_close($c);
+        }
+        curl_multi_close($multi);
+        return $out;
+    }
+
     /** Multipart upload of one file; returns the response. */
     public function upload(string $bytes, string $name, string $query = '', ?string $nonce = null): array
     {
@@ -169,6 +239,54 @@ final class Env
         $r = $c->login($user, $this->password);
         if ($r['status'] !== 200) throw new RuntimeException("login failed: {$r['body']}");
         return $c;
+    }
+
+    /** The admin's own log. */
+    public function log(): string
+    {
+        return (string) @file_get_contents("$this->data/logs/admin.log");
+    }
+
+    /** Requests the fake GitHub saw, optionally only those starting with $prefix (`PATCH`, `POST /git`). */
+    public function requests(string $prefix = ''): array
+    {
+        $base = '/repos/' . FakeGit::REPO;
+        $lines = explode("\n", trim((string) @file_get_contents("$this->repo/requests.log")));
+        $lines = array_map(static fn ($l) => str_replace(" $base", ' ', $l), $lines);
+        return array_values(array_filter($lines, static fn ($l) => $l !== '' && strncmp($l, $prefix, strlen($prefix)) === 0));
+    }
+
+    public function clearRequests(): void
+    {
+        @unlink("$this->repo/requests.log");
+    }
+
+    /** Runs cron.php on the command line. Returns [exit code, output]. */
+    public function cronCli(): array
+    {
+        $p = proc_open([PHP_BINARY, WP_ROOT . '/wp-admin/cron.php'], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, array_merge(getenv(), ['ALNO_DATA_DIR' => $this->data]));
+        $out = (string) stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        return [proc_close($p), $out];
+    }
+
+    /** Stores one submission as the form endpoint does. $files: stored name => bytes. Returns the id. */
+    public function anfrage(array $over = [], array $files = [], string $dir = 'anfragen'): string
+    {
+        $id = $over['id'] ?? (date('Y-m-d-His') . '-' . bin2hex(random_bytes(8)));
+        $list = [];
+        foreach ($files as $stored => $bytes) {
+            $list[] = ['name' => 'Lebenslauf.pdf', 'stored' => $stored, 'size' => strlen($bytes), 'type' => 'application/pdf'];
+            $this->store->write("$dir/files/$stored", $bytes);
+        }
+        $rec = $over + [
+            'id' => $id, 'received' => date('c'), 'form' => 'beratung', 'page' => '/kontakt/',
+            'fields' => ['name' => 'Ben Beispiel', 'phone' => '0231 654321', 'email' => 'ben@example.org', 'datenschutz' => 'ja'],
+            'files' => $list, 'status' => 'neu', 'ip_hash' => 'f63982b1640f5c0f9a9becc2a39bed16',
+        ];
+        $this->store->write("$dir/$id.json", json_encode($rec, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return $id;
     }
 
     public function stop(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 $GLOBALS['t_pass'] = 0;
 $GLOBALS['t_fail'] = [];
+$GLOBALS['t_skip'] = 0;
 
 final class Skip extends Exception {}
 
@@ -13,6 +14,7 @@ function test(string $name, callable $fn): void
         $fn();
         $GLOBALS['t_pass']++;
     } catch (Skip $e) {
+        $GLOBALS['t_skip']++;
         echo "  skip: $name ({$e->getMessage()})\n";
     } catch (Throwable $e) {
         $GLOBALS['t_fail'][] = $name;
@@ -52,6 +54,6 @@ function hasNot(string $haystack, string $needle, string $what = ''): void
 function finish(): void
 {
     $f = $GLOBALS['t_fail'];
-    echo $GLOBALS['t_pass'] . ' passed, ' . count($f) . " failed\n";
+    echo $GLOBALS['t_pass'] . ' passed, ' . count($f) . ' failed, ' . $GLOBALS['t_skip'] . " skipped\n";
     exit($f ? 1 : 0);
 }

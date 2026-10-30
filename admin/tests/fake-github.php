@@ -6,6 +6,7 @@
 // control.json (set through FakeGit::setControl):
 //   tokens          token => 'write' | 'read'; default good-token => write, read-token => read
 //   raceOnPatch     n: the next n ref updates lose a race against another push
+//   raceFiles       path => bytes that push changes; default one new file of its own
 //   failRoute       ['GET /git/trees' => 500]: answers that status for routes starting with this
 //   rateLimited     true: every request answers 403 with x-ratelimit-remaining: 0
 //   autoRun         seconds: new runs go queued → in_progress → completed by themselves
@@ -82,7 +83,7 @@ if ($method === 'GET' && $path === '/git/ref/heads/main') answer(200, ['ref' => 
 if ($method === 'PATCH' && $path === '/git/refs/heads/main') {
     if (($control['raceOnPatch'] ?? 0) > 0) {
         $git->setControl(['raceOnPatch' => $control['raceOnPatch'] - 1]);
-        $git->push(['fremd-' . count(glob("$git->dir/commits/*")) . '.txt' => 'pushed in between'], 'Someone else');
+        $git->push($control['raceFiles'] ?? ['fremd-' . count(glob("$git->dir/commits/*")) . '.txt' => 'pushed in between'], 'Someone else');
     }
     $sha = (string) ($input['sha'] ?? '');
     $c = $git->commit($sha);

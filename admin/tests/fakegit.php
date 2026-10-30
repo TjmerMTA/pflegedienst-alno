@@ -83,6 +83,26 @@ final class FakeGit
         return $sha ? $this->blob($sha) : null;
     }
 
+    /** Commit shas from the head back to the first one. */
+    public function history(): array
+    {
+        $out = [];
+        for ($c = $this->commit($this->head()); $c; $c = $c['parents'] ? $this->commit($c['parents'][0]) : null) $out[] = $c['sha'];
+        return $out;
+    }
+
+    /** Paths one commit changed against its parent. */
+    public function changed(string $sha): array
+    {
+        $c = $this->commit($sha);
+        $now = $this->files($sha);
+        $before = $c['parents'] ? $this->files($c['parents'][0]) : [];
+        $out = [];
+        foreach ($now + $before as $p => $_) if (($now[$p] ?? null) !== ($before[$p] ?? null)) $out[] = $p;
+        sort($out);
+        return $out;
+    }
+
     // ---------------- control, for the tests ----------------
 
     public function control(): array
