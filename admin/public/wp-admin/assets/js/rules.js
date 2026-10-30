@@ -1,17 +1,5 @@
-// The sanitiser behind the editor's preview and paste. The rules that count are the server's
-// (lib/Rules.php, spec in admin/VALIDATION.md); both are held to the same recorded vectors.
-
-// ---------------- text ----------------
-
-// Everything YAML refuses as non-printable, plus line separators a parser would split on.
-const NOT_PRINTABLE = new RegExp('[' + [[0x00, 0x08], [0x0b, 0x0c], [0x0e, 0x1f], [0x7f, 0x9f], [0x2028, 0x2029], [0xfeff, 0xfeff], [0xfffe, 0xffff]]
-  .map(([a, b]) => `\\u${a.toString(16).padStart(4, '0')}-\\u${b.toString(16).padStart(4, '0')}`).join('') + ']', 'g');
-const wellFormed = (s) => (s.toWellFormed ? s.toWellFormed() : s);
-
-// For multi-line content that keeps its own whitespace.
-export function cleanBody(v) {
-  return wellFormed(typeof v === 'string' ? v : '').replace(/\r\n?/g, '\n').replace(NOT_PRINTABLE, '');
-}
+// The sanitiser behind the editor's preview and paste. The rules that count are the server's:
+// lib/Rules.php, spec in admin/VALIDATION.md.
 
 export function slugify(s) {
   return String(s || '')
@@ -149,26 +137,6 @@ export function sanitizeHtml(input, allowed = PAGE_TAGS) {
   while (stack.length) { const top = stack.pop(); if (top.shown) out += `</${top.tag}>`; }
   return out.trim();
 }
-
-// ---------------- Markdown ----------------
-
-// Nothing is deleted from a Markdown body: raw HTML in Markdown needs a literal `<` before a letter,
-// `/`, `!` or `?`, so turning exactly those into `&lt;` leaves no raw HTML at all, wherever the
-// renderer thinks code spans begin. The reader sees the characters that were typed.
-export function sanitizeMarkdown(md) {
-  return cleanBody(md).replace(/<(?=[a-zA-Z/!?])/g, '&lt;');
-}
-
-// Whether the text anywhere names an active URL scheme, after the decoding a Markdown renderer does
-// (entities, backslash escapes). Deliberately not limited to link positions: those depend on the
-// renderer (references inside quotes or lists, line breaks), and such an address has no place in
-// the site's texts. «data: 5» in a sentence is fine: a URL has no space after the colon.
-export function hasUnsafeLink(md) {
-  const decoded = decodeEntities(String(md)).replace(/\\/g, '').replace(/[\n\r\t]/g, '');
-  return /(?:^|[^a-z0-9+.-])(?:javascript|vbscript|data):(?=\S)/i.test(decoded);
-}
-
-// ---------------- page files ----------------
 
 export function itemImage(item, sub) {
   const v = item?.[sub.id];
