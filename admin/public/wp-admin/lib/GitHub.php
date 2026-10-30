@@ -105,6 +105,16 @@ final class GitHub
         return (array) json_decode($body, true);
     }
 
+    /** Caches only save requests: one that cannot be written must not stop the work. */
+    private function remember(string $key, string $data): void
+    {
+        try {
+            $this->store->write($key, $data);
+        } catch (RuntimeException $e) {
+            $this->store->log(['event' => 'cache-failed', 'error' => $e->getMessage()]);
+        }
+    }
+
     /** GET with an ETag: an unchanged answer does not count against the rate limit. */
     private function getCached(string $path): array
     {
@@ -114,7 +124,7 @@ final class GitHub
         if ($status === 304 && $cached) return $cached['data'];
         if ($status !== 200) throw $this->fail($status, $body, $headers);
         $data = (array) json_decode($body, true);
-        if (!empty($headers['etag'])) $this->store->writeJson($key, ['etag' => $headers['etag'], 'data' => $data]);
+        if (!empty($headers['etag'])) $this->remember($key, (string) json_encode(['etag' => $headers['etag'], 'data' => $data]));
         return $data;
     }
 
@@ -139,7 +149,7 @@ final class GitHub
         $map = $this->store->readJson($key);
         if ($map === null) {
             $map = self::flatten($this->get("/git/trees/$head?recursive=1"));
-            $this->store->writeJson($key, $map);
+            $this->remember($key, (string) json_encode($map));
         }
         return $this->tree = $map;
     }
@@ -161,7 +171,7 @@ final class GitHub
         if ($cached !== null) return $cached;
         $b = $this->get("/git/blobs/$sha");
         $data = (string) base64_decode(str_replace("\n", '', (string) ($b['content'] ?? '')));
-        $this->store->write($key, $data);
+        $this->remember($key, $data);
         return $data;
     }
 
@@ -209,7 +219,7 @@ final class GitHub
         $cached = $this->store->readJson($key);
         if ($cached !== null) return $cached;
         $files = array_column($this->get("/commits/$sha")['files'] ?? [], 'filename');
-        $this->store->writeJson($key, $files);
+        $this->remember($key, (string) json_encode($files));
         return $files;
     }
 
@@ -274,15 +284,15 @@ final class GitHub
     public function latestRuns(): array
     {
         $runs = $this->getCached('/actions/runs?branch=' . self::BRANCH . '&per_page=10')['workflow_runs'] ?? [];
-        $latest = $runs ? self::describeRun($runs[0], null) : null;
+        $latest = $runs ? self::describeRun($runs[0], $this) : null;
         $finished = null;
         foreach ($runs as $r) {
-            if (($r['status'] ?? '') === 'completed' && ($r['conclusion'] ?? '') !== 'cancelled') { $finished = self::describeRun($r, null); break; }
+            if (($r['status'] ?? '') === 'completed' && ($r['conclusion'] ?? '') !== 'cancelled') { $finished = $r === $runs[0] ? $latest : self::describeRun($r, $this); break; }
         }
         return ['latest' => $latest, 'finished' => $finished];
     }
 
-    private static function describeRun(array $r, ?self $gh): array
+    private static function describeRun(array $r, self $gh): array
     {
         $base = ['url' => $r['html_url'] ?? null, 'at' => $r['updated_at'] ?? ($r['created_at'] ?? null), 'commit' => $r['head_sha'] ?? null, 'id' => $r['id'] ?? null];
         $status = $r['status'] ?? '';
@@ -291,10 +301,8 @@ final class GitHub
         if ($c === 'success') return ['state' => 'done'] + $base;
         if ($c === 'cancelled' || $c === 'skipped') return ['state' => 'superseded'] + $base;
         $phase = 'build';
-        if ($gh) {
-            foreach ($gh->get("/actions/runs/{$r['id']}/jobs")['jobs'] ?? [] as $job) {
-                if (($job['conclusion'] ?? '') === 'failure' && stripos((string) $job['name'], 'deploy') !== false) $phase = 'deploy';
-            }
+        foreach ($gh->get("/actions/runs/{$r['id']}/jobs")['jobs'] ?? [] as $job) {
+            if (($job['conclusion'] ?? '') === 'failure' && stripos((string) $job['name'], 'deploy') !== false) $phase = 'deploy';
         }
         return ['state' => 'failed', 'phase' => $phase] + $base;
     }
