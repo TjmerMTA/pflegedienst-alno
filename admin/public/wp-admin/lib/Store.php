@@ -8,8 +8,7 @@ final class Store
 
     public function __construct(?string $dir = null)
     {
-        // ~/alno-data next to public_html; lib/ is public_html/wp-admin/lib.
-        $this->dir = rtrim($dir ?? (getenv('ALNO_DATA_DIR') ?: dirname(__DIR__, 3) . '/alno-data'), '/');
+        $this->dir = rtrim($dir ?? self::defaultDir(), '/');
         if (!is_dir($this->dir)) @mkdir($this->dir, 0700, true);
     }
 
@@ -19,6 +18,24 @@ final class Store
         $base = $root !== '' ? realpath($root) : false;
         $dir = realpath($this->dir);
         return $base !== false && $dir !== false && strncmp("$dir/", "$base/", strlen($base) + 1) === 0;
+    }
+
+    /**
+     * ~/alno-data, found exactly as public/api/anfrage.php finds it: the form endpoint writes here.
+     * Not from this file's path: on the host public_html can be a link into another tree.
+     */
+    public static function defaultDir(): string
+    {
+        $env = getenv('ALNO_DATA_DIR');
+        if (is_string($env) && $env !== '') return rtrim($env, '/');
+        $home = '';
+        if (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
+            $user = posix_getpwuid(posix_geteuid());
+            $home = is_array($user) ? (string) $user['dir'] : '';
+        }
+        if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
+        if ($home === '' || !@is_dir($home)) $home = dirname(__DIR__, 3); // lib/ is public_html/wp-admin/lib
+        return rtrim($home, '/') . '/alno-data';
     }
 
     public function path(string $rel): string
