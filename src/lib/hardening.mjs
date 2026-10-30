@@ -16,6 +16,9 @@ export const safeMarkdown = {
   },
 };
 
+// Движок кодирует alt картинок из Markdown, Astro кодирует его ещё раз, и читалка произносит «amp»
+export const fixImageAlts = (html) => html.replace(/(<img\b[^>]*?\salt=")([^"]*)/gi, (m, head, alt) => head + alt.replaceAll('&amp;amp;', '&amp;'));
+
 const sha256 = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`;
 
 // Хеши инлайновых <script> и <style>. Внешние скрипты идут по 'self', а JSON-LD — данные: браузер их
@@ -89,7 +92,13 @@ export function hardening() {
         const template = readFileSync(file, 'utf8');
         // Ровно одна метка: вторая, например в комментарии, оставила бы сайт без политики
         if (template.split('__CSP__').length !== 2) throw new Error('[hardening] public/.htaccess must contain __CSP__ exactly once');
-        const policy = policyFor(htmlFiles(root).map((path) => readFileSync(path, 'utf8')));
+        const pages = htmlFiles(root).map((path) => {
+          const html = readFileSync(path, 'utf8');
+          const fixed = fixImageAlts(html);
+          if (fixed !== html) writeFileSync(path, fixed);
+          return fixed;
+        });
+        const policy = policyFor(pages);
         writeFileSync(file, template.replace('__CSP__', policy));
       },
     },
