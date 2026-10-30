@@ -150,12 +150,14 @@
           "id": "plan",
           "label": "Reiter 1",
           "type": "text",
+          "max": 28,
           "value": "Pflegeleistungen"
         },
         {
           "id": "ent",
           "label": "Reiter 2",
           "type": "text",
+          "max": 28,
           "value": "Entlastungsbetrag"
         }
       ]
@@ -204,6 +206,7 @@
           "id": "geldTitle",
           "label": "Pflegegeld: Name",
           "type": "text",
+          "max": 32,
           "value": "Pflegegeld"
         },
         {
@@ -228,6 +231,7 @@
           "id": "kombiTitle",
           "label": "Kombinationsleistung: Name",
           "type": "text",
+          "max": 32,
           "value": "Kombinationsleistung"
         },
         {
@@ -258,6 +262,7 @@
           "id": "sachTitle",
           "label": "Pflegesachleistung: Name",
           "type": "text",
+          "max": 32,
           "value": "Pflegesachleistung"
         },
         {
@@ -300,30 +305,35 @@
           "id": "label1",
           "label": "Bezeichnung Pflegegrad 1",
           "type": "text",
+          "max": 32,
           "value": "gering"
         },
         {
           "id": "label2",
           "label": "Bezeichnung Pflegegrad 2",
           "type": "text",
+          "max": 32,
           "value": "erheblich"
         },
         {
           "id": "label3",
           "label": "Bezeichnung Pflegegrad 3",
           "type": "text",
+          "max": 32,
           "value": "schwer"
         },
         {
           "id": "label4",
           "label": "Bezeichnung Pflegegrad 4",
           "type": "text",
+          "max": 32,
           "value": "schwerst"
         },
         {
           "id": "label5",
           "label": "Bezeichnung Pflegegrad 5",
           "type": "text",
+          "max": 32,
           "value": "besonders"
         },
         {
@@ -337,6 +347,7 @@
           "id": "pg1Button",
           "label": "Button im Hinweis",
           "type": "text",
+          "max": 32,
           "value": "Zum Entlastungs-Rechner"
         },
         {
@@ -367,6 +378,7 @@
           "id": "next",
           "label": "Button weiter",
           "type": "text",
+          "max": 32,
           "value": "Weiter zum Pflegeplan"
         }
       ]
@@ -410,6 +422,7 @@
           "label": "Bezeichnung einmalig",
           "type": "text",
           "help": "In der Liste, im Plan und im Ergebnis",
+          "max": 24,
           "value": "einmalig"
         },
         {
@@ -422,6 +435,7 @@
           "id": "minutes",
           "label": "Abkürzung Minuten",
           "type": "text",
+          "max": 24,
           "value": "Min."
         },
         {
@@ -446,54 +460,63 @@
           "id": "alle",
           "label": "Alle",
           "type": "text",
+          "max": 32,
           "value": "Alle"
         },
         {
           "id": "pakete",
           "label": "Grundpflege-Pakete",
           "type": "text",
+          "max": 32,
           "value": "Grundpflege-Pakete"
         },
         {
           "id": "koerper",
           "label": "Körperpflege",
           "type": "text",
+          "max": 32,
           "value": "Körperpflege"
         },
         {
           "id": "essen",
           "label": "Ernährung",
           "type": "text",
+          "max": 32,
           "value": "Ernährung"
         },
         {
           "id": "mobil",
           "label": "Mobilität",
           "type": "text",
+          "max": 32,
           "value": "Mobilität"
         },
         {
           "id": "hilfe",
           "label": "Kleine Hilfen",
           "type": "text",
+          "max": 32,
           "value": "Kleine Hilfen"
         },
         {
           "id": "haus",
           "label": "Haushalt",
           "type": "text",
+          "max": 32,
           "value": "Haushalt"
         },
         {
           "id": "betreuung",
           "label": "Betreuung",
           "type": "text",
+          "max": 32,
           "value": "Betreuung"
         },
         {
           "id": "beratung",
           "label": "Beratung",
           "type": "text",
+          "max": 32,
           "value": "Beratung"
         }
       ]
@@ -850,30 +873,35 @@
           "id": "presetDaily",
           "label": "Schnellwahl 1",
           "type": "text",
+          "max": 32,
           "value": "Täglich morgens"
         },
         {
           "id": "presetWeekdays",
           "label": "Schnellwahl 2",
           "type": "text",
+          "max": 32,
           "value": "Mo–Fr morgens"
         },
         {
           "id": "presetMornEve",
           "label": "Schnellwahl 3",
           "type": "text",
+          "max": 32,
           "value": "Morgens + abends"
         },
         {
           "id": "presetWeekly",
           "label": "Schnellwahl 4",
           "type": "text",
+          "max": 32,
           "value": "1× pro Woche"
         },
         {
           "id": "clear",
           "label": "Auswahl leeren",
           "type": "text",
+          "max": 32,
           "value": "Leeren"
         },
         {
@@ -984,6 +1012,7 @@
           "id": "add",
           "label": "Button hinzufügen",
           "type": "text",
+          "max": 32,
           "value": "Zum Plan hinzufügen"
         },
         {
@@ -1028,6 +1057,7 @@
           "id": "perMonth",
           "label": "Betrag: pro Monat",
           "type": "text",
+          "max": 24,
           "value": "pro Monat"
         },
         {
@@ -1061,12 +1091,14 @@
           "id": "back",
           "label": "Button zurück",
           "type": "text",
+          "max": 32,
           "value": "Zurück"
         },
         {
           "id": "next",
           "label": "Button weiter",
           "type": "text",
+          "max": 32,
           "value": "Ergebnis anzeigen"
         }
       ]
@@ -1238,6 +1270,7 @@
           "id": "ctaButton",
           "label": "Beratung: Button",
           "type": "text",
+          "max": 32,
           "value": "Termin vereinbaren"
         },
         {
@@ -1257,18 +1290,21 @@
           "id": "back",
           "label": "Button zurück",
           "type": "text",
+          "max": 32,
           "value": "Plan anpassen"
         },
         {
           "id": "print",
           "label": "Button drucken",
           "type": "text",
+          "max": 32,
           "value": "Drucken"
         },
         {
           "id": "restart",
           "label": "Button neu starten",
           "type": "text",
+          "max": 32,
           "value": "Neu starten"
         }
       ]
@@ -1417,6 +1453,7 @@
           "id": "ctaButton",
           "label": "Beratung: Button",
           "type": "text",
+          "max": 32,
           "value": "Termin vereinbaren"
         }
       ]
@@ -1461,6 +1498,7 @@
           "label": "Möglichkeit 1: Name",
           "type": "text",
           "help": "Die Felder der Formulare stehen unter „Allgemein → Kontaktformular“",
+          "max": 32,
           "value": "Kontaktdaten hinterlassen"
         },
         {
@@ -1473,6 +1511,7 @@
           "id": "terminTitle",
           "label": "Möglichkeit 2: Name",
           "type": "text",
+          "max": 32,
           "value": "Beratungstermin buchen"
         },
         {

@@ -271,6 +271,7 @@
           "id": "button",
           "label": "Button",
           "type": "text",
+          "max": 32,
           "value": "Jetzt berechnen"
         }
       ]
@@ -363,6 +364,7 @@
           "id": "button",
           "label": "Button",
           "type": "text",
+          "max": 32,
           "value": "Kostenlos beraten lassen"
         }
       ]
