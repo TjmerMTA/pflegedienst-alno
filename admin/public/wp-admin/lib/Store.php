@@ -34,8 +34,14 @@ final class Store
             $home = is_array($user) ? (string) $user['dir'] : '';
         }
         if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
-        if ($home === '' || !@is_dir($home)) $home = dirname(__DIR__, 3); // lib/ is <docroot>/wp-admin/lib
+        if ($home === '' || !@is_dir($home)) $home = dirname(self::outerWebRoot(dirname(__DIR__, 2))); // lib/ is <docroot>/wp-admin/lib
         return rtrim($home, '/') . '/alno-data';
+    }
+
+    /** The admin's docroot can lie inside public_html, and what is there the public site serves. */
+    public static function outerWebRoot(string $root): string
+    {
+        return preg_match('~^(.*?/public_html)(?:/|$)~', $root, $m) ? $m[1] : $root;
     }
 
     public function path(string $rel): string

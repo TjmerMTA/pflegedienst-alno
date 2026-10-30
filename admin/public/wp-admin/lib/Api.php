@@ -297,7 +297,7 @@ final class Api
     private function dataExposed(): bool
     {
         foreach ([(string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), dirname(__DIR__, 2)] as $root) {
-            if ($this->store->isInside($root)) return true;
+            if ($this->store->isInside($root) || $this->store->isInside(Store::outerWebRoot($root))) return true;
         }
         return false;
     }

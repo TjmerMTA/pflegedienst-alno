@@ -167,6 +167,14 @@ test('a data folder inside the folder above the code is refused, whatever the do
     rmTree($root);
 });
 
+test('a data folder in public_html is refused when the admin docroot lies inside it', function () use ($exposed) {
+    $root = tmpDir('alno-root');
+    mkdir("$root/public_html/admin-alno", 0755, true);
+    exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/public_html/admin-alno/wp-admin"));
+    $exposed("$root/public_html/admin-alno", "$root/public_html/alno-data");
+    rmTree($root);
+});
+
 test('a folder that only starts with the same name is outside', function () {
     $root = tmpDir('alno-root');
     mkdir("$root/site");
