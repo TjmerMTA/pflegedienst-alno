@@ -191,7 +191,7 @@
           "label": "Button: anrufen",
           "type": "text",
           "required": true,
-          "max": 32,
+          "max": 28,
           "value": "Lieber anrufen"
         },
         {
@@ -199,7 +199,7 @@
           "label": "Button: WhatsApp",
           "type": "text",
           "required": true,
-          "max": 32,
+          "max": 28,
           "value": "WhatsApp"
         }
       ]
