@@ -9,11 +9,20 @@ import { readPage } from './page-files.mjs';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (id) => readPage(ROOT, id);
 
-// Читатель полей группы: нет группы или поля — та же понятная ошибка сборки, что в content.ts
+// Нет группы или самого списка групп — та же понятная ошибка сборки, что в content.ts
+function findGroup(id, groupId) {
+  const file = `src/content/pages/${id}.json`;
+  const { groups } = read(id);
+  if (!Array.isArray(groups)) throw new Error(`[content] ${file}: "groups" must be an array`);
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) throw new Error(`[content] ${file}: group "${groupId}" not found`);
+  return group;
+}
+
+// Читатель полей группы
 function reader(id, groupId, tokens) {
   const file = `src/content/pages/${id}.json`;
-  const group = read(id).groups.find((g) => g.id === groupId);
-  if (!group) throw new Error(`[content] ${file}: group "${groupId}" not found`);
+  const group = findGroup(id, groupId);
   return (fieldId) => {
     const f = group.fields.find((x) => x.id === fieldId);
     if (!f) throw new Error(`[content] ${file}: field "${groupId}.${fieldId}" not found`);
@@ -21,9 +30,11 @@ function reader(id, groupId, tokens) {
   };
 }
 
+const contactTokens = () => Object.fromEntries(findGroup('_global', 'contact').fields
+  .filter((f) => f.type === 'text' || f.type === 'textarea').map((f) => [f.id, String(f.value)]));
+
 export function clientTexts() {
-  const tokens = Object.fromEntries(read('_global').groups.find((g) => g.id === 'contact').fields
-    .filter((f) => f.type === 'text' || f.type === 'textarea').map((f) => [f.id, String(f.value)]));
+  const tokens = contactTokens();
   const forms = reader('_global', 'forms', tokens);
   const contact = reader('_global', 'contactForm', tokens);
   const application = reader('_global', 'applicationForm', tokens);
