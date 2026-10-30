@@ -26,7 +26,14 @@ function postbox(ctx, { id, title, body, closed, cls = '' }) {
 
 // ---------------- Dashboard ----------------
 
-export function dashboard(ctx, { counts, runs, activity, firstPage }) {
+// The endpoint's storage limit: from here on files are refused, at 110 % whole enquiries.
+export function anfragenWarning(ctx, w) {
+  const { t } = ctx;
+  if (!w) return '';
+  return html`<div class="notice notice-warning" role="alert"><p>${t('anfragen.full', { used: w.usedMb, limit: w.limitMb })} <a href="#/anfragen.php">${t('anfragen.full.link')}</a></p></div>`;
+}
+
+export function dashboard(ctx, { counts, runs, activity, firstPage, anfragenWarning: warning }) {
   const { t } = ctx;
   const lang = t.lang;
   const latest = runs.latest;
@@ -34,6 +41,7 @@ export function dashboard(ctx, { counts, runs, activity, firstPage }) {
   const stateKey = latest && (latest.state === 'queued' || latest.state === 'running') ? latest.state : 'idle';
   const failed = done && done.state === 'failed' ? done : null;
   return html`<h1 class="wp-heading-inline">${t('menu.dashboard')}</h1>
+  ${anfragenWarning(ctx, warning)}
   <div id="welcome-panel" class="welcome-panel">
     <div class="welcome-panel-content">
       <div class="welcome-panel-header"><h2>${t('dash.welcome')}</h2><p>${t('dash.welcome.lead')}</p></div>
@@ -470,7 +478,9 @@ function anfrageAction(t, route, id, label, { cls = '', next, status, confirm } 
   return html`<form class="inline-form" data-api="${route}"${confirm ? raw(' data-confirm') : ''} data-next="${next}"><input type="hidden" name="id" value="${id}">${status ? html`<input type="hidden" name="status" value="${status}">` : ''}<button type="submit" class="${look}">${label}</button></form>`;
 }
 
-export function anfragenList(ctx, { items, counts, retention, view, cronUrl }) {
+const invalidMark = (t) => html` <span class="anfrage-invalid">${t('anfragen.invalid')}</span>`;
+
+export function anfragenList(ctx, { items, counts, retention, view, cronUrl, warning }) {
   const { t } = ctx;
   const base = '#/anfragen.php';
   const views = [[base, t('list.all'), counts.all, 'all'], [`${base}?view=neu`, t('anfragen.new'), counts.neu, 'neu'], [`${base}?view=erledigt`, t('anfragen.done'), counts.erledigt, 'erledigt'], [`${base}?view=trash`, t('list.trash'), counts.trash, 'trash']];
@@ -481,10 +491,11 @@ export function anfragenList(ctx, { items, counts, retention, view, cronUrl }) {
       <div class="row-actions"><span><a href="${anfrageUrl(a.id)}">${t('anfragen.open')}</a></span>
       ${view === 'trash' ? html` | ${anfrageAction(t, 'anfragen/restore', a.id, t('list.restore'), { next: back('anfrage-restored') })} | ${anfrageAction(t, 'anfragen/delete', a.id, t('list.delete'), { cls: 'link-delete', next: back('anfrage-deleted'), confirm: true })}`
         : html` | ${a.status === 'neu' ? anfrageAction(t, 'anfragen/status', a.id, t('anfragen.markdone'), { status: 'erledigt', next: back('anfrage-status') }) : anfrageAction(t, 'anfragen/status', a.id, t('anfragen.marknew'), { status: 'neu', next: back('anfrage-status') })} | ${anfrageAction(t, 'anfragen/trash', a.id, t('list.trash'), { cls: 'link-delete', next: back('anfrage-trashed') })}`}</div></td>
-    <td>${formLabel(t, a.form)}${a.files ? html` <span class="description">(${t('anfragen.files', { n: a.files })})</span>` : ''}</td><td>${a.name}</td><td>${a.phone}</td>
+    <td>${formLabel(t, a.form)}${a.files ? html` <span class="description">(${t('anfragen.files', { n: a.files })})</span>` : ''}${a.filesRefused ? html` <span class="anfrage-invalid">${t('anfragen.refused.short', { n: a.filesRefused })}</span>` : ''}</td><td>${a.name}${a.invalid.includes('name') ? invalidMark(t) : ''}</td><td>${a.phone}${a.invalid.includes('phone') ? invalidMark(t) : ''}</td>
     <td>${a.status === 'neu' ? t('anfragen.new') : a.status === 'erledigt' ? t('anfragen.done') : a.status}</td>
     <td class="column-date">${formatDate(a.deleteAt, t.lang, false)}</td></tr>`);
   return html`<h1 class="wp-heading-inline">${t('anfragen.title')}</h1><hr class="wp-header-end">
+  ${anfragenWarning(ctx, warning)}
   <ul class="subsubsub">${views.map(([href, label, n, key], i) => html`<li><a href="${href}"${view === key ? raw(' class="current" aria-current="page"') : ''}>${label} <span class="count">(${n})</span></a>${i < views.length - 1 ? ' |' : ''}</li>`)}</ul>
   <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t('list.items', { n: items.length })}</span></div></div>
   <table class="wp-list-table widefat fixed striped table-view-list anfragen">
@@ -507,10 +518,15 @@ export function anfrageDetail(ctx, a) {
   const fileUrlOf = (f) => `/wp-admin/api.php?r=anfragen/file&id=${encodeURIComponent(a.id)}&stored=${encodeURIComponent(f.stored)}`;
   return html`<h1 class="wp-heading-inline">${t('anfragen.detail', { form: formLabel(t, a.form) })}</h1><hr class="wp-header-end">
   <p><a href="${a.trashed ? `${list}?view=trash` : list}">← ${t('anfragen.back')}</a></p>
+  ${a.filesRefused ? html`<div class="notice notice-warning"><p>${t('anfragen.refused', { n: a.filesRefused })}</p></div>` : ''}
   <div id="poststuff"><div id="post-body" class="metabox-holder columns-2">
     <div id="post-body-content">
       ${postbox(ctx, { id: 'anfrage-fields', title: t('anfragen.fields'), body: html`<table class="form-table anfrage-fields"><tbody>
-        ${Object.entries(a.fields).map(([k, v]) => html`<tr><th scope="row">${FIELD_LABELS[k] || k}</th><td class="anfrage-value">${v}</td></tr>`)}
+        ${Object.entries(a.fields).map(([k, v]) => {
+          const flagged = a.invalid.includes(k);
+          const value = k === 'email' && !flagged ? html`<a href="mailto:${encodeURIComponent(String(v))}">${v}</a>` : v;
+          return html`<tr><th scope="row">${FIELD_LABELS[k] || k}</th><td class="anfrage-value">${value}${flagged ? invalidMark(t) : ''}</td></tr>`;
+        })}
       </tbody></table>` })}
       ${a.attachments.length ? postbox(ctx, { id: 'anfrage-files', title: t('anfragen.attachments'), body: html`<ul class="used-on">${a.attachments.map((f) => html`<li><a href="${fileUrlOf(f)}" download>${f.name}</a> <span class="description">— ${fmtSize(f.size)}</span></li>`)}</ul><p class="description">${t('anfragen.attachments.help')}</p>` }) : ''}
     </div>

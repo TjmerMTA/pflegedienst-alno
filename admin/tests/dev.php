@@ -25,11 +25,12 @@ if (!isset($o['setup']) && !$store->exists('config.json')) {
     (new Auth($store))->addUser('admin', 'dev-passwort-123', true);
     (new Auth($store))->addUser('redakteurin', 'dev-passwort-123', false);
     $id = date('Y-m-d-His-', time() - 86400) . 'aaaabbbbccccdddd';
-    $store->write("anfragen/$id.json", json_encode(['id' => $id, 'received' => date('c', time() - 86400), 'form' => 'erstbegutachtung', 'page' => '/erstbegutachtung/', 'fields' => ['name' => 'Berta Beispiel <img src=x onerror=alert(1)>', 'phone' => '0231 123456', 'stadtteil' => 'Hörde', 'message' => "Zweizeilig\n<script>alert(2)</script>", 'datenschutz' => 'ja'], 'files' => [], 'status' => 'neu', 'ip_hash' => str_repeat('f', 32)], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $store->write("anfragen/$id.json", json_encode(['id' => $id, 'received' => date('c', time() - 86400), 'form' => 'erstbegutachtung', 'page' => '/erstbegutachtung/', 'fields' => ['name' => 'Berta Beispiel <img src=x onerror=alert(1)>', 'phone' => '0231 123456', 'stadtteil' => 'Hörde', 'email' => 'keine-adresse', 'message' => "Zweizeilig\n<script>alert(2)</script>", 'datenschutz' => 'ja'], 'invalid' => ['email'], 'files' => [], 'files_refused' => 2, 'status' => 'neu', 'ip_hash' => str_repeat('f', 32)], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     $id2 = date('Y-m-d-His-', time() - 3600) . '1111222233334444';
     $stored = str_repeat('6f', 16);
     $store->write("anfragen/files/$stored", "%PDF-1.4 Beispiel\n");
     $store->write("anfragen/$id2.json", json_encode(['id' => $id2, 'received' => date('c', time() - 3600), 'form' => 'karriere', 'page' => '/karriere/', 'fields' => ['position' => 'Pflegefachkraft (m/w/d)', 'name' => 'Ben Beispiel', 'phone' => '0231 654321', 'email' => 'ben@example.org', 'datenschutz' => 'ja'], 'files' => [['name' => 'Lebenslauf.pdf', 'stored' => $stored, 'size' => 18, 'type' => 'application/pdf']], 'status' => 'neu', 'ip_hash' => str_repeat('e', 32)], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $store->write('anfragen-warnung.json', json_encode(['code' => 'anfragen_voll', 'since' => date('c'), 'used_mb' => 201.3, 'limit_mb' => 200, 'message' => 'Der Speicher für Anfragen ist voll: 201.3 von 200 MB. Bitte erledigte Anfragen löschen.']));
 }
 
 $php = PHP_BINARY;

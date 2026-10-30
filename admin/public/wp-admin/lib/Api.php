@@ -310,17 +310,18 @@ final class Api
         if (!$this->user) { self::json(401, ['error' => 'login', 'loginNonce' => $this->loginNonce()]); return; }
         $u = $this->user;
         $status = ['state' => 'idle', 'failed' => false];
+        $pages = [];
         try {
             $latest = $this->gh->latestRuns()['latest'];
             if ($latest) $status = ['state' => in_array($latest['state'], ['queued', 'running'], true) ? $latest['state'] : 'idle', 'failed' => $latest['state'] === 'failed'];
+            $pages = array_map(static fn ($p) => ['id' => $p['id'], 'label' => $p['label']], $this->site->listPages());
         } catch (GitHubError $e) {
             $status['unknown'] = true;
         }
         self::json(200, [
             'user' => $u['name'], 'lang' => $u['lang'], 'admin' => $u['admin'], 'anfragen' => $u['anfragen'], 'nonce' => $u['csrf'],
             'siteUrl' => $this->config['site_url'], 'actionsUrl' => 'https://github.com/' . GitHub::REPO . '/actions', 'uploadMaxBytes' => self::uploadMax(),
-            'pages' => array_map(static fn ($p) => ['id' => $p['id'], 'label' => $p['label']], $this->site->listPages()),
-            'status' => $status, 'newAnfragen' => $u['anfragen'] ? (new Anfragen($this->store))->counts()['new'] : 0,
+            'pages' => $pages, 'status' => $status, 'newAnfragen' => $u['anfragen'] ? (new Anfragen($this->store))->counts()['new'] : 0,
         ]);
     }
 
@@ -413,6 +414,7 @@ final class Api
         self::json(200, [
             'counts' => ['pages' => count(array_filter($pages, static fn ($p) => $p['id'] !== '_global')), 'posts' => $count('blog'), 'leistungen' => $count('leistungen'), 'team' => $count('team'), 'media' => count($this->site->listImages())],
             'runs' => $this->gh->latestRuns(), 'activity' => $activity, 'firstPage' => $first ? ['id' => $first['id']] : null,
+            'anfragenWarning' => $this->user['anfragen'] ? (new Anfragen($this->store))->warning() : null,
         ]);
     }
 
@@ -705,8 +707,7 @@ final class Api
      */
     private function upload(): void
     {
-        $length = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
-        if (!$_FILES && $length > 0) throw new HttpError(413, 'too_large', 'Datei zu groß');
+        if (!$_FILES && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > self::bytes((string) ini_get('post_max_size'))) throw new HttpError(413, 'too_large', 'Datei zu groß');
         $f = $_FILES['file'] ?? null;
         $errors = [];
         $done = [];
@@ -924,7 +925,10 @@ final class Api
     private function anfragenList(): void
     {
         $raw = (string) ($_GET['view'] ?? '');
-        self::json(200, (new Anfragen($this->store))->listing(in_array($raw, ['neu', 'erledigt', 'trash'], true) ? $raw : 'all'));
+        $a = new Anfragen($this->store);
+        $out = $a->listing(in_array($raw, ['neu', 'erledigt', 'trash'], true) ? $raw : 'all') + ['warning' => $a->warning()];
+        if ($this->user['admin']) $out['cronUrl'] = rtrim((string) $this->config['site_url'], '/') . '/wp-admin/cron.php?key=' . rawurlencode((string) ($this->config['cron_key'] ?? ''));
+        self::json(200, $out);
     }
 
     private function anfrageItem(): void

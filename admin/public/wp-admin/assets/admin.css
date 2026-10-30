@@ -360,6 +360,7 @@ body.login { display: flex; justify-content: center; background: #f0f0f1; }
 .anfrage-fields th { width: 180px; padding: 8px 10px 8px 0; }
 .anfrage-fields td { padding: 8px 10px; }
 .anfrage-value { white-space: pre-wrap; word-break: break-word; }
+.anfrage-invalid { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 2px; background: #fcf0f1; color: #b32d2e; font-size: 12px; white-space: nowrap; }
 .retention-form label { display: inline-block; min-width: 110px; }
 #retentiondiv { margin-top: 20px; max-width: 800px; }
 .cron-url { word-break: break-all; }

@@ -46,6 +46,12 @@ final class Anfragen
         return (new DateTimeImmutable('@' . $ts))->modify("+$months months")->getTimestamp();
     }
 
+    /** When something in the trash goes at the latest. */
+    private function trashEnd(string $id): int
+    {
+        return (int) @filemtime($this->store->path(self::TRASH . "/$id.json")) + self::TRASH_DAYS * 86400;
+    }
+
     private function records(string $dir): array
     {
         $out = [];
@@ -59,14 +65,24 @@ final class Anfragen
         return $out;
     }
 
-    private function brief(array $rec, array $retention): array
+    private function brief(array $rec, array $retention, bool $trashed = false): array
     {
         $f = is_array($rec['fields'] ?? null) ? $rec['fields'] : [];
+        $at = $this->deleteAt($rec, $retention);
         return [
             'id' => $rec['id'], 'received' => (string) ($rec['received'] ?? ''), 'form' => (string) ($rec['form'] ?? ''),
             'name' => (string) ($f['name'] ?? ''), 'phone' => (string) ($f['phone'] ?? ''), 'status' => (string) ($rec['status'] ?? 'neu'),
-            'files' => count(is_array($rec['files'] ?? null) ? $rec['files'] : []), 'deleteAt' => gmdate('c', $this->deleteAt($rec, $retention)),
+            'files' => count(is_array($rec['files'] ?? null) ? $rec['files'] : []), 'deleteAt' => gmdate('c', $trashed ? min($at, $this->trashEnd($rec['id'])) : $at),
+            'invalid' => array_values(array_filter(is_array($rec['invalid'] ?? null) ? $rec['invalid'] : [], 'is_string')), 'filesRefused' => max(0, (int) ($rec['files_refused'] ?? 0)),
         ];
+    }
+
+    /** The endpoint's notice while the storage limit is reached. Only its numbers are passed on. */
+    public function warning(): ?array
+    {
+        $w = $this->store->readJson('anfragen-warnung.json');
+        if (!is_array($w)) return null;
+        return ['since' => (string) ($w['since'] ?? ''), 'usedMb' => (float) ($w['used_mb'] ?? 0), 'limitMb' => (float) ($w['limit_mb'] ?? 0)];
     }
 
     public function counts(): array
@@ -84,7 +100,7 @@ final class Anfragen
         $trash = $this->records(self::TRASH);
         $rows = $view === 'trash' ? $trash : ($view === 'neu' || $view === 'erledigt' ? array_filter($live, static fn ($r) => ($r['status'] ?? 'neu') === $view) : $live);
         return [
-            'items' => array_values(array_map(fn ($r) => $this->brief($r, $retention), $rows)),
+            'items' => array_values(array_map(fn ($r) => $this->brief($r, $retention, $view === 'trash'), $rows)),
             'counts' => ['all' => count($live), 'neu' => count(array_filter($live, static fn ($r) => ($r['status'] ?? 'neu') === 'neu')), 'erledigt' => count(array_filter($live, static fn ($r) => ($r['status'] ?? 'neu') === 'erledigt')), 'trash' => count($trash)],
             'retention' => $retention, 'view' => $view,
         ];
@@ -109,7 +125,7 @@ final class Anfragen
         foreach (is_array($rec['files'] ?? null) ? $rec['files'] : [] as $f) {
             if (preg_match(self::STORED_RE, (string) ($f['stored'] ?? ''))) $files[] = ['name' => (string) ($f['name'] ?? ''), 'stored' => $f['stored'], 'size' => (int) ($f['size'] ?? 0), 'type' => (string) ($f['type'] ?? '')];
         }
-        return $this->brief($rec, $this->retention()) + [
+        return $this->brief($rec, $this->retention(), $dir === self::TRASH) + [
             'page' => (string) ($rec['page'] ?? ''), 'fields' => array_filter(is_array($rec['fields'] ?? null) ? $rec['fields'] : [], 'is_scalar'),
             'attachments' => $files, 'trashed' => $dir === self::TRASH,
         ];
@@ -193,9 +209,7 @@ final class Anfragen
             if ($this->deleteAt($r, $retention) <= $this->now && $this->destroy($r['id'], self::LIVE)) $n++;
         }
         foreach ($this->records(self::TRASH) as $r) {
-            $file = $this->store->path(self::TRASH . "/{$r['id']}.json");
-            $expired = (int) @filemtime($file) + self::TRASH_DAYS * 86400 <= $this->now;
-            if (($expired || $this->deleteAt($r, $retention) <= $this->now) && $this->destroy($r['id'], self::TRASH)) $n++;
+            if (min($this->trashEnd($r['id']), $this->deleteAt($r, $retention)) <= $this->now && $this->destroy($r['id'], self::TRASH)) $n++;
         }
         if ($n) $this->store->log(['event' => 'anfragen-purge', 'deleted' => $n]);
         return $n;
