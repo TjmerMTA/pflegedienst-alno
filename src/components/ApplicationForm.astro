@@ -1,7 +1,7 @@
 ---
 // Bewerbungsformular. Варианты: karriere (Stellen/Jobs), ausbildung (Ausbildung, Praktikum, FSJ, Quereinstieg).
 // Отправка и защита от спама — как в ContactForm: honeypot + минимальное время заполнения, fetch на SITE.formEndpoint;
-// пустой endpoint = режим превью. Файлы (Lebenslauf) через статический endpoint не передаются — см. подсказку в форме.
+// пустой endpoint = режим превью. Поля для файлов в форме нет (Lebenslauf — на e-mail, см. подсказку); anfrage.php готов их принять, см. docs/anfragen-format.md.
 import { SITE, getGlobal, getPage } from '../config/site';
 interface Props { variant?: 'karriere' | 'ausbildung'; id?: string; position?: string }
 const { variant = 'karriere', id = 'bewerbung', position } = Astro.props;
@@ -141,6 +141,7 @@ const jahr = new Date().getFullYear();
       if (!consent.checked) { show('fail', MSG.consent); consent.focus(); return; }
       const data = new FormData(form);
       if (data.get('website') || Date.now() - started < 3000) { show('fail', MSG.spam); return; }
+      data.set('fill_ms', String(Date.now() - started)); // второй раз время проверит сервер
       const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
       btn.disabled = true;
       const endpoint = form.dataset.endpoint;

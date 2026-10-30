@@ -133,6 +133,7 @@ const okText = isRechner ? c('okRechner') : undefined;
       if (!consent.checked) { show('fail', MSG.consent); consent.focus(); return; }
       const data = new FormData(form);
       if (data.get('website') || Date.now() - started < 3000) { show('fail', MSG.spam); return; }
+      data.set('fill_ms', String(Date.now() - started)); // второй раз время проверит сервер
       const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
       btn.disabled = true;
       const endpoint = form.dataset.endpoint;

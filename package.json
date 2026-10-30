@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "test:anfrage": "php test/anfrage-test.php"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
