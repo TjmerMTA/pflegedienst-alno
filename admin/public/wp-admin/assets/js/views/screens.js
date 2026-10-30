@@ -243,8 +243,6 @@ function collField(ctx, f, values, errs) {
 }
 
 export function collectionEdit(ctx, { def, slug, isNew, values, body, errors = [], revCount, visualOff }) {
-  const { label } = ctx.t;
-  def = { ...def, fields: def.fields.map((f) => ({ ...f, label: label(f.label), help: f.help && label(f.help), itemLabel: f.itemLabel && label(f.itemLabel) })) };
   const { t } = ctx;
   const coll = def.key;
   const errs = errorMap(errors);
@@ -344,7 +342,7 @@ export function mediaDetails(ctx, { image, info, usedOn, alt: defaultAlt }) {
           <p><button type="submit" class="button button-primary">${t('media.save')}</button></p>
         </form>
         <h3>${t('media.usedon')}</h3>
-        ${usedOn.length ? html`<ul class="used-on">${usedOn.map((u) => html`<li>${u.edit ? html`<a href="${editUrl(u.edit)}">${u.title}</a>` : u.title} <span class="description">— ${t.label(u.where)}${u.alt ? html` · Alt: „${u.alt}“` : ''}</span></li>`)}</ul>` : html`<p class="description">${t('media.unused')}</p>`}
+        ${usedOn.length ? html`<ul class="used-on">${usedOn.map((u) => html`<li>${u.edit ? html`<a href="${editUrl(u.edit)}">${t.label(u.title)}</a>` : t.label(u.title)} <span class="description">— ${t.label(u.where)}${u.alt ? html` · Alt: „${u.alt}“` : ''}</span></li>`)}</ul>` : html`<p class="description">${t('media.unused')}</p>`}
         <div class="actions">${usedOn.length ? html`<p class="description">${t('media.delete.used')}</p>` : html`<form data-api="media/delete" data-confirm data-next="#/upload.php?message=mediatrashed"><input type="hidden" name="path" value="${image.path}"><button type="submit" class="button-link link-delete">${t('media.delete')}</button></form>`}</div>
       </div>
     </div></div>`;

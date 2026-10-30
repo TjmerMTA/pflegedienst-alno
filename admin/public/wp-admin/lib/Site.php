@@ -317,6 +317,13 @@ final class Site
         return $out;
     }
 
+    /** Width and height, or null for a file that does not say. */
+    public function imageSize(string $p): ?array
+    {
+        $info = @getimagesizefromstring((string) $this->imageBytes($p));
+        return $info ? [$info[0], $info[1]] : null;
+    }
+
     public function imageBytes(string $p): ?string
     {
         $pending = $this->pending()[$p] ?? null;

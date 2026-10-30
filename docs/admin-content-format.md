@@ -98,6 +98,11 @@ admin's `sanitizeMarkdown`.
 ## 3. Images
 
 - Library = every `jpg/jpeg/png/webp` under `src/assets/img/`.
+- An `image` field may carry `minWidth`, `minHeight` (pixels) and `square: true`: the admin refuses a newly chosen image that
+  does not meet them, and the build crops to the size it needs. Used by the group `brand` of `_global.json`: logo text and picture,
+  favicon, sharing picture. Nothing of these lives in `public/` any more.
+- Phone: `contact.phone` is the only field to change. `tel:` links and Google's number are derived from it (`src/lib/phone.mjs`);
+  `contact.phoneIntl` is an optional override, empty by default. `contact.whatsapp` stays separate.
 - Uploads go to `src/assets/img/uploads/<random>.<ext>`: type checked by content, re-encoded
   (sharp), longest side at most 2400 px, never the uploaded file name, never SVG.
 - The site imports only the images named in the page files (Vite plugin `src/lib/content-images.mjs`), so

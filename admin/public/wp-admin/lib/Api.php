@@ -488,7 +488,10 @@ final class Api
             if ($loaded['structureErrors']) throw new HttpError(422, 'structure', '', ['structureErrors' => $loaded['structureErrors']]);
             $tokens = $id === '_global' ? Site::tokenKeys($loaded['page']) : $this->site->tokens();
             $values = is_array($b['values'] ?? null) ? $b['values'] : [];
-            $r = Rules::applyPageValues($loaded['page'], $values, $this->ctx() + ['tokens' => $tokens]);
+            // Size rules are for a newly chosen image: an unchanged one is not fetched on every save.
+            $old = array_column(Site::pageImageRefs($loaded['page']), 'path');
+            $imageSize = fn ($p) => in_array($p, $old, true) ? null : $this->site->imageSize($p);
+            $r = Rules::applyPageValues($loaded['page'], $values, $this->ctx() + ['tokens' => $tokens, 'imageSize' => $imageSize]);
             if (($b['hash'] ?? '') !== $loaded['hash']) throw new HttpError(409, 'conflict', '', ['hash' => $loaded['hash'], 'page' => $r['page']]);
             if ($r['errors']) throw new HttpError(422, 'validation', '', ['errors' => $r['errors'], 'page' => $r['page']]);
             $out = Site::serializePage($r['page']);

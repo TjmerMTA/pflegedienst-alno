@@ -750,6 +750,10 @@ const ruMessages = [
   [/^Animierte Bilder sind nicht erlaubt$/, 'анимированные картинки нельзя'],
   [/^Das Bild konnte nicht verarbeitet werden$/, 'картинку не удалось обработать'],
   [/^ungültiger Wert$/, 'неверное значение'],
+  [/^Das Bild ist zu klein: mindestens (\d+) × (\d+) Pixel, dieses hat (\d+) × (\d+)\.$/, 'картинка слишком маленькая: нужно не меньше $1 × $2 пикселей, у этой $3 × $4'],
+  [/^Das Bild muss quadratisch sein\.$/, 'картинка должна быть квадратной'],
+  [/^Bitte eine Telefonnummer mit Vorwahl eingeben\.$/, 'введите номер телефона с кодом города'],
+  [/^Bitte leer lassen oder mit \+ und Ländervorwahl schreiben.*$/, 'оставьте пустым или напишите с + и кодом страны, например +49 231 5467686'],
   [/^ungültige Liste$/, 'неверный список'],
   [/^ungültiger Eintrag$/, 'неверный элемент'],
   [/^Bilder von fremden Websites .*$/, 'картинки с чужих сайтов здесь не показываются: загрузите картинку в медиатеку и вставьте её оттуда'],
@@ -788,14 +792,18 @@ const ruMessages = [
   [/^list ohne fields$/, 'list без fields'],
 ];
 
-// Labels of schema/collections.json and of the server's error list. Page and group labels are German by contract.
-const ruLabels = {
-  'Titel (H1 und Meta Title)': 'Заголовок (H1 и Meta Title)', 'Veröffentlicht am': 'Дата публикации', 'Aktualisiert am': 'Дата обновления',
-  'Entwurf – nicht auf der Website zeigen': 'Черновик — не показывать на сайте', Autor: 'Автор', Schlagwörter: 'Метки', 'Durch Kommas trennen': 'Через запятую',
-  Beitragsbild: 'Изображение записи', 'Name der Leistung': 'Название услуги', 'Kurztext (Karte auf der Startseite)': 'Краткий текст (карточка на главной)', Symbol: 'Значок',
-  Reihenfolge: 'Порядок', 'Wer bezahlt?': 'Кто платит?', Leistungspunkte: 'Пункты услуги', Punkt: 'Пункт', Name: 'Имя', Funktion: 'Должность', Beschreibung: 'Описание',
-  'Auf der Website ausblenden': 'Скрыть на сайте', Foto: 'Фото', Inhalt: 'Содержимое', Permalink: 'Постоянная ссылка', Text: 'Текст', Eintrag: 'Элемент',
-};
+// German in the page files and the schema, Russian from assets/labels-ru.json: a label it lacks stays German.
+let labels = {};
+const LABEL_KEYS = new Set(['label', 'help', 'itemLabel']);
+
+export function setLabels(dict) { labels = dict || {}; }
+
+export async function loadLabels() {
+  try {
+    const r = await fetch('assets/labels-ru.json', { credentials: 'same-origin' });
+    if (r.ok) setLabels(await r.json());
+  } catch { /* the German labels stay */ }
+}
 
 const dicts = { de, ru };
 
@@ -812,7 +820,13 @@ export function translator(lang) {
     for (const [re, rep] of ruMessages) if (re.test(m)) return m.replace(re, rep);
     return m;
   };
-  t.label = (s) => (t.lang === 'ru' && ruLabels[s]) || s;
+  t.label = (s) => (t.lang === 'ru' && labels[s]) || s;
+  // The same walk as admin/tests/labels_ru_check.mjs. Values are the site's content, not labels.
+  t.localize = (o) => {
+    if (t.lang !== 'ru' || !o || typeof o !== 'object') return o;
+    if (Array.isArray(o)) return o.map(t.localize);
+    return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'value' || k === 'values' ? v : LABEL_KEYS.has(k) && typeof v === 'string' ? t.label(v) : t.localize(v)]));
+  };
   t.count = (n) => t(n === 1 ? 'list.item' : 'list.items', { n });
   return t;
 }

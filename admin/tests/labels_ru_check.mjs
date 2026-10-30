@@ -1,4 +1,4 @@
-// Checks admin/i18n/labels-ru.json against the content: every German label/help/itemLabel of the pages and
+// Checks labels-ru.json against the content: every German label/help/itemLabel of the pages and
 // of the collection schema has a Russian text, tokens and numbers survive, the file is sorted. Prints what is missing.
 // Run: node admin/tests/labels_ru_check.mjs
 import fs from 'node:fs';
@@ -6,11 +6,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const dictFile = path.join(root, 'admin', 'i18n', 'labels-ru.json');
+const dictFile = path.join(root, 'admin', 'public', 'wp-admin', 'assets', 'labels-ru.json');
 const raw = fs.readFileSync(dictFile, 'utf8');
 const dict = JSON.parse(raw);
 const NAMES = ['label', 'help', 'itemLabel'];
-// Used by the admin outside the files: see ruLabels in assets/js/i18n.js
+// Used by the admin outside the files, for the server's error list and the media details.
 const FIXED = ['Inhalt', 'Permalink', 'Text', 'Eintrag'];
 
 const keys = new Set(FIXED);

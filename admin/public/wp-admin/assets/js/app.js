@@ -1,6 +1,6 @@
 // The admin in the browser: session, hash router, calling the API, forms. Screens are rendered by
 // views/*.js and wired up by behaviour.js; what is valid is decided by the server alone.
-import { translator } from './i18n.js';
+import { translator, loadLabels } from './i18n.js';
 import { unsupportedMarkdown } from './markdown.js';
 import { layout, loginPage, setupPage, errorScreen, notices } from './views/layout.js';
 import * as V from './views/screens.js';
@@ -38,7 +38,7 @@ async function call(url, init = {}) {
   } catch {
     throw new ApiError(0, { error: 'network' });
   }
-  const data = await r.json().catch(() => null);
+  const data = t.localize(await r.json().catch(() => null));
   if (r.status === 401 && data?.error === 'login' && session) {
     session = null;
     afterLogin = location.hash;
@@ -75,8 +75,9 @@ async function loadSession() {
   const data = await r.json().catch(() => ({}));
   sessionAt = Date.now();
   if (r.ok) {
-    session = data;
     t = translator(data.lang);
+    if (t.lang === 'ru') await loadLabels();
+    session = t.localize(data);
     document.documentElement.lang = t.lang;
     return 'ok';
   }

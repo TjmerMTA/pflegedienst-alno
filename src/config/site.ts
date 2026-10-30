@@ -3,6 +3,7 @@
 // Всё, что помечено TODO, нужно подтвердить у клиента до запуска.
 import { getGlobal, getPage, escText, jsonForScript } from '../lib/content';
 import FORM_RULES from './form-rules.json';
+import { intlPhone } from '../lib/phone.mjs';
 
 // Страницы и компоненты, которые уже импортируют site.ts, берут это отсюда: лишний import в .astro
 // сдвигает порядок <style> в собранном HTML (Astro сортирует CSS по позиции импорта)
@@ -29,8 +30,9 @@ export const SITE = {
   country: c('country'),
   geo: { lat: num('lat'), lng: num('lng') }, // TODO: точные координаты офиса
   phone: c('phone'),
-  phoneIntl: c('phoneIntl'),
-  phoneHref: `tel:${c('phoneIntl').replace(/[^\d+]/g, '')}`,
+  // «Telefon international» — необязательная замена: обычно номер для ссылки выводится из показанного
+  phoneIntl: c('phoneIntl') || intlPhone(c('phone')),
+  phoneHref: `tel:${intlPhone(c('phoneIntl') || c('phone'))}`,
   phone2: c('phone2'),
   fax: c('fax'),
   faxIntl: c('faxIntl'),

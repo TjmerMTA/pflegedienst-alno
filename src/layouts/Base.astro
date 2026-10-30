@@ -1,5 +1,5 @@
 ---
-import { Font } from 'astro:assets';
+import { Font, getImage } from 'astro:assets';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -15,10 +15,17 @@ interface Props {
   schema?: Record<string, unknown>[];
   noindex?: boolean;
 }
-const { title, description, image = '/og.jpg', type = 'website', schema = [], noindex = false } = Astro.props;
+const { title, description, image, type = 'website', schema = [], noindex = false } = Astro.props;
+// Логотип, значки и картинка для соцсетей — из админки (группа brand), нужные размеры делает сборка
+const brand = getGlobal();
+const sized = async (id: string, width: number, height: number, format: 'png' | 'jpeg') =>
+  (await getImage({ src: brand.img(`brand.${id}`)!.src, width, height, format, fit: 'cover' })).src;
+const [favicon, touchIcon, logoFile, defaultOg] = await Promise.all([
+  sized('favicon', 64, 64, 'png'), sized('favicon', 180, 180, 'png'), sized('logoImage', 512, 512, 'png'), sized('ogImage', 1200, 630, 'jpeg'),
+]);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const fullTitle = title.includes('ALNO') ? title : `${title} | ${SITE.shortName} Dortmund`;
-const ogImage = new URL(image, Astro.site);
+const ogImage = new URL(image ?? defaultOg, Astro.site);
 const robots = NOINDEX || noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
 
 const business = {
@@ -28,7 +35,7 @@ const business = {
   name: SITE.name,
   description: 'Ambulanter Pflegedienst in Dortmund: Grundpflege, Behandlungspflege, Verhinderungspflege, Betreuung und Pflegeberatung nach § 37.3 SGB XI.',
   url: new URL('/', Astro.site).href,
-  logo: new URL('/logo-mark.png', Astro.site).href,
+  logo: new URL(logoFile, Astro.site).href,
   image: ogImage.href,
   telephone: SITE.phoneIntl,
   faxNumber: SITE.faxIntl,
@@ -49,8 +56,8 @@ const business = {
     <meta name="description" content={description} />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href={favicon} />
+    <link rel="apple-touch-icon" href={touchIcon} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#047d8c" />
     <meta property="og:type" content={type} />
