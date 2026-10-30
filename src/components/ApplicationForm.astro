@@ -2,13 +2,19 @@
 // Bewerbungsformular. Варианты: karriere (Stellen/Jobs), ausbildung (Ausbildung, Praktikum, FSJ, Quereinstieg).
 // Отправка и защита от спама — как в ContactForm: honeypot + минимальное время заполнения, fetch на SITE.formEndpoint;
 // пустой endpoint = режим превью. Файлы (Lebenslauf) через статический endpoint не передаются — см. подсказку в форме.
-import { SITE } from '../config/site';
+import { SITE, getGlobal, getPage } from '../config/site';
 interface Props { variant?: 'karriere' | 'ausbildung'; id?: string; position?: string }
 const { variant = 'karriere', id = 'bewerbung', position } = Astro.props;
 const subject = { karriere: 'Bewerbung Stelle', ausbildung: 'Bewerbung Ausbildung/Praktikum' }[variant];
-const positions = ['Pflegefachkraft (m/w/d)', 'Pflegehelfer/in (m/w/d)', 'Betreuungskraft / Alltagsbegleiter/in (m/w/d)', 'Initiativbewerbung'];
-const abschluss = ['Hauptschulabschluss', 'Mittlere Reife (Realschulabschluss)', 'Fachoberschulreife', 'Fachhochschulreife / Abitur', 'Noch in der Schule', 'Sonstiger Abschluss'];
-const wunsch = ['Ausbildung', 'Praktikum', 'FSJ / BFD', 'Quereinstieg'];
+// Тексты — в _global.json (группы forms и applicationForm); subject — тема письма, на сайте не виден
+const g = getGlobal();
+const f = (id: string) => g.text(`forms.${id}`);
+const a = (id: string) => g.text(`applicationForm.${id}`);
+const options = (id: string) => g.list<{ text: string }>(`applicationForm.${id}`).map((o) => o.text);
+// Варианты Stelle и Wunsch должны совпадать с кнопками «Dafür bewerben» на страницах — берём из их списков
+const positions = [...getPage('karriere').list<{ title: string }>('jobs.items').map((j) => j.title), a('initiative')];
+const abschluss = options('schoolOptions');
+const wunsch = getPage('ausbildung').list<{ tag: string }>('ways.items').map((w) => w.tag);
 const jahr = new Date().getFullYear();
 ---
 <form class="form" id={id} data-application-form data-endpoint={SITE.formEndpoint} novalidate>
@@ -16,7 +22,7 @@ const jahr = new Date().getFullYear();
   <input type="hidden" name="from_page" value={Astro.url.pathname} />
   {variant === 'karriere' ? (
     <div class="field">
-      <label for={`${id}-position`}>Auf welche Stelle bewerben Sie sich? <span class="req">*</span></label>
+      <label for={`${id}-position`}>{a('positionLabel')} <span class="req">*</span></label>
       <select id={`${id}-position`} name="position" required>
         {positions.map((p) => <option value={p} selected={p === position}>{p}</option>)}
       </select>
@@ -24,7 +30,7 @@ const jahr = new Date().getFullYear();
     </div>
   ) : (
     <fieldset class="seg field">
-      <legend>Wofür interessieren Sie sich? </legend>
+      <legend>{a('wishLegend')} </legend>
       {wunsch.map((v, i) => (
         <label><input type="radio" name="wunsch" value={v} checked={v === position || (!position && i === 0)} /><span>{v}</span></label>
       ))}
@@ -32,26 +38,26 @@ const jahr = new Date().getFullYear();
   )}
   <div class="row">
     <div class="field">
-      <label for={`${id}-name`}>Ihr Name <span class="req">*</span></label>
+      <label for={`${id}-name`}>{f('nameLabel')} <span class="req">*</span></label>
       <input id={`${id}-name`} name="name" autocomplete="name" required minlength="2" />
       <span class="err" aria-live="polite"></span>
     </div>
     {variant === 'ausbildung' && (
       <div class="field">
-        <label for={`${id}-jahr`}>Geburtsjahr <span class="req">*</span></label>
-        <input id={`${id}-jahr`} name="geburtsjahr" type="number" inputmode="numeric" required min="1940" max={jahr - 14} placeholder="z. B. 2008" />
+        <label for={`${id}-jahr`}>{a('yearLabel')} <span class="req">*</span></label>
+        <input id={`${id}-jahr`} name="geburtsjahr" type="number" inputmode="numeric" required min="1940" max={jahr - 14} placeholder={a('yearPlaceholder')} />
         <span class="err" aria-live="polite"></span>
       </div>
     )}
   </div>
   <div class="row">
     <div class="field">
-      <label for={`${id}-phone`}>Telefon <span class="req">*</span></label>
+      <label for={`${id}-phone`}>{f('phoneLabel')} <span class="req">*</span></label>
       <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9 +\(\)\/\-]{6,}" />
       <span class="err" aria-live="polite"></span>
     </div>
     <div class="field">
-      <label for={`${id}-email`}>E-Mail <span class="req">*</span></label>
+      <label for={`${id}-email`}>{f('emailLabel')} <span class="req">*</span></label>
       <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
       <span class="err" aria-live="polite"></span>
     </div>
@@ -59,18 +65,18 @@ const jahr = new Date().getFullYear();
   {variant === 'karriere' ? (
     <>
       <div class="field">
-        <label for={`${id}-quali`}>Qualifikation und Berufserfahrung <span class="muted">(optional)</span></label>
-        <textarea id={`${id}-quali`} name="qualifikation" placeholder="z. B. Altenpflegerin, 5 Jahre ambulant, Führerschein Klasse B"></textarea>
+        <label for={`${id}-quali`}>{a('qualiLabel')} <span class="muted">{f('optional')}</span></label>
+        <textarea id={`${id}-quali`} name="qualifikation" placeholder={a('qualiPlaceholder')}></textarea>
       </div>
       <div class="row">
         <div class="field">
-          <label for={`${id}-start`}>Frühester Eintritt <span class="muted">(optional)</span></label>
+          <label for={`${id}-start`}>{a('startLabel')} <span class="muted">{f('optional')}</span></label>
           <input id={`${id}-start`} name="eintritt" type="date" />
         </div>
       </div>
       <fieldset class="seg field">
-        <legend>Gewünschte Arbeitszeit </legend>
-        {['Vollzeit', 'Teilzeit', 'Minijob'].map((v, i) => (
+        <legend>{a('hoursLegend')} </legend>
+        {options('hoursOptions').map((v, i) => (
           <label><input type="radio" name="arbeitszeit" value={v} checked={i === 0} /><span>{v}</span></label>
         ))}
       </fieldset>
@@ -78,44 +84,36 @@ const jahr = new Date().getFullYear();
   ) : (
     <div class="row">
       <div class="field">
-        <label for={`${id}-abschluss`}>Schulabschluss <span class="req">*</span></label>
+        <label for={`${id}-abschluss`}>{a('schoolLabel')} <span class="req">*</span></label>
         <select id={`${id}-abschluss`} name="schulabschluss" required>
-          <option value="">Bitte wählen</option>
-          {abschluss.map((a) => <option value={a}>{a}</option>)}
+          <option value="">{a('schoolPrompt')}</option>
+          {abschluss.map((o) => <option value={o}>{o}</option>)}
         </select>
         <span class="err" aria-live="polite"></span>
       </div>
       <div class="field">
-        <label for={`${id}-start`}>Gewünschter Beginn <span class="muted">(optional)</span></label>
+        <label for={`${id}-start`}>{a('beginLabel')} <span class="muted">{f('optional')}</span></label>
         <input id={`${id}-start`} name="beginn" type="date" />
       </div>
     </div>
   )}
   <div class="field">
-    <label for={`${id}-msg`}>Ihre Nachricht <span class="muted">(optional)</span></label>
-    <textarea id={`${id}-msg`} name="message" placeholder={variant === 'karriere' ? 'Was möchten Sie uns noch mitteilen?' : 'Warum interessiert Sie die Pflege? Haben Sie schon Erfahrung?'}></textarea>
+    <label for={`${id}-msg`}>{f('messageLabel')} <span class="muted">{f('optional')}</span></label>
+    <textarea id={`${id}-msg`} name="message" placeholder={variant === 'karriere' ? a('messagePlaceholderJob') : a('messagePlaceholderTraining')}></textarea>
   </div>
   <p class="muted note cv">
-    Lebenslauf und Zeugnisse bitte gern per E-Mail an <a href={`mailto:${SITE.email}`}>{SITE.email}</a> oder per WhatsApp schicken – ein Datei-Upload ist hier leider nicht möglich.
+    {a('cvBefore')} <a href={`mailto:${SITE.email}`}>{SITE.email}</a> {a('cvAfter')}
   </p>
   <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off" /></label></div>
-  <label class="consent"><input type="checkbox" name="datenschutz" required /> <span>Ich bin einverstanden, dass meine Angaben zur Bearbeitung meiner Bewerbung gespeichert und verarbeitet werden. Details in der <a href="/datenschutz/" target="_blank">Datenschutzerklärung</a>. <span class="req">*</span></span></label>
-  <button class="btn btn--primary" type="submit">Bewerbung absenden</button>
+  <label class="consent"><input type="checkbox" name="datenschutz" required /> <span>{a('consentBefore')} <a href="/datenschutz/" target="_blank">{f('consentLink')}</a>. <span class="req">*</span></span></label>
+  <button class="btn btn--primary" type="submit">{a('submit')}</button>
   <p class="form-status" role="status" aria-live="polite"></p>
-  <p class="muted note">Wir melden uns in der Regel innerhalb von 2 Werktagen bei Ihnen. Ihre Daten werden vertraulich behandelt.</p>
+  <p class="muted note">{a('note')}</p>
 </form>
 <script>
-  const MSG = {
-    required: 'Bitte füllen Sie dieses Feld aus.',
-    phone: 'Bitte geben Sie eine gültige Telefonnummer an.',
-    email: 'Bitte prüfen Sie die E-Mail-Adresse.',
-    year: 'Bitte geben Sie ein gültiges Geburtsjahr an (vierstellig).',
-    consent: 'Bitte stimmen Sie der Datenverarbeitung zu.',
-    ok: 'Vielen Dank für Ihre Bewerbung! Sie ist bei uns angekommen. Wir melden uns schnellstmöglich bei Ihnen.',
-    preview: 'Vorschau-Modus: Das Formular ist geprüft, wird aber noch nicht versendet (Empfänger wird beim Livegang hinterlegt).',
-    fail: 'Leider ist ein Fehler aufgetreten. Bitte rufen Sie uns an: 0231 54 67 686.',
-    spam: 'Bitte nehmen Sie sich einen Moment Zeit und versuchen Sie es erneut.',
-  };
+  // Сообщения — из _global.json, подставляются при сборке (src/lib/client-texts.mjs)
+  declare const __APPLICATION_FORM_MSG__: Record<'required' | 'phone' | 'email' | 'year' | 'consent' | 'ok' | 'preview' | 'fail' | 'spam', string>;
+  const MSG = __APPLICATION_FORM_MSG__;
   type Field = HTMLInputElement | HTMLSelectElement;
   document.querySelectorAll<HTMLFormElement>('[data-application-form]').forEach((form) => {
     const started = Date.now();

@@ -152,3 +152,10 @@ p { margin: 0 0 1em; text-wrap: pretty; }
   .page-hero--photo { padding-block: clamp(51px, 7.2vw, 102px) clamp(45px, 6.4vw, 90px); }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+/* Слово шире своей колонки переносится (последняя мера), а совсем длинное не раздвигает страницу */
+main, footer { overflow-wrap: break-word; overflow-x: clip; }
+/* На телефонах длинные немецкие слова в заголовках переносятся по слогам, с дефисом */
+@media (max-width: 480px) {
+  h1, h2, h3, h4 { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 17 5 5; }
+}

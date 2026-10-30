@@ -1,0 +1,186 @@
+{
+  "label": "Kontakt",
+  "url": "/kontakt/",
+  "order": 6,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "help": "Ohne „ALNO“ im Titel hängt die Seite „| Pflegedienst ALNO Dortmund“ an",
+          "required": true,
+          "max": 70,
+          "value": "Kontakt & Anfahrt"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Kontakt zum Pflegedienst ALNO in Dortmund-Hörde: Telefon {{phone}}, WhatsApp, E-Mail oder Formular für eine kostenlose Beratung. {{street}}, {{zip}} {{city}}."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Kontakt: Wir sind für Sie da"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Rufen Sie an, schreiben Sie per WhatsApp oder nutzen Sie das Formular. Die Beratung ist kostenlos und unverbindlich."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in den Brotkrumen",
+          "type": "text",
+          "required": true,
+          "value": "Kontakt"
+        }
+      ]
+    },
+    {
+      "id": "form",
+      "label": "Formular",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Felder des Formulars: „Allgemein → Kontaktformular“",
+          "required": true,
+          "value": "Kostenlose Beratung anfragen"
+        }
+      ]
+    },
+    {
+      "id": "side",
+      "label": "Kontaktdaten (rechte Spalte)",
+      "fields": [
+        {
+          "id": "phoneLabel",
+          "label": "Telefon: Titel",
+          "type": "text",
+          "help": "Nummern, Adresse und Zeiten: „Allgemein → Kontaktdaten“",
+          "value": "Telefon"
+        },
+        {
+          "id": "phoneAlt",
+          "label": "Telefon: zweite Nummer",
+          "type": "text",
+          "value": "Alternativ: {{phone2}}"
+        },
+        {
+          "id": "whatsappLabel",
+          "label": "WhatsApp: Titel",
+          "type": "text",
+          "value": "WhatsApp"
+        },
+        {
+          "id": "whatsappText",
+          "label": "WhatsApp: Text",
+          "type": "text",
+          "value": "Nachricht schreiben"
+        },
+        {
+          "id": "emailLabel",
+          "label": "E-Mail: Titel",
+          "type": "text",
+          "value": "E-Mail"
+        },
+        {
+          "id": "addressLabel",
+          "label": "Adresse: Titel",
+          "type": "text",
+          "value": "Adresse"
+        },
+        {
+          "id": "addressCity",
+          "label": "Adresse: Ort",
+          "type": "text",
+          "value": "{{zip}} {{city}}-Hörde"
+        },
+        {
+          "id": "addressFax",
+          "label": "Adresse: Fax",
+          "type": "text",
+          "value": "Fax: {{fax}}"
+        },
+        {
+          "id": "hoursLabel",
+          "label": "Erreichbarkeit: Titel",
+          "type": "text",
+          "value": "Erreichbarkeit"
+        }
+      ]
+    },
+    {
+      "id": "anfahrt",
+      "label": "Anfahrt und Karte",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Anfahrt"
+        },
+        {
+          "id": "mapNotice",
+          "label": "Hinweis vor dem Laden der Karte",
+          "type": "textarea",
+          "value": "Zum Schutz Ihrer Daten wird die Karte (OpenStreetMap) erst nach Klick geladen. Dabei wird Ihre IP-Adresse an die OpenStreetMap Foundation übertragen."
+        },
+        {
+          "id": "mapButton",
+          "label": "Button: Karte laden",
+          "type": "text",
+          "required": true,
+          "max": 25,
+          "value": "Karte laden"
+        },
+        {
+          "id": "mapLink",
+          "label": "Link zu OpenStreetMap",
+          "type": "text",
+          "required": true,
+          "value": "In OpenStreetMap öffnen"
+        },
+        {
+          "id": "mapTitle",
+          "label": "Beschreibung der Karte (für Screenreader)",
+          "type": "text",
+          "value": "Karte: {{shortName}}, {{street}}, {{city}}"
+        }
+      ]
+    },
+    {
+      "id": "area",
+      "label": "Einsatzgebiet",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Karte und Stadtteile: „Allgemein → Einsatzgebiet“",
+          "required": true,
+          "value": "Einsatzgebiet"
+        }
+      ]
+    }
+  ]
+}

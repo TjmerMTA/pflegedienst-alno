@@ -11,54 +11,55 @@ import Certificates from '../components/Certificates.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { SITE, whatsappUrl } from '../config/site';
 import { FAQ, faqSchema } from '../config/faq';
-import heroImg from '../assets/img/startseite-hero.jpg';
-import homeImg from '../assets/img/startseite-zuhause.jpg';
+import { getPage } from '../lib/content';
 
+// Тексты и картинки — в src/content/pages/index.json (правятся в админке)
+const p = getPage('index');
+const heroImg = p.img('hero.image');
+const homeImg = p.img('why.image');
 const leistungen = (await getCollection('leistungen')).sort((a, b) => a.data.order - b.data.order);
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => +b.data.date - +a.data.date).slice(0, 3);
 ---
-<Base title="Ambulanter Pflegedienst in Dortmund | Pflegedienst ALNO GmbH" description="Pflegedienst ALNO in Dortmund-Hörde: Grundpflege, Behandlungspflege, Verhinderungspflege und Betreuung zu Hause. Abrechnung mit allen Kassen. Jetzt kostenlos beraten lassen." schema={[faqSchema()]}>
+<Base title={p.text('seo.title')} description={p.text('seo.description')} schema={[faqSchema()]}>
   <section class="hero">
     <div class="wrap hero-in">
       <div class="hero-txt">
-        <span class="pill"><Icon name="pin" size={16} /> Ambulante Pflege in Dortmund</span>
-        <h1>Gut versorgt zu Hause – <span class="hl">mit Herz und Fachwissen</span></h1>
-        <p class="lead">Wir pflegen Ihre Angehörigen dort, wo sie sich am wohlsten fühlen: im eigenen Zuhause. Examinierte Pflegekräfte, feste Bezugspersonen und Abrechnung direkt mit der Pflege- und Krankenkasse.</p>
+        <span class="pill"><Icon name="pin" size={16} /> {p.text('hero.pill')}</span>
+        <h1>{p.text('hero.h1')} <span class="hl">{p.text('hero.h1Highlight')}</span></h1>
+        <p class="lead">{p.text('hero.lead')}</p>
         <div class="btn-row">
-          <a class="btn btn--primary" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> Kostenlose Erstbegutachtung</a>
+          <a class="btn btn--primary" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> {p.text('hero.button')}</a>
           <a class="btn btn--ghost" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
         </div>
-        <p class="tel-hint"><Icon name="phone" size={18} /> <span>Termine vereinbaren Sie auch ganz einfach telefonisch: <a href={SITE.phoneHref}>{SITE.phone}</a> (8–22 Uhr). Zur Beratung können Sie auch persönlich in unser Büro kommen (Mo–Fr 8–16 Uhr).</span></p>
+        <p class="tel-hint"><Icon name="phone" size={18} /> <span>{p.text('hero.telHintBefore')} <a href={SITE.phoneHref}>{SITE.phone}</a> {p.text('hero.telHintAfter')}</span></p>
         <ul class="trust">
-          <li><Icon name="shield" size={20} /> Alle Kassen</li>
-          <li><Icon name="clock" size={20} /> Telefon 8–22 Uhr</li>
-          <li><Icon name="heart" size={20} /> Feste Bezugspflege</li>
+          {p.list<{ icon: string; text: string }>('hero.trust').map((t) => <li><Icon name={t.icon} size={20} /> {t.text}</li>)}
         </ul>
       </div>
       <div class="hero-vis">
         <div class="ring"></div>
-        <Image src={heroImg} alt="Pflegekraft umarmt eine lächelnde Seniorin" widths={[480, 960]} sizes="(max-width: 900px) 80vw, 480px" loading="eager" fetchpriority="high" class="hero-img" />
-        <div class="float f1"><span class="ico ico--green"><Icon name="check" /></span><span><b>Beratung kostenlos</b><small>auch im Krankenhaus</small></span></div>
-        <div class="float f2"><b>8–22 Uhr</b><small>telefonisch erreichbar</small></div>
+        {heroImg && <Image src={heroImg.src} alt={heroImg.alt} widths={[480, 960]} sizes="(max-width: 900px) 80vw, 480px" loading="eager" fetchpriority="high" class="hero-img" />}
+        <div class="float f1"><span class="ico ico--green"><Icon name="check" /></span><span><b>{p.text('hero.badgeTitle')}</b><small>{p.text('hero.badgeText')}</small></span></div>
+        <div class="float f2"><b>{p.text('hero.hoursTitle')}</b><small>{p.text('hero.hoursText')}</small></div>
       </div>
     </div>
   </section>
 
   <section class="quick">
     <div class="wrap quick-in">
-      <a href={SITE.phoneHref} class="q"><span class="ico"><Icon name="phone" /></span><span><b>Anrufen</b><small>{SITE.phone}</small></span></a>
-      <a href={whatsappUrl} target="_blank" rel="noopener" class="q"><span class="ico ico--green"><Icon name="whatsapp" /></span><span><b>WhatsApp</b><small>Schreiben Sie uns</small></span></a>
-      <a href="#rueckruf" class="q"><span class="ico"><Icon name="chat" /></span><span><b>Rückruf</b><small>Wir melden uns bei Ihnen</small></span></a>
-      <a href="/erstbegutachtung/" class="q"><span class="ico ico--green"><Icon name="calendar" /></span><span><b>Erstbegutachtung</b><small>Termin zu Hause</small></span></a>
+      <a href={SITE.phoneHref} class="q"><span class="ico"><Icon name="phone" /></span><span><b>{p.text('quick.callTitle')}</b><small>{SITE.phone}</small></span></a>
+      <a href={whatsappUrl} target="_blank" rel="noopener" class="q"><span class="ico ico--green"><Icon name="whatsapp" /></span><span><b>{p.text('quick.whatsappTitle')}</b><small>{p.text('quick.whatsappText')}</small></span></a>
+      <a href="#rueckruf" class="q"><span class="ico"><Icon name="chat" /></span><span><b>{p.text('quick.callbackTitle')}</b><small>{p.text('quick.callbackText')}</small></span></a>
+      <a href="/erstbegutachtung/" class="q"><span class="ico ico--green"><Icon name="calendar" /></span><span><b>{p.text('quick.visitTitle')}</b><small>{p.text('quick.visitText')}</small></span></a>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap">
       <div class="head">
-        <span class="eyebrow">Unsere Leistungen</span>
-        <h2>Pflege, die sich nach Ihrem Alltag richtet</h2>
-        <p class="lead">Von der Unterstützung am Morgen bis zur ärztlich verordneten Wundversorgung – wir stellen die Versorgung genau so zusammen, wie sie gebraucht wird.</p>
+        <span class="eyebrow">{p.text('services.eyebrow')}</span>
+        <h2>{p.text('services.h2')}</h2>
+        <p class="lead">{p.text('services.lead')}</p>
       </div>
       <div class="grid grid-3">
         {leistungen.map((l) => (
@@ -66,20 +67,20 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
             <span class="ico"><Icon name={l.data.icon} /></span>
             <h3>{l.data.title}</h3>
             <p>{l.data.teaser}</p>
-            <span class="more">Mehr erfahren <Icon name="arrow" size={18} /></span>
+            <span class="more">{p.text('services.more')} <Icon name="arrow" size={18} /></span>
           </a>
         ))}
         <a class="card svc svc--cta" href="/kosten-finanzierung/">
           <span class="ico ico--green"><Icon name="euro" /></span>
-          <h3>Wer bezahlt die Pflege?</h3>
-          <p>Pflegegeld, Sachleistung, Entlastungsbetrag: So nutzen Sie die Leistungen der Pflegekasse voll aus.</p>
-          <span class="more">Kosten & Finanzierung <Icon name="arrow" size={18} /></span>
+          <h3>{p.text('services.costTitle')}</h3>
+          <p>{p.text('services.costText')}</p>
+          <span class="more"><Fragment set:html={p.textHtml('services.costMore')} /> <Icon name="arrow" size={18} /></span>
         </a>
       </div>
       <a class="calc-tease" href="/pflege-rechner/">
         <span class="ico ico--green"><Icon name="euro" /></span>
-        <span><b>Pflege-Rechner</b><small>Was zahlt die Pflegekasse – und was Sie selbst? In 3 Schritten berechnen.</small></span>
-        <span class="more">Jetzt berechnen <Icon name="arrow" size={18} /></span>
+        <span><b>{p.text('services.calcTitle')}</b><small>{p.text('services.calcText')}</small></span>
+        <span class="more">{p.text('services.calcMore')} <Icon name="arrow" size={18} /></span>
       </a>
     </div>
   </section>
@@ -87,17 +88,17 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section section--soft">
     <div class="wrap split">
       <div class="media">
-        <Image src={homeImg} alt="Pflegerin legt einem Senior im Wohnzimmer eine Decke um" widths={[424]} />
-        <div class="stat"><b>100 %</b><span>Pflege im gewohnten Zuhause</span></div>
+        {homeImg && <Image src={homeImg.src} alt={homeImg.alt} widths={[424]} />}
+        <div class="stat"><b>{p.text('why.statValue')}</b><span>{p.text('why.statText')}</span></div>
       </div>
       <div>
-        <span class="eyebrow">Warum ALNO</span>
-        <h2>Vertrauen entsteht durch Menschen, die bleiben</h2>
-        <p class="lead">Wir sind ein inhabergeführter Pflegedienst aus Dortmund-Hörde. Bei uns kennt man sich – Patienten, Angehörige und Pflegekräfte.</p>
+        <span class="eyebrow">{p.text('why.eyebrow')}</span>
+        <h2>{p.text('why.h2')}</h2>
+        <p class="lead">{p.text('why.lead')}</p>
         <ul class="why">
-          <li><span class="ico"><Icon name="users" /></span><div><h3>Feste Bezugspflegekräfte</h3><p>Möglichst immer dieselben Gesichter – das gibt Sicherheit, gerade bei Demenz.</p></div></li>
-          <li><span class="ico"><Icon name="clipboard" /></span><div><h3>Wir helfen bei den Anträgen</h3><p>Pflegegrad, Verhinderungspflege, Hilfsmittel: Wir helfen beim Papierkram und rechnen direkt ab.</p></div></li>
-          <li><span class="ico"><Icon name="hands" /></span><div><h3>Überleitung aus dem Krankenhaus</h3><p>Wir beraten schon vor der Entlassung, damit zu Hause alles bereit ist.</p></div></li>
+          {p.list<{ icon: string; title: string; text: string }>('why.items').map((w) => (
+            <li><span class="ico"><Icon name={w.icon} /></span><div><h3>{w.title}</h3><p>{w.text}</p></div></li>
+          ))}
         </ul>
       </div>
     </div>
@@ -106,27 +107,27 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section">
     <div class="wrap">
       <div class="head head--center">
-        <span class="eyebrow">So einfach geht's</span>
-        <h2>In drei Schritten zur passenden Pflege</h2>
+        <span class="eyebrow" set:html={p.textHtml('steps.eyebrow')} />
+        <h2>{p.text('steps.h2')}</h2>
       </div>
       <ol class="steps">
-        <li><span class="n">1</span><h3>Anrufen oder schreiben</h3><p>Telefon, WhatsApp oder Formular – wir melden uns noch am selben Werktag.</p></li>
-        <li><span class="n">2</span><h3>Kostenlose Erstbegutachtung</h3><p>Eine Pflegefachkraft besucht Sie zu Hause und erfasst den Bedarf.</p></li>
-        <li><span class="n">3</span><h3>Pflege startet</h3><p>Mit festem Plan, festen Ansprechpartnern und Abrechnung über die Kasse.</p></li>
+        {p.list<{ title: string; text: string }>('steps.items').map((st, i) => (
+          <li><span class="n">{i + 1}</span><h3>{st.title}</h3><p>{st.text}</p></li>
+        ))}
       </ol>
-      <div class="center"><a class="btn btn--primary" href="/erstbegutachtung/">Jetzt Termin anfragen <Icon name="arrow" size={20} /></a></div>
+      <div class="center"><a class="btn btn--primary" href="/erstbegutachtung/">{p.text('steps.button')} <Icon name="arrow" size={20} /></a></div>
     </div>
   </section>
 
   <section class="section section--soft">
     <div class="wrap">
       <div class="head head--center">
-        <span class="eyebrow">Stimmen von Angehörigen</span>
-        <h2>Was Familien über uns sagen</h2>
+        <span class="eyebrow">{p.text('testimonials.eyebrow')}</span>
+        <h2>{p.text('testimonials.h2')}</h2>
       </div>
       <Testimonials />
       <div class="certs-wrap">
-        <h2 class="h3">Zulassungen & Qualität</h2>
+        <h2 class="h3" set:html={p.textHtml('testimonials.certsTitle')} />
         <Certificates />
       </div>
     </div>
@@ -135,9 +136,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section">
     <div class="wrap">
       <div class="head">
-        <span class="eyebrow">Einsatzgebiet</span>
-        <h2>Für Sie da im Dortmunder Süden und in Schwerte</h2>
-        <p class="lead">Von unserem Büro in Hörde versorgen wir die Stadtbezirke Hörde, Hombruch und Aplerbeck sowie die Stadt Schwerte – mit kurzen Wegen und festen Ansprechpartnern.</p>
+        <span class="eyebrow">{p.text('area.eyebrow')}</span>
+        <h2>{p.text('area.h2')}</h2>
+        <p class="lead">{p.text('area.lead')}</p>
       </div>
       <ServiceArea />
     </div>
@@ -146,14 +147,12 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section section--soft" id="rueckruf">
     <div class="wrap split split--form">
       <div>
-        <span class="eyebrow">Kostenlose Beratung</span>
-        <h2>Wir rufen Sie zurück</h2>
-        <p class="lead">Hinterlassen Sie Namen und Telefonnummer. Eine Pflegefachkraft meldet sich und beantwortet Ihre Fragen – kostenlos und unverbindlich.</p>
-        <p class="visit"><Icon name="pin" size={20} /> <span>Lieber direkt sprechen? Rufen Sie uns an unter <a href={SITE.phoneHref}>{SITE.phone}</a> oder kommen Sie zu unseren Bürozeiten (Mo–Fr 8–16 Uhr) einfach in unserem Büro in der {SITE.street} vorbei.</span></p>
+        <span class="eyebrow">{p.text('callback.eyebrow')}</span>
+        <h2>{p.text('callback.h2')}</h2>
+        <p class="lead">{p.text('callback.lead')}</p>
+        <p class="visit"><Icon name="pin" size={20} /> <span>{p.text('callback.visitBefore')} <a href={SITE.phoneHref}>{SITE.phone}</a> {p.text('callback.visitAfter')}</span></p>
         <ul class="checks">
-          <li>Antwort in der Regel am selben Werktag</li>
-          <li>Beratung zu Pflegegrad und Finanzierung</li>
-          <li>Keine Verpflichtung, keine Kosten</li>
+          {p.list<{ text: string }>('callback.checks').map((c) => <li>{c.text}</li>)}
         </ul>
       </div>
       <div class="card"><ContactForm variant="rueckruf" id="rueckruf-form" /></div>
@@ -163,9 +162,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
   <section class="section">
     <div class="wrap split split--faq">
       <div class="head">
-        <span class="eyebrow">Häufige Fragen</span>
-        <h2>Antworten für Angehörige</h2>
-        <p class="lead">Sie haben eine andere Frage? Rufen Sie uns an – wir nehmen uns Zeit.</p>
+        <span class="eyebrow">{p.text('faq.eyebrow')}</span>
+        <h2>{p.text('faq.h2')}</h2>
+        <p class="lead">{p.text('faq.lead')}</p>
         <a class="btn btn--ghost" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
       </div>
       <Faq items={FAQ} />
@@ -176,16 +175,16 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, 
     <section class="section section--soft">
       <div class="wrap">
         <div class="head row-head">
-          <div><span class="eyebrow">Pflege-Ratgeber</span><h2>Wissen für pflegende Angehörige</h2></div>
-          <a class="btn btn--ghost" href="/blog/">Alle Artikel <Icon name="arrow" size={18} /></a>
+          <div><span class="eyebrow">{p.text('blog.eyebrow')}</span><h2>{p.text('blog.h2')}</h2></div>
+          <a class="btn btn--ghost" href="/blog/">{p.text('blog.allButton')} <Icon name="arrow" size={18} /></a>
         </div>
         <div class="grid grid-3">
-          {posts.map((p) => (
-            <a class="card post" href={`/blog/${p.id}/`}>
-              <time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}</time>
-              <h3>{p.data.title}</h3>
-              <p>{p.data.description}</p>
-              <span class="more">Weiterlesen <Icon name="arrow" size={18} /></span>
+          {posts.map((post) => (
+            <a class="card post" href={`/blog/${post.id}/`}>
+              <time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}</time>
+              <h3>{post.data.title}</h3>
+              <p>{post.data.description}</p>
+              <span class="more">{p.text('blog.more')} <Icon name="arrow" size={18} /></span>
             </a>
           ))}
         </div>

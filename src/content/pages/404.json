@@ -1,0 +1,73 @@
+{
+  "label": "Fehlerseite (404)",
+  "url": "/404.html",
+  "order": 99,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Seite nicht gefunden"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Die gewünschte Seite wurde nicht gefunden."
+        }
+      ]
+    },
+    {
+      "id": "content",
+      "label": "Inhalt",
+      "fields": [
+        {
+          "id": "h1",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Diese Seite gibt es leider nicht"
+        },
+        {
+          "id": "leadBefore",
+          "label": "Text vor der Telefonnummer",
+          "type": "textarea",
+          "value": "Vielleicht hilft Ihnen einer dieser Links weiter – oder rufen Sie uns einfach an:"
+        },
+        {
+          "id": "buttonHome",
+          "label": "Button zur Startseite",
+          "type": "text",
+          "required": true,
+          "max": 32,
+          "value": "Zur Startseite"
+        },
+        {
+          "id": "buttonServices",
+          "label": "Button zu den Leistungen",
+          "type": "text",
+          "required": true,
+          "max": 32,
+          "value": "Leistungen"
+        },
+        {
+          "id": "buttonContact",
+          "label": "Button zum Kontakt",
+          "type": "text",
+          "required": true,
+          "max": 32,
+          "value": "Kontakt"
+        }
+      ]
+    }
+  ]
+}

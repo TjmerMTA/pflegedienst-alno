@@ -6,48 +6,46 @@ import PageHero from '../components/PageHero.astro';
 import Icon from '../components/Icon.astro';
 import Certificates from '../components/Certificates.astro';
 import CtaBand from '../components/CtaBand.astro';
-import teamImg from '../assets/img/ueber-uns-haende.jpg';
-import careImg from '../assets/img/ueber-uns-team.jpg';
+import { getPage } from '../lib/content';
+import '../config/site'; // держит число импортов прежним: иначе меняется порядок <style> (docs/admin-content-format.md, § 5)
 
 // Команда: карточки лежат в src/content/team/*.md и правятся клиентом в Pages CMS.
 const team = (await getCollection('team', ({ data }) => !data.hidden)).sort((a, b) => a.data.order - b.data.order);
 const initials = (m: { name: string; role: string }) =>
   m.name === 'N. N.' ? m.role[0] : m.name.split(' ').map((w) => w[0]).join('');
-const quals = ['3-jährig examinierte Gesundheits- und Krankenpfleger/innen', '3-jährig examinierte Altenpfleger/innen', 'Kranken- und Altenpflegehelfer/innen', 'Hauswirtschafter/innen', 'Auszubildende in der Pflege', 'Verwaltungsfachkräfte'];
-const values = [
-  { icon: 'heart', t: 'Würde', d: 'Die Würde des Menschen steht bei uns an erster Stelle – in jeder Handlung.' },
-  { icon: 'users', t: 'Familiär', d: 'Wir begleiten verständnisvoll und herzlich. Niemand soll sich im Alter einsam fühlen.' },
-  { icon: 'shield', t: 'Kompetent', d: 'Pflege auf hohem medizinischem Niveau, regelmäßig fortgebildet.' },
-  { icon: 'hands', t: 'Selbstbestimmt', d: 'Jeder Mensch entscheidet mit. Wir pflegen individuell, nicht nach Schema.' },
-];
+// Тексты и картинки — в src/content/pages/ueber-uns.json (правятся в админке)
+const p = getPage('ueber-uns');
+const teamImg = p.img('leitbild.image');
+const careImg = p.img('quals.image');
+const quals = p.list<{ text: string }>('quals.items');
+const values = p.list<{ icon: string; title: string; text: string }>('values.items');
 ---
-<Base title="Über uns & Team" description="Lernen Sie den Pflegedienst ALNO in Dortmund-Hörde kennen: unser Leitbild, unser qualifiziertes Pflegeteam und unsere Werte – Würde, Herzlichkeit und Kompetenz.">
-  <PageHero title="Über uns: Menschen, die mit Herz pflegen" lead="Der Pflegedienst ALNO ist ein familiärer, inhabergeführter Pflegedienst aus Dortmund-Hörde. Wir möchten den uns anvertrauten Menschen ein würdevolles, geborgenes Leben im eigenen Zuhause ermöglichen." crumbs={[{ label: 'Über uns' }]} />
+<Base title={p.text('seo.title')} description={p.text('seo.description')}>
+  <PageHero title={p.text('hero.title')} lead={p.text('hero.lead')} crumbs={[{ label: p.text('hero.crumb') }]} />
 
   <section class="section">
     <div class="wrap split">
       <div>
-        <span class="eyebrow">Unser Leitbild</span>
-        <h2>Körper, Geist und Seele im Blick</h2>
-        <p>Wenn Sie nach einer fürsorglichen, herzlichen und vor allem kompetenten Pflege suchen, sind Sie bei uns richtig. Uns ist bewusst, wie verantwortungsvoll diese Aufgabe ist – und wie viel Vertrauen Familien uns schenken.</p>
-        <p>Wir kümmern uns um die körperliche Gesundheit und ebenso um das seelische Wohlbefinden. Über die medizinische Versorgung hinaus sind wir auch bei persönlichen und hauswirtschaftlichen Angelegenheiten da – vom gemeinsamen Einkauf bis zum Gespräch bei einer Tasse Kaffee.</p>
+        <span class="eyebrow">{p.text('leitbild.eyebrow')}</span>
+        <h2>{p.text('leitbild.h2')}</h2>
+        {p.list<{ text: string }>('leitbild.paragraphs').map((t) => <p>{t.text}</p>)}
       </div>
-      <Image src={teamImg} alt="Pflegekraft hält die Hand einer Seniorin mit Gehstock" widths={[424]} class="img" />
+      {teamImg && <Image src={teamImg.src} alt={teamImg.alt} widths={[424]} class="img" />}
     </div>
   </section>
 
   <section class="section section--soft">
     <div class="wrap">
-      <div class="head head--center"><span class="eyebrow">Unsere Werte</span><h2>Wofür wir stehen</h2></div>
+      <div class="head head--center"><span class="eyebrow">{p.text('values.eyebrow')}</span><h2>{p.text('values.h2')}</h2></div>
       <div class="grid grid-4">
-        {values.map((v) => <div class="card"><span class="ico"><Icon name={v.icon} /></span><h3>{v.t}</h3><p>{v.d}</p></div>)}
+        {values.map((v) => <div class="card"><span class="ico"><Icon name={v.icon} /></span><h3>{v.title}</h3><p>{v.text}</p></div>)}
       </div>
     </div>
   </section>
 
   <section class="section" id="team">
     <div class="wrap">
-      <div class="head"><span class="eyebrow">Unser Team</span><h2>Ihre Ansprechpartner</h2><p class="lead">Feste Gesichter, kurze Wege: Bei uns wissen Sie immer, wer zu Ihnen kommt.</p></div>
+      <div class="head"><span class="eyebrow">{p.text('team.eyebrow')}</span><h2>{p.text('team.h2')}</h2><p class="lead">{p.text('team.lead')}</p></div>
       <div class="grid grid-4">
         {team.map(({ data: m }) => (
           <figure class="card member">
@@ -63,29 +61,29 @@ const values = [
 
   <section class="section section--soft">
     <div class="wrap split">
-      <Image src={careImg} alt="Pfleger macht mit einem lächelnden Senior Handübungen" widths={[424]} class="img" />
+      {careImg && <Image src={careImg.src} alt={careImg.alt} widths={[424]} class="img" />}
       <div>
-        <span class="eyebrow">Qualifikationen</span>
-        <h2>Ein Team aus verschiedenen Berufsgruppen</h2>
-        <p>Damit wir ein breites Spektrum abdecken können, beschäftigen wir Mitarbeiterinnen und Mitarbeiter mit diesen Ausbildungen:</p>
-        <ul class="checks">{quals.map((q) => <li>{q}</li>)}</ul>
+        <span class="eyebrow">{p.text('quals.eyebrow')}</span>
+        <h2>{p.text('quals.h2')}</h2>
+        <p>{p.text('quals.text')}</p>
+        <ul class="checks">{quals.map((q) => <li>{q.text}</li>)}</ul>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap">
-      <div class="head head--center"><span class="eyebrow">Zulassungen</span><h2>Geprüfte Qualität</h2></div>
+      <div class="head head--center"><span class="eyebrow">{p.text('certs.eyebrow')}</span><h2>{p.text('certs.h2')}</h2></div>
       <Certificates />
     </div>
   </section>
 
   <section class="section section--soft">
     <div class="wrap jobs card">
-      <div><h2>Wir suchen Verstärkung</h2><p>Sie sind Pflegefachkraft oder Pflegehelfer/in und möchten in einem familiären Team arbeiten? Wir freuen uns auf Ihre Nachricht.</p></div>
+      <div><h2>{p.text('jobs.h2')}</h2><p>{p.text('jobs.text')}</p></div>
       <div class="btn-row">
-        <a class="btn btn--primary" href="/karriere/">Zu den Stellen</a>
-        <a class="btn btn--ghost" href="/ausbildung/">Ausbildung &amp; Praktikum</a>
+        <a class="btn btn--primary" href="/karriere/">{p.text('jobs.buttonJobs')}</a>
+        <a class="btn btn--ghost" href="/ausbildung/">{p.text('jobs.buttonTraining')}</a>
       </div>
     </div>
   </section>

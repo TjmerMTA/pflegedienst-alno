@@ -1,11 +1,12 @@
 ---
 import Icon from './Icon.astro';
-import { SITE, whatsappUrl } from '../config/site';
+import { SITE, whatsappUrl, getGlobal } from '../config/site';
+const g = getGlobal();
 ---
 <nav class="mbar" aria-label="Schnellkontakt">
-  <a href={SITE.phoneHref} class="m-call"><Icon name="phone" size={20} /><span>Anrufen</span></a>
-  <a href={whatsappUrl} target="_blank" rel="noopener" class="m-wa"><Icon name="whatsapp" size={20} /><span>WhatsApp</span></a>
-  <a href="/erstbegutachtung/" class="m-cta"><Icon name="calendar" size={20} /><span>Beratung</span></a>
+  <a href={SITE.phoneHref} class="m-call"><Icon name="phone" size={20} /><span>{g.text('mobileBar.call')}</span></a>
+  <a href={whatsappUrl} target="_blank" rel="noopener" class="m-wa"><Icon name="whatsapp" size={20} /><span>{g.text('mobileBar.whatsapp')}</span></a>
+  <a href="/erstbegutachtung/" class="m-cta"><Icon name="calendar" size={20} /><span>{g.text('mobileBar.cta')}</span></a>
 </nav>
 <a href={whatsappUrl} target="_blank" rel="noopener" class="wa-float" aria-label="Per WhatsApp schreiben"><Icon name="whatsapp" size={28} /></a>
 <style>

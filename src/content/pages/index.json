@@ -1,0 +1,610 @@
+{
+  "label": "Startseite",
+  "url": "/",
+  "order": 1,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Ambulanter Pflegedienst in Dortmund | Pflegedienst ALNO GmbH"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Pflegedienst ALNO in Dortmund-Hörde: Grundpflege, Behandlungspflege, Verhinderungspflege und Betreuung zu Hause. Abrechnung mit allen Kassen. Jetzt kostenlos beraten lassen."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        {
+          "id": "pill",
+          "label": "Kleiner Hinweis über der Überschrift",
+          "type": "text",
+          "value": "Ambulante Pflege in Dortmund"
+        },
+        {
+          "id": "h1",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Gut versorgt zu Hause –"
+        },
+        {
+          "id": "h1Highlight",
+          "label": "Farbig hervorgehobener Teil der Überschrift",
+          "type": "text",
+          "value": "mit Herz und Fachwissen"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Wir pflegen Ihre Angehörigen dort, wo sie sich am wohlsten fühlen: im eigenen Zuhause. Examinierte Pflegekräfte, feste Bezugspersonen und Abrechnung direkt mit der Pflege- und Krankenkasse."
+        },
+        {
+          "id": "button",
+          "label": "Button (Erstbegutachtung)",
+          "type": "text",
+          "help": "Daneben steht ein Button mit der Telefonnummer aus „Allgemein → Kontaktdaten“",
+          "required": true,
+          "max": 28,
+          "value": "Kostenlose Erstbegutachtung"
+        },
+        {
+          "id": "telHintBefore",
+          "label": "Telefon-Hinweis: Text vor der Nummer",
+          "type": "text",
+          "value": "Termine vereinbaren Sie auch ganz einfach telefonisch:"
+        },
+        {
+          "id": "telHintAfter",
+          "label": "Telefon-Hinweis: Text nach der Nummer",
+          "type": "text",
+          "value": "({{hours}}). Zur Beratung können Sie auch persönlich in unser Büro kommen ({{officeHours}})."
+        },
+        {
+          "id": "trust",
+          "label": "Vertrauenspunkte",
+          "type": "list",
+          "max": 6,
+          "itemLabel": "Punkt",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "icon": "shield",
+              "text": "Alle Kassen"
+            },
+            {
+              "icon": "clock",
+              "text": "Telefon {{hours}}"
+            },
+            {
+              "icon": "heart",
+              "text": "Feste Bezugspflege"
+            }
+          ]
+        },
+        {
+          "id": "image",
+          "label": "Bild",
+          "type": "image",
+          "required": true,
+          "value": "startseite-hero.jpg",
+          "alt": "Pflegekraft umarmt eine lächelnde Seniorin"
+        },
+        {
+          "id": "badgeTitle",
+          "label": "Kärtchen am Bild unten: Titel",
+          "type": "text",
+          "value": "Beratung kostenlos"
+        },
+        {
+          "id": "badgeText",
+          "label": "Kärtchen am Bild unten: Text",
+          "type": "text",
+          "value": "auch im Krankenhaus"
+        },
+        {
+          "id": "hoursTitle",
+          "label": "Kärtchen am Bild oben: Zeit",
+          "type": "text",
+          "value": "{{hours}}"
+        },
+        {
+          "id": "hoursText",
+          "label": "Kärtchen am Bild oben: Text",
+          "type": "text",
+          "value": "telefonisch erreichbar"
+        }
+      ]
+    },
+    {
+      "id": "quick",
+      "label": "Schnellkontakt (vier Kacheln)",
+      "fields": [
+        {
+          "id": "callTitle",
+          "label": "Anrufen: Titel",
+          "type": "text",
+          "help": "Darunter steht die Telefonnummer",
+          "required": true,
+          "max": 24,
+          "value": "Anrufen"
+        },
+        {
+          "id": "whatsappTitle",
+          "label": "WhatsApp: Titel",
+          "type": "text",
+          "required": true,
+          "max": 24,
+          "value": "WhatsApp"
+        },
+        {
+          "id": "whatsappText",
+          "label": "WhatsApp: Text",
+          "type": "text",
+          "max": 40,
+          "value": "Schreiben Sie uns"
+        },
+        {
+          "id": "callbackTitle",
+          "label": "Rückruf: Titel",
+          "type": "text",
+          "required": true,
+          "max": 24,
+          "value": "Rückruf"
+        },
+        {
+          "id": "callbackText",
+          "label": "Rückruf: Text",
+          "type": "text",
+          "max": 40,
+          "value": "Wir melden uns bei Ihnen"
+        },
+        {
+          "id": "visitTitle",
+          "label": "Erstbegutachtung: Titel",
+          "type": "text",
+          "required": true,
+          "max": 24,
+          "value": "Erstbegutachtung"
+        },
+        {
+          "id": "visitText",
+          "label": "Erstbegutachtung: Text",
+          "type": "text",
+          "max": 40,
+          "value": "Termin zu Hause"
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "label": "Leistungen",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Unsere Leistungen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Pflege, die sich nach Ihrem Alltag richtet"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Von der Unterstützung am Morgen bis zur ärztlich verordneten Wundversorgung – wir stellen die Versorgung genau so zusammen, wie sie gebraucht wird."
+        },
+        {
+          "id": "more",
+          "label": "Link-Text in den Leistungskarten",
+          "type": "text",
+          "help": "Titel und Kurztexte der Karten kommen aus den Leistungen",
+          "required": true,
+          "value": "Mehr erfahren"
+        },
+        {
+          "id": "costTitle",
+          "label": "Karte „Wer bezahlt“: Titel",
+          "type": "text",
+          "required": true,
+          "value": "Wer bezahlt die Pflege?"
+        },
+        {
+          "id": "costText",
+          "label": "Karte „Wer bezahlt“: Text",
+          "type": "textarea",
+          "value": "Pflegegeld, Sachleistung, Entlastungsbetrag: So nutzen Sie die Leistungen der Pflegekasse voll aus."
+        },
+        {
+          "id": "costMore",
+          "label": "Karte „Wer bezahlt“: Link-Text",
+          "type": "text",
+          "required": true,
+          "value": "Kosten & Finanzierung"
+        },
+        {
+          "id": "calcTitle",
+          "label": "Pflege-Rechner: Titel",
+          "type": "text",
+          "required": true,
+          "value": "Pflege-Rechner"
+        },
+        {
+          "id": "calcText",
+          "label": "Pflege-Rechner: Text",
+          "type": "text",
+          "value": "Was zahlt die Pflegekasse – und was Sie selbst? In 3 Schritten berechnen."
+        },
+        {
+          "id": "calcMore",
+          "label": "Pflege-Rechner: Link-Text",
+          "type": "text",
+          "required": true,
+          "value": "Jetzt berechnen"
+        }
+      ]
+    },
+    {
+      "id": "why",
+      "label": "Warum ALNO",
+      "fields": [
+        {
+          "id": "image",
+          "label": "Bild",
+          "type": "image",
+          "required": true,
+          "value": "startseite-zuhause.jpg",
+          "alt": "Pflegerin legt einem Senior im Wohnzimmer eine Decke um"
+        },
+        {
+          "id": "statValue",
+          "label": "Kärtchen am Bild: Zahl",
+          "type": "text",
+          "value": "100 %"
+        },
+        {
+          "id": "statText",
+          "label": "Kärtchen am Bild: Text",
+          "type": "text",
+          "value": "Pflege im gewohnten Zuhause"
+        },
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Warum ALNO"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Vertrauen entsteht durch Menschen, die bleiben"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Wir sind ein inhabergeführter Pflegedienst aus Dortmund-Hörde. Bei uns kennt man sich – Patienten, Angehörige und Pflegekräfte."
+        },
+        {
+          "id": "items",
+          "label": "Gründe",
+          "type": "list",
+          "max": 5,
+          "itemLabel": "Grund",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "icon": "users",
+              "title": "Feste Bezugspflegekräfte",
+              "text": "Möglichst immer dieselben Gesichter – das gibt Sicherheit, gerade bei Demenz."
+            },
+            {
+              "icon": "clipboard",
+              "title": "Wir helfen bei den Anträgen",
+              "text": "Pflegegrad, Verhinderungspflege, Hilfsmittel: Wir helfen beim Papierkram und rechnen direkt ab."
+            },
+            {
+              "icon": "hands",
+              "title": "Überleitung aus dem Krankenhaus",
+              "text": "Wir beraten schon vor der Entlassung, damit zu Hause alles bereit ist."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "steps",
+      "label": "So einfach geht’s (Schritte)",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "So einfach geht's"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "In drei Schritten zur passenden Pflege"
+        },
+        {
+          "id": "items",
+          "label": "Schritte",
+          "type": "list",
+          "help": "Die Nummern 1, 2, 3 setzt die Seite selbst",
+          "max": 3,
+          "itemLabel": "Schritt",
+          "min": 1,
+          "fields": [
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "title": "Anrufen oder schreiben",
+              "text": "Telefon, WhatsApp oder Formular – wir melden uns noch am selben Werktag."
+            },
+            {
+              "title": "Kostenlose Erstbegutachtung",
+              "text": "Eine Pflegefachkraft besucht Sie zu Hause und erfasst den Bedarf."
+            },
+            {
+              "title": "Pflege startet",
+              "text": "Mit festem Plan, festen Ansprechpartnern und Abrechnung über die Kasse."
+            }
+          ]
+        },
+        {
+          "id": "button",
+          "label": "Button",
+          "type": "text",
+          "required": true,
+          "max": 32,
+          "value": "Jetzt Termin anfragen"
+        }
+      ]
+    },
+    {
+      "id": "testimonials",
+      "label": "Stimmen von Angehörigen",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Stimmen von Angehörigen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Bewertungen selbst: „Allgemein → Bewertungen von Angehörigen“",
+          "required": true,
+          "value": "Was Familien über uns sagen"
+        },
+        {
+          "id": "certsTitle",
+          "label": "Überschrift über den Zulassungen",
+          "type": "text",
+          "help": "Die Zulassungen selbst: „Allgemein → Zulassungen & Qualität“",
+          "value": "Zulassungen & Qualität"
+        }
+      ]
+    },
+    {
+      "id": "area",
+      "label": "Einsatzgebiet",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Einsatzgebiet"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Für Sie da im Dortmunder Süden und in Schwerte"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "help": "Karte und Stadtteile: „Allgemein → Einsatzgebiet“",
+          "value": "Von unserem Büro in Hörde versorgen wir die Stadtbezirke Hörde, Hombruch und Aplerbeck sowie die Stadt Schwerte – mit kurzen Wegen und festen Ansprechpartnern."
+        }
+      ]
+    },
+    {
+      "id": "callback",
+      "label": "Rückruf-Formular",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Kostenlose Beratung"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Wir rufen Sie zurück"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Hinterlassen Sie Namen und Telefonnummer. Eine Pflegefachkraft meldet sich und beantwortet Ihre Fragen – kostenlos und unverbindlich."
+        },
+        {
+          "id": "visitBefore",
+          "label": "Hinweis Besuch: Text vor der Telefonnummer",
+          "type": "text",
+          "value": "Lieber direkt sprechen? Rufen Sie uns an unter"
+        },
+        {
+          "id": "visitAfter",
+          "label": "Hinweis Besuch: Text nach der Telefonnummer",
+          "type": "text",
+          "value": "oder kommen Sie zu unseren Bürozeiten ({{officeHours}}) einfach in unserem Büro in der {{street}} vorbei."
+        },
+        {
+          "id": "checks",
+          "label": "Vorteile (Häkchen)",
+          "type": "list",
+          "max": 6,
+          "itemLabel": "Vorteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Antwort in der Regel am selben Werktag"
+            },
+            {
+              "text": "Beratung zu Pflegegrad und Finanzierung"
+            },
+            {
+              "text": "Keine Verpflichtung, keine Kosten"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Häufige Fragen",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Häufige Fragen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Fragen selbst: „Allgemein → Häufige Fragen (Startseite)“",
+          "required": true,
+          "value": "Antworten für Angehörige"
+        },
+        {
+          "id": "lead",
+          "label": "Text",
+          "type": "textarea",
+          "help": "Darunter steht ein Button mit der Telefonnummer",
+          "value": "Sie haben eine andere Frage? Rufen Sie uns an – wir nehmen uns Zeit."
+        }
+      ]
+    },
+    {
+      "id": "blog",
+      "label": "Pflege-Ratgeber (neueste Artikel)",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Pflege-Ratgeber"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die drei neuesten Artikel aus dem Ratgeber erscheinen automatisch",
+          "required": true,
+          "value": "Wissen für pflegende Angehörige"
+        },
+        {
+          "id": "allButton",
+          "label": "Button zu allen Artikeln",
+          "type": "text",
+          "required": true,
+          "max": 32,
+          "value": "Alle Artikel"
+        },
+        {
+          "id": "more",
+          "label": "Link-Text in den Artikelkarten",
+          "type": "text",
+          "required": true,
+          "value": "Weiterlesen"
+        }
+      ]
+    }
+  ]
+}
