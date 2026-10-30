@@ -1,27 +1,27 @@
-// ALNO Admin — browser behaviour: metaboxes, counters, classic editor, media modal, lists, uploads, status.
-import { sanitizeHtml, safeHref, PAGE_TAGS, MD_TAGS } from '/wp-admin/assets/lib/sanitize.js';
-import { markdownToHtml, htmlToMarkdown } from '/wp-admin/assets/lib/markdown.js';
+// Browser behaviour of the screens: metaboxes, counters, classic editor, media modal, lists, uploads,
+// status polling. Document listeners are installed once; mount() wires up each freshly rendered screen.
+import { sanitizeHtml, safeHref, slugify, PAGE_TAGS, MD_TAGS } from './rules.js';
+import { markdownToHtml, htmlToMarkdown } from './markdown.js';
+import { thumbUrl } from './views/fields.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
-const NONCE = document.body.dataset.nonce || '';
-const LANG = document.body.dataset.lang || 'de';
-const T = {
-  de: { uploading: 'Wird hochgeladen …', done: 'Hochgeladen', choose: 'Bild ersetzen', pick: 'Bild auswählen', none: 'Kein Bild ausgewählt', loading: 'Lädt …', empty: 'Keine Bilder gefunden.' },
-  ru: { uploading: 'Загрузка …', done: 'Загружено', choose: 'Заменить картинку', pick: 'Выбрать картинку', none: 'Картинка не выбрана', loading: 'Загрузка …', empty: 'Картинок нет.' },
-}[LANG] || {};
-const thumbUrl = (p) => `/wp-admin/media-file?f=${encodeURIComponent(p)}&thumb=1`;
 const chars = (s) => Array.from(s).length;
+const POLL_MS = 5000;
+const POLL_MAX = 120; // ten minutes; a run that never appears must not poll forever
+
+// { api, t, go, nonce, statusChanged }, set by the router on each mount.
+let opts = null;
+// Bumped by each mount: timers and answers of a screen that is gone stop by themselves.
+let generation = 0;
 
 // ---------------- metaboxes ----------------
-document.addEventListener('click', (e) => {
-  const h = e.target.closest('.handlediv, .postbox-header .hndle');
-  if (!h) return;
+function toggleBox(h) {
   const box = h.closest('.postbox');
   box.classList.toggle('closed');
   const btn = $('.handlediv', box);
   if (btn) btn.setAttribute('aria-expanded', String(!box.classList.contains('closed')));
-});
+}
 
 // ---------------- counters ----------------
 function updateCounter(input) {
@@ -32,7 +32,6 @@ function updateCounter(input) {
   $('.n', c).textContent = n;
   c.classList.toggle('over', n > Number(c.dataset.max));
 }
-document.addEventListener('input', (e) => { if (e.target.matches('.js-count')) updateCounter(e.target); });
 
 // ---------------- classic editor ----------------
 function initEditor(wrap) {
@@ -169,15 +168,14 @@ function initEditor(wrap) {
 }
 
 // ---------------- image fields + media modal ----------------
-const modal = $('#media-modal');
+let modal = null;
 let modalTarget = null;
 let modalSelected = null;
 let mediaCache = null;
 
 async function loadMedia(force) {
   if (mediaCache && !force) return mediaCache;
-  const r = await fetch('/wp-admin/admin-ajax.php?action=media', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-  mediaCache = (await r.json()).images || [];
+  mediaCache = (await opts.api.get('media')).images || [];
   return mediaCache;
 }
 
@@ -195,7 +193,7 @@ function renderModalGrid(filter = '') {
     li.append(img, name);
     return li;
   }));
-  if (!list.length) { const li = document.createElement('li'); li.className = 'no-media'; li.textContent = T.empty; grid.append(li); }
+  if (!list.length) { const li = document.createElement('li'); li.className = 'no-media'; li.textContent = opts.t('media.empty'); grid.append(li); }
 }
 
 function selectInModal(path) {
@@ -220,9 +218,9 @@ async function openModal(field) {
   if (!modal) return;
   modalTarget = field;
   modal.hidden = false;
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('modal-open');
   modalTab('library');
-  $('.modal-grid', modal).replaceChildren(Object.assign(document.createElement('li'), { className: 'no-media', textContent: T.loading }));
+  $('.modal-grid', modal).replaceChildren(Object.assign(document.createElement('li'), { className: 'no-media', textContent: opts.t('js.loading') }));
   await loadMedia(true);
   renderModalGrid($('.js-modal-filter', modal).value);
   selectInModal($('.js-image-value', field).value);
@@ -231,7 +229,7 @@ async function openModal(field) {
 function closeModal() {
   if (!modal) return;
   modal.hidden = true;
-  document.body.style.overflow = '';
+  document.body.classList.remove('modal-open');
   const btn = modalTarget && $('.js-image-choose', modalTarget);
   modalTarget = null;
   btn?.focus();
@@ -242,9 +240,9 @@ function setImage(field, im) {
   prev.classList.toggle('empty', !im);
   prev.replaceChildren();
   if (im) { const img = document.createElement('img'); img.src = thumbUrl(im.path); img.alt = ''; prev.append(img); }
-  else { const s = document.createElement('span'); s.textContent = T.none; prev.append(s); }
+  else { const s = document.createElement('span'); s.textContent = opts.t('edit.image.none'); prev.append(s); }
   $('.image-file', field).textContent = im ? im.path : '';
-  $('.js-image-choose', field).textContent = im ? T.choose : T.pick;
+  $('.js-image-choose', field).textContent = opts.t(im ? 'edit.image.replace' : 'edit.image.choose');
   $('.js-image-remove', field).hidden = !im;
   $('.image-actions .sep', field).hidden = !im;
   const alt = $('.js-image-alt', field);
@@ -255,7 +253,13 @@ function setImage(field, im) {
   }
 }
 
-if (modal) {
+function initModal(el) {
+  modal = el;
+  modalTarget = null;
+  modalSelected = null;
+  mediaCache = null;
+  document.body.classList.remove('modal-open');
+  if (!modal) return;
   modal.addEventListener('click', (e) => {
     if (e.target.closest('.js-modal-close')) return closeModal();
     const tab = e.target.closest('.media-menu-item'); if (tab) return modalTab(tab.dataset.tab);
@@ -273,13 +277,6 @@ if (modal) {
   });
   $('.js-modal-filter', modal).addEventListener('input', (e) => renderModalGrid(e.target.value));
 }
-
-document.addEventListener('click', (e) => {
-  const choose = e.target.closest('.js-image-choose');
-  if (choose) { e.preventDefault(); openModal(choose.closest('[data-image-field]')); return; }
-  const remove = e.target.closest('.js-image-remove');
-  if (remove) { e.preventDefault(); setImage(remove.closest('[data-image-field]'), null); }
-});
 
 // ---------------- repeatable lists ----------------
 function refreshList(list) {
@@ -359,16 +356,16 @@ function initUploader(up) {
   const area = $('.drag-drop-area', up);
   const input = $('.js-upload-input', up);
   const progress = $('.upload-progress', up);
+  const inModal = !!up.closest('#media-modal');
   const send = async (files) => {
     const results = [];
     for (const file of files) {
-      const li = document.createElement('li'); li.textContent = `${file.name} — ${T.uploading}`; progress.append(li);
-      const fd = new FormData(); fd.append('_wpnonce', NONCE); fd.append('async-upload', file, file.name);
+      const li = document.createElement('li'); li.textContent = `${file.name} — ${opts.t('js.uploading')}`; progress.append(li);
+      const fd = new FormData(); fd.append('file', file, file.name);
       try {
-        const r = await fetch('/wp-admin/async-upload.php', { method: 'POST', body: fd, headers: { Accept: 'application/json', 'X-WP-Nonce': NONCE }, credentials: 'same-origin' });
-        const j = await r.json();
-        if (j.files?.length) { li.className = 'done'; li.textContent = `${file.name} — ${T.done}: ${j.files[0].path}`; results.push(...j.files); }
-        else { li.className = 'error'; li.textContent = `${file.name} — ${(j.errors?.[0]?.msg) || j.error || r.status}`; }
+        const j = await opts.api.upload(fd, inModal);
+        if (j.files?.length) { li.className = 'done'; li.textContent = `${file.name} — ${opts.t('js.uploaded')}: ${j.files[0].path}`; results.push(...j.files); }
+        else { li.className = 'error'; li.textContent = `${file.name} — ${opts.t.msg(j.errors?.[0]?.msg || j.message || j.error || '')}`; }
       } catch (err) { li.className = 'error'; li.textContent = `${file.name} — ${err.message}`; }
     }
     return results;
@@ -376,13 +373,13 @@ function initUploader(up) {
   const handle = async (files) => {
     const done = await send([...files]);
     if (!done.length) return;
-    if (up.closest('#media-modal')) {
+    if (inModal) {
       await loadMedia(true);
       modalTab('library');
       renderModalGrid('');
       selectInModal(done[done.length - 1].path);
-    } else if (done.length === 1) location.href = `/wp-admin/upload.php?item=${encodeURIComponent(done[0].path)}&message=uploaded`;
-    else location.href = '/wp-admin/upload.php?message=uploaded';
+    } else if (done.length === 1) opts.go(`#/upload.php?item=${encodeURIComponent(done[0].path)}&message=uploaded`);
+    else opts.go('#/upload.php?message=uploaded');
   };
   input.addEventListener('change', () => { if (input.files.length) handle(input.files); input.value = ''; });
   ['dragenter', 'dragover'].forEach((ev) => area.addEventListener(ev, (e) => { e.preventDefault(); area.classList.add('drag-over'); }));
@@ -391,63 +388,105 @@ function initUploader(up) {
 }
 
 // ---------------- status polling ----------------
-function setBar(bar) {
+function setBar(state) {
   const el = $('#ab-status');
-  if (!el || !bar) return;
-  el.className = `ab-status state-${bar.state}`;
-  $('.ab-status-text', el).textContent = bar.text;
+  if (!el) return;
+  el.className = `ab-status state-${state}`;
+  $('.ab-status-text', el).textContent = opts.t(`bar.status.${state}`);
 }
-async function poll(jobEl) {
-  const id = jobEl ? jobEl.dataset.job : '';
+
+function finishJob(el, j) {
+  const failed = j.state === 'failed';
+  const done = j.state === 'done';
+  el.className = `notice notice-${failed ? 'error' : done ? 'success' : 'warning'}`;
+  $('.notice-text', el).textContent = opts.t(failed ? (j.phase === 'deploy' ? 'notice.deployfailed' : 'notice.buildfailed') : done ? 'notice.updated' : 'notice.cancelled');
+  if (j.url && failed) {
+    const p = document.createElement('p');
+    const a = document.createElement('a');
+    a.href = j.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = opts.t('notice.details');
+    p.append(a); el.append(p);
+  }
+}
+
+async function pollJob(el, g, n = 0) {
+  if (g !== generation || n > POLL_MAX) return;
   try {
-    const r = await fetch(`/wp-admin/admin-ajax.php?action=status${id ? '&job=' + encodeURIComponent(id) : ''}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-    if (!r.ok) return;
-    const j = await r.json();
-    setBar(j.bar);
-    if (jobEl && j.job && (j.job.state === 'done' || j.job.state === 'failed')) {
-      const n = j.job.notice;
-      jobEl.className = `notice notice-${n.type}`;
-      $('.notice-text', jobEl).textContent = n.message;
-      if (n.log) {
-        const d = document.createElement('details'); d.className = 'notice-log';
-        const s = document.createElement('summary'); s.textContent = LANG === 'ru' ? 'Подробнее' : 'Details anzeigen';
-        const pre = document.createElement('pre'); pre.textContent = n.log;
-        d.append(s, pre); jobEl.append(d);
-      }
+    const j = await opts.api.get('status', { commit: el.dataset.job });
+    if (g !== generation) return;
+    if (j.state === 'queued' || j.state === 'running') setBar(j.state);
+    else {
+      finishJob(el, j);
+      setBar(j.state === 'failed' ? 'failed' : 'idle');
+      opts.statusChanged?.();
       return;
     }
-    if (jobEl || (j.bar && (j.bar.state === 'building' || j.bar.state === 'deploying'))) setTimeout(() => poll(jobEl), 2000);
-  } catch { setTimeout(() => poll(jobEl), 5000); }
+  } catch { /* GitHub or the network hiccup: the next round tries again */ }
+  setTimeout(() => pollJob(el, g, n + 1), POLL_MS);
+}
+
+async function pollBar(g, n = 0) {
+  if (g !== generation || n > POLL_MAX) return;
+  try {
+    const { latest } = await opts.api.get('status');
+    if (g !== generation) return;
+    const state = latest ? latest.state : 'idle';
+    if (state !== 'queued' && state !== 'running') {
+      setBar(state === 'failed' ? 'failed' : 'idle');
+      opts.statusChanged?.();
+      return;
+    }
+    setBar(state);
+  } catch { /* as above */ }
+  setTimeout(() => pollBar(g, n + 1), POLL_MS);
 }
 
 // ---------------- misc ----------------
-function initSlug() {
-  const src = $('.js-slug-source'); const slug = $('.js-slug');
+function initSlug(root) {
+  const src = $('.js-slug-source', root); const slug = $('.js-slug', root);
   if (!src || !slug) return;
   let touched = !!slug.value;
   slug.addEventListener('input', () => { touched = true; });
-  const make = (s) => s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-    .normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80).replace(/-+$/, '');
-  src.addEventListener('input', () => { if (!touched) slug.value = make(src.value); });
+  src.addEventListener('input', () => { if (!touched) slug.value = slugify(src.value); });
 }
 
-function init() {
-  $$('.wp-editor-wrap').forEach(initEditor);
-  $$('[data-list]').forEach(initList);
-  $$('[data-uploader]').forEach(initUploader);
-  $$('.js-job').forEach((el) => poll(el));
-  if (!$('.js-job') && /state-(building|deploying)/.test($('#ab-status')?.className || '')) poll(null);
-  initSlug();
-  $$('.js-edit-form').forEach((f) => f.addEventListener('submit', () => { $('#publishing-action', f)?.classList.add('is-busy'); }));
-  const tgl = $('.js-toggle-uploader');
-  if (tgl) tgl.addEventListener('click', (e) => { e.preventDefault(); const u = $('.media-uploader-inline'); u.hidden = !u.hidden; });
-  const filter = $('.js-media-filter');
-  if (filter) filter.addEventListener('input', () => {
-    const q = filter.value.toLowerCase();
-    $$('.media-grid .attachment').forEach((li) => { li.hidden = !li.dataset.path.toLowerCase().includes(q); });
+let installed = false;
+function installOnce() {
+  if (installed) return;
+  installed = true;
+  document.addEventListener('click', (e) => {
+    const h = e.target.closest('.handlediv, .postbox-header .hndle');
+    if (h) { toggleBox(h); return; }
+    const choose = e.target.closest('.js-image-choose');
+    if (choose) { e.preventDefault(); openModal(choose.closest('[data-image-field]')); return; }
+    const remove = e.target.closest('.js-image-remove');
+    if (remove) { e.preventDefault(); setImage(remove.closest('[data-image-field]'), null); return; }
+    const toggle = e.target.closest('.js-toggle-uploader');
+    if (toggle) { e.preventDefault(); const u = $('.media-uploader-inline'); u.hidden = !u.hidden; return; }
+    const skip = e.target.closest('.js-skip');
+    if (skip) { e.preventDefault(); $('#wpbody-content')?.focus(); }
+  });
+  document.addEventListener('input', (e) => {
+    if (e.target.matches('.js-count')) updateCounter(e.target);
+    if (e.target.matches('.js-media-filter')) {
+      const q = e.target.value.toLowerCase();
+      $$('.media-grid .attachment').forEach((li) => { li.hidden = !li.dataset.path.toLowerCase().includes(q); });
+    }
   });
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') { const f = $('.js-edit-form'); if (f) { e.preventDefault(); f.requestSubmit(); } }
   });
 }
-init();
+
+export function mount(root, options) {
+  opts = options;
+  const g = ++generation;
+  installOnce();
+  initModal($('#media-modal', root));
+  $$('.wp-editor-wrap', root).forEach(initEditor);
+  $$('[data-list]', root).forEach(initList);
+  $$('[data-uploader]', root).forEach(initUploader);
+  const jobs = $$('.js-job', root);
+  jobs.forEach((el) => pollJob(el, g));
+  if (!jobs.length && /state-(queued|running)/.test($('#ab-status', root)?.className || '')) pollBar(g);
+  initSlug(root);
+}

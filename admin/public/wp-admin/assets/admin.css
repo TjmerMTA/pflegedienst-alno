@@ -34,8 +34,9 @@ code { font-family: Consolas, Monaco, monospace; background: rgba(0,0,0,.07); pa
 #wpadminbar .ab-form { margin: 0; }
 #wpadminbar .ab-avatar { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-left: 6px; background: #3c434a; color: #fff; font-size: 11px; font-weight: 600; border-radius: 2px; line-height: 1; }
 #wpadminbar .ab-dot { width: 8px; height: 8px; border-radius: 50%; background: #00a32a; display: inline-block; }
-#wpadminbar .state-building .ab-dot, #wpadminbar .state-deploying .ab-dot { background: #dba617; animation: pulse 1s infinite alternate; }
+#wpadminbar .state-queued .ab-dot, #wpadminbar .state-running .ab-dot { background: #dba617; animation: pulse 1s infinite alternate; }
 #wpadminbar .state-failed .ab-dot { background: #d63638; }
+#wpadminbar .state-unknown .ab-dot { background: #a7aaad; }
 #wpadminbar .ab-status a { color: #c3c4c7; }
 @keyframes pulse { from { opacity: .35; } to { opacity: 1; } }
 
@@ -252,7 +253,7 @@ tr:hover .row-actions, tr:focus-within .row-actions, .row-actions.visible { left
 .status-table td { padding: 4px 0; }
 .status-sub { font-size: 13px; margin: 14px 0 6px; }
 .status-pill { display: inline-block; padding: 1px 8px; border-radius: 9px; background: #edfaef; color: #008a20; font-weight: 600; }
-.status-pill.state-building, .status-pill.state-deploying { background: #fcf9e8; color: #996800; }
+.status-pill.state-queued, .status-pill.state-running { background: #fcf9e8; color: #996800; }
 .glance { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .glance a { display: inline-flex; gap: 6px; align-items: center; text-decoration: none; }
 .activity { list-style: none; margin: 0; padding: 0; }
@@ -352,6 +353,25 @@ body.login { display: flex; justify-content: center; background: #f0f0f1; }
 #login .notice { margin: 0 0 16px; }
 .wp-die { background: #f0f0f1; }
 .wp-die-message { max-width: 700px; margin: 50px auto; background: #fff; padding: 1em 2em; box-shadow: 0 1px 1px rgba(0,0,0,.04); border: 1px solid #c3c4c7; font-size: 14px; }
+
+/* ---------- anfragen, users, setup ---------- */
+.awaiting-mod { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: #d63638; color: #fff; font-size: 11px; line-height: 18px; text-align: center; box-sizing: border-box; }
+.anfragen tr.is-new .row-title { font-weight: 700; }
+.anfrage-fields th { width: 180px; padding: 8px 10px 8px 0; }
+.anfrage-fields td { padding: 8px 10px; }
+.anfrage-value { white-space: pre-wrap; word-break: break-word; }
+.retention-form label { display: inline-block; min-width: 110px; }
+#retentiondiv { margin-top: 20px; max-width: 800px; }
+.cron-url { word-break: break-all; }
+.attachment-pending { position: absolute; top: 4px; left: 4px; padding: 0 6px; background: #dba617; color: #1d2327; font-size: 11px; border-radius: 2px; }
+.attachment-preview { position: relative; }
+body.modal-open { overflow: hidden; }
+#login.setup { width: 460px; padding-top: 3%; }
+.setup-checks th { width: 170px; padding: 4px 8px 4px 0; font-weight: 600; }
+.setup-checks td { padding: 4px 0; }
+.setup #loginform .input { font-size: 16px; }
+.login-back { margin: 16px 0 0 8px; }
+.inline-form { display: inline; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 960px) {

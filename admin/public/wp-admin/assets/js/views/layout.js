@@ -15,73 +15,85 @@ const ICON_PATHS = {
   home: 'M10 2.5 18 9h-2.5v8.5h-4v-5h-3v5h-4V9H2z',
   plus: 'M9 4h2v5h5v2h-5v5H9v-5H4V9h5z',
   collapse: 'M13 4v12L5 10z',
+  anfragen: 'M2 4h16v12H2zm2 1.8 6 4.4 6-4.4zm-.3 1.6V14.300h12.600V7.400L10 12z',
+  users: 'M10 9.500a3.300 3.300 0 1 1 0-6.600 3.300 3.300 0 0 1 0 6.600zM4 17c0-3.300 2.600-5.500 6-5.500s6 2.200 6 5.500z',
 };
 
 export function icon(name, cls = 'dashicon') {
   return raw(`<svg class="${cls}" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="${ICON_PATHS[name] || ''}"/></svg>`);
 }
 
-function menuItem(ctx, { key, href, label, iconName, subs = [] }) {
+function menuItem(ctx, { key, href, label, iconName, subs = [], badge }) {
   const current = ctx.menu === key;
   return html`<li class="menu-top${current ? ' current' : ''}${subs.length ? ' has-submenu' : ''}">
-    <a href="${href}" class="menu-top-link"${current ? raw(' aria-current="page"') : ''}>${icon(iconName)}<span class="menu-name">${label}</span></a>
+    <a href="${href}" class="menu-top-link"${current ? raw(' aria-current="page"') : ''}>${icon(iconName)}<span class="menu-name">${label}${badge ? html` <span class="awaiting-mod">${badge}</span>` : ''}</span></a>
     ${subs.length ? html`<ul class="submenu">${subs.map((s) => html`<li${ctx.menu === key && ctx.sub === s.key ? raw(' class="current"') : ''}><a href="${s.href}">${s.label}</a></li>`)}</ul>` : ''}
   </li>`;
 }
 
 export function notices(list, t) {
-  return (list || []).map((n) => html`<div class="notice notice-${n.type || 'success'}${n.job ? ' js-job' : ''}"${n.job ? raw(` data-job="${Number(n.job)}"`) : ''} role="${n.type === 'error' ? 'alert' : 'status'}">
+  return (list || []).map((n) => html`<div class="notice notice-${n.type || 'success'}${n.job ? ' js-job' : ''}"${n.job ? html` data-job="${n.job}"` : ''} role="${n.type === 'error' ? 'alert' : 'status'}">
     <p class="notice-text">${n.htmlMessage ? raw(n.htmlMessage) : n.message}</p>
     ${n.items?.length ? html`<ul class="notice-items">${n.items.map((i) => html`<li>${i}</li>`)}</ul>` : ''}
-    ${n.log ? html`<details class="notice-log"><summary>${t('notice.details')}</summary><pre>${n.log}</pre></details>` : ''}
+    ${n.url ? html`<p><a href="${n.url}" target="_blank" rel="noopener">${t('notice.details')}</a></p>` : ''}
   </div>`);
+}
+
+export function barState(st) {
+  if (st.unknown) return 'unknown';
+  if (st.state && st.state !== 'idle') return st.state;
+  return st.failed ? 'failed' : 'idle';
 }
 
 export function layout(ctx, { body, notices: ns = [] }) {
   const { t, user, cfg } = ctx;
   const pages = (ctx.pages || []).filter((p) => p.id !== '_global');
   const st = ctx.status || {};
-  const state = st.state && st.state !== 'idle' ? st.state : (st.lastError ? 'failed' : 'idle');
+  const state = barState(st);
   const menu = [
-    { key: 'dashboard', href: '/wp-admin/', label: t('menu.dashboard'), iconName: 'dashboard', subs: [{ key: 'home', href: '/wp-admin/', label: t('menu.dashboard.home') }] },
-    { key: 'posts', href: '/wp-admin/edit.php?post_type=post', label: t('menu.posts'), iconName: 'posts', subs: [
-      { key: 'all', href: '/wp-admin/edit.php?post_type=post', label: t('menu.posts.all') },
-      { key: 'new', href: '/wp-admin/post-new.php?post_type=post', label: t('menu.posts.new') }] },
-    { key: 'leistungen', href: '/wp-admin/edit.php?post_type=leistung', label: t('menu.leistungen'), iconName: 'leistungen', subs: [
-      { key: 'all', href: '/wp-admin/edit.php?post_type=leistung', label: t('menu.leistungen.all') }] },
-    { key: 'media', href: '/wp-admin/upload.php', label: t('menu.media'), iconName: 'media', subs: [
-      { key: 'library', href: '/wp-admin/upload.php', label: t('menu.media.library') },
-      { key: 'new', href: '/wp-admin/media-new.php', label: t('menu.media.new') }] },
-    { key: 'pages', href: '/wp-admin/edit.php?post_type=page', label: t('menu.pages'), iconName: 'pages', subs: [
-      { key: 'all', href: '/wp-admin/edit.php?post_type=page', label: t('menu.pages.all') },
-      ...pages.map((p) => ({ key: p.id, href: `/wp-admin/post.php?post_type=page&post=${encodeURIComponent(p.id)}`, label: p.label }))] },
-    { key: 'team', href: '/wp-admin/edit.php?post_type=team', label: t('menu.team'), iconName: 'team', subs: [
-      { key: 'all', href: '/wp-admin/edit.php?post_type=team', label: t('menu.team.all') },
-      { key: 'new', href: '/wp-admin/post-new.php?post_type=team', label: t('menu.team.new') }] },
-    ...((ctx.pages || []).some((p) => p.id === '_global') ? [{ key: 'settings', href: '/wp-admin/post.php?post_type=page&post=_global', label: t('menu.settings'), iconName: 'settings' }] : []),
-    { key: 'revisions', href: '/wp-admin/revision.php', label: t('menu.revisions'), iconName: 'revisions' },
-    { key: 'profile', href: '/wp-admin/profile.php', label: t('menu.profile'), iconName: 'profile' },
+    { key: 'dashboard', href: '#/', label: t('menu.dashboard'), iconName: 'dashboard', subs: [{ key: 'home', href: '#/', label: t('menu.dashboard.home') }] },
+    { key: 'posts', href: '#/edit.php?post_type=post', label: t('menu.posts'), iconName: 'posts', subs: [
+      { key: 'all', href: '#/edit.php?post_type=post', label: t('menu.posts.all') },
+      { key: 'new', href: '#/post-new.php?post_type=post', label: t('menu.posts.new') }] },
+    { key: 'leistungen', href: '#/edit.php?post_type=leistung', label: t('menu.leistungen'), iconName: 'leistungen', subs: [
+      { key: 'all', href: '#/edit.php?post_type=leistung', label: t('menu.leistungen.all') }] },
+    { key: 'media', href: '#/upload.php', label: t('menu.media'), iconName: 'media', subs: [
+      { key: 'library', href: '#/upload.php', label: t('menu.media.library') },
+      { key: 'new', href: '#/media-new.php', label: t('menu.media.new') }] },
+    { key: 'pages', href: '#/edit.php?post_type=page', label: t('menu.pages'), iconName: 'pages', subs: [
+      { key: 'all', href: '#/edit.php?post_type=page', label: t('menu.pages.all') },
+      ...pages.map((p) => ({ key: p.id, href: `#/post.php?post_type=page&post=${encodeURIComponent(p.id)}`, label: p.label }))] },
+    { key: 'team', href: '#/edit.php?post_type=team', label: t('menu.team'), iconName: 'team', subs: [
+      { key: 'all', href: '#/edit.php?post_type=team', label: t('menu.team.all') },
+      { key: 'new', href: '#/post-new.php?post_type=team', label: t('menu.team.new') }] },
+    ...((ctx.pages || []).some((p) => p.id === '_global') ? [{ key: 'settings', href: '#/post.php?post_type=page&post=_global', label: t('menu.settings'), iconName: 'settings' }] : []),
+    ...(ctx.canAnfragen ? [{ key: 'anfragen', href: '#/anfragen.php', label: t('menu.anfragen'), iconName: 'anfragen', badge: ctx.newAnfragen }] : []),
+    { key: 'revisions', href: '#/revision.php', label: t('menu.revisions'), iconName: 'revisions' },
+    ...(ctx.isAdmin ? [{ key: 'users', href: '#/users.php', label: t('menu.users'), iconName: 'users', subs: [
+      { key: 'all', href: '#/users.php', label: t('menu.users.all') },
+      { key: 'new', href: '#/user-new.php', label: t('menu.users.new') }] }] : []),
+    { key: 'profile', href: '#/profile.php', label: t('menu.profile'), iconName: 'profile' },
   ];
-  return html`<a class="skip-link" href="#wpbody-content">Zum Inhalt springen</a>
+  return html`<a class="skip-link js-skip" href="#wpbody-content">${t('admin.skip')}</a>
 <div id="wpadminbar" role="navigation">
   <ul class="ab-left">
-    <li class="ab-logo"><a href="/wp-admin/" title="${t('admin.title')}">${icon('logo', 'ab-icon')}</a></li>
+    <li class="ab-logo"><a href="#/" title="${t('admin.title')}">${icon('logo', 'ab-icon')}</a></li>
     <li class="ab-site"><a href="${cfg.siteUrl}/" target="_blank" rel="noopener">${icon('home', 'ab-icon')}<span>${t('site.name')}</span></a>
       <ul class="ab-sub"><li><a href="${cfg.siteUrl}/" target="_blank" rel="noopener">${t('bar.visit')}</a></li></ul></li>
-    <li class="ab-new"><a href="/wp-admin/post-new.php?post_type=post">${icon('plus', 'ab-icon')}<span>${t('bar.new')}</span></a>
+    <li class="ab-new"><a href="#/post-new.php?post_type=post">${icon('plus', 'ab-icon')}<span>${t('bar.new')}</span></a>
       <ul class="ab-sub">
-        <li><a href="/wp-admin/post-new.php?post_type=post">${t('bar.new.post')}</a></li>
-        <li><a href="/wp-admin/post-new.php?post_type=team">${t('bar.new.team')}</a></li>
-        <li><a href="/wp-admin/media-new.php">${t('bar.new.media')}</a></li>
+        <li><a href="#/post-new.php?post_type=post">${t('bar.new.post')}</a></li>
+        <li><a href="#/post-new.php?post_type=team">${t('bar.new.team')}</a></li>
+        <li><a href="#/media-new.php">${t('bar.new.media')}</a></li>
       </ul></li>
-    <li class="ab-status state-${state}" id="ab-status"><a href="/wp-admin/#site-status"><span class="ab-dot"></span><span class="ab-status-text">${t(`bar.status.${state}`)}</span></a></li>
+    <li class="ab-status state-${state}" id="ab-status"><a href="#/" class="ab-status-link"><span class="ab-dot"></span><span class="ab-status-text">${t(`bar.status.${state}`)}</span></a></li>
   </ul>
   <ul class="ab-right">
-    <li class="ab-account"><a href="/wp-admin/profile.php">${t('bar.hello', { name: user })}<span class="ab-avatar">${String(user).slice(0, 1).toUpperCase()}</span></a>
+    <li class="ab-account"><a href="#/profile.php">${t('bar.hello', { name: user })}<span class="ab-avatar">${String(user).slice(0, 1).toUpperCase()}</span></a>
       <ul class="ab-sub">
-        <li><a href="/wp-admin/profile.php">${t('bar.profile')}</a></li>
-        <li><form class="ab-form" data-api="profile/lang"><input type="hidden" name="lang" value="${t.lang === 'ru' ? 'de' : 'ru'}"><button type="submit">${t('bar.lang')}</button></form></li>
-        <li><form class="ab-form" data-api="logout" data-next="/wp-login.php?loggedout=true"><button type="submit">${t('bar.logout')}</button></form></li>
+        <li><a href="#/profile.php">${t('bar.profile')}</a></li>
+        <li><form class="ab-form" data-api="profile/lang" data-then="reload"><input type="hidden" name="lang" value="${t.lang === 'ru' ? 'de' : 'ru'}"><button type="submit">${t('bar.lang')}</button></form></li>
+        <li><form class="ab-form" data-api="logout" data-then="logout"><button type="submit">${t('bar.logout')}</button></form></li>
       </ul></li>
   </ul>
 </div>
@@ -94,11 +106,11 @@ ${body}
 </div>`;
 }
 
-// Login screen (/wp-login.php).
+// Login screen.
 export function loginPage({ t, error, info, user = '' }) {
   return html`<div id="login">
-  <h1 class="login-logo"><a href="/wp-login.php">${icon('logo', 'login-icon')}<span>${t('site.name')}</span></a></h1>
-  ${error ? html`<div id="login_error" class="notice notice-error" role="alert"><p>${raw(error)}</p></div>` : ''}
+  <h1 class="login-logo"><a href="#/login">${icon('logo', 'login-icon')}<span>${t('site.name')}</span></a></h1>
+  ${error ? html`<div id="login_error" class="notice notice-error" role="alert"><p>${error}</p></div>` : ''}
   ${info ? html`<div class="notice notice-info message"><p>${info}</p></div>` : ''}
   <form id="loginform" data-login novalidate>
     <p><label for="user_login">${t('login.user')}</label>
@@ -107,9 +119,44 @@ export function loginPage({ t, error, info, user = '' }) {
     <input type="password" name="password" id="user_pass" class="input" autocomplete="current-password" required></p>
     <p class="submit"><button type="submit" class="button button-primary button-large">${t('login.submit')}</button></p>
   </form>
+  <p class="login-back"><a href="/">${t('login.back')}</a></p>
+</div>`;
+}
+
+// First start: the token proves that this is the owner of the repository.
+export function setupPage({ t, checks, error }) {
+  const row = (label, ok, value) => html`<tr><th scope="row">${label}</th><td><span class="${ok ? 'ok' : 'bad'}">${ok ? '✓' : '✗'}</span> ${value}</td></tr>`;
+  const c = checks || {};
+  return html`<div id="login" class="setup">
+  <h1 class="login-logo"><a href="#/setup">${icon('logo', 'login-icon')}<span>${t('site.name')}</span></a></h1>
+  ${error ? html`<div id="login_error" class="notice notice-error" role="alert"><p>${error}</p></div>` : ''}
+  <div class="notice notice-info message"><p>${t('setup.lead')}</p></div>
+  <table class="form-table setup-checks"><tbody>
+    ${row('PHP', c.phpOk, c.php)}
+    ${row(t('setup.check.http'), c.curl, c.curl ? 'OK' : t('setup.check.missing'))}
+    ${row('mbstring', c.mbstring, c.mbstring ? 'OK' : t('setup.check.missing'))}
+    ${row('fileinfo', c.fileinfo, c.fileinfo ? 'OK' : t('setup.check.missing'))}
+    ${row(t('setup.check.image'), !!c.imageEngine, c.imageEngine || t('setup.check.missing'))}
+    ${row('WebP', c.webp, c.webp ? 'OK' : t('setup.check.nowebp'))}
+    ${row(t('setup.check.data'), c.dataOutside !== false, c.dataOutside === false ? t('setup.check.datainside') : 'OK')}
+    <tr><th scope="row">${t('setup.check.limits')}</th><td>upload_max_filesize ${c.uploadMax} · post_max_size ${c.postMax} · memory_limit ${c.memory}</td></tr>
+  </tbody></table>
+  <form id="loginform" data-setup novalidate>
+    <p><label for="setup_token">${t('setup.token')}</label>
+    <input type="password" name="token" id="setup_token" class="input" autocomplete="off" required></p>
+    <p class="description">${t('setup.token.help')}</p>
+    <p><label for="setup_user">${t('setup.user')}</label>
+    <input type="text" name="user" id="setup_user" class="input" autocomplete="username" autocapitalize="off" spellcheck="false" required></p>
+    <p><label for="setup_pass">${t('setup.pass')}</label>
+    <input type="password" name="password" id="setup_pass" class="input" autocomplete="new-password" required></p>
+    <p class="description">${t('profile.password.help', { n: 10 })}</p>
+    <p><label for="setup_pass2">${t('setup.pass2')}</label>
+    <input type="password" name="password2" id="setup_pass2" class="input" autocomplete="new-password" required></p>
+    <p class="submit"><button type="submit" class="button button-primary button-large">${t('setup.submit')}</button></p>
+  </form>
 </div>`;
 }
 
 export function errorScreen(t, message) {
-  return html`<div class="wp-die-message"><p>${message}</p><p><a href="/wp-admin/">${t('err.back')}</a></p></div>`;
+  return html`<div class="wp-die-message"><p>${message}</p><p><a href="#/">${t('err.back')}</a></p></div>`;
 }

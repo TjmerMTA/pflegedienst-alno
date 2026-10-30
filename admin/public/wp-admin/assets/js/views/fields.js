@@ -3,7 +3,8 @@ import { html, raw } from '../html.js';
 import { itemImage } from '../rules.js';
 
 const idOf = (s) => String(s).replace(/[^a-zA-Z0-9_-]+/g, '-');
-const thumbUrl = (p) => `/wp-admin/api/media/file?path=${encodeURIComponent(p)}&thumb=1`;
+const fileUrl = (p) => `/wp-admin/api.php?r=media/file&path=${encodeURIComponent(p)}`;
+const thumbUrl = (p) => `${fileUrl(p)}&thumb=1`;
 const chars = (s) => Array.from(String(s ?? '')).length;
 
 function fieldError(ctx, errs) {
@@ -38,7 +39,7 @@ export function textArea(ctx, { name, id, label, value, max, required, help, row
 }
 
 // Classic editor. The textarea always holds the stored format (HTML for page richtext, Markdown for
-// collection bodies); the Visuell tab is a contenteditable kept in sync by admin.js.
+// collection bodies); the Visuell tab is a contenteditable kept in sync by behaviour.js.
 export function editor(ctx, { name, id, label, value, format = 'html', required, help, errs, visualOff = [], tall }) {
   const { t } = ctx;
   const tb = [
@@ -83,7 +84,7 @@ export function imagePicker(ctx, { name, altName, id, label, value, alt, require
         <p><button type="button" class="button-link js-image-choose">${value ? t('edit.image.replace') : t('edit.image.choose')}</button>
         <span class="sep"${value ? '' : raw(' hidden')}> · </span><button type="button" class="button-link link-delete js-image-remove"${value ? '' : raw(' hidden')}>${t('edit.image.remove')}</button></p>
         ${withAlt ? html`<div class="image-alt"${value ? '' : raw(' hidden')}><label for="${id}-alt" class="sub-label">${t('edit.image.alt')}</label>
-        <input type="text" id="${id}-alt" name="${altName}" value="${value ? (alt ?? '') : ''}" class="regular-text js-image-alt">
+        <input type="text" id="${id}-alt" name="${altName}" value="${value ? (alt ?? '') : ''}" class="regular-text js-image-alt" maxlength="300">
         <p class="description">${t('edit.image.alt.help')}</p></div>` : ''}
       </div>
     </div>
@@ -172,4 +173,4 @@ export function stringList(ctx, f, { name, id, value, errs }) {
   </div>`;
 }
 
-export { idOf, thumbUrl };
+export { idOf, thumbUrl, fileUrl };
