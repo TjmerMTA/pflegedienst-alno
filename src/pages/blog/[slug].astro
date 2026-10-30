@@ -11,6 +11,10 @@ export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
   return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry, posts } }));
 }
+// Тексты шаблона — в src/content/pages/blog.json, сама статья — в коллекции blog
+// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
+const { getPage } = await import('../../lib/content');
+const page = getPage('blog');
 const { entry, posts } = Astro.props;
 const { Content, headings } = await render(entry);
 const toc = headings.filter((h) => h.depth === 2);
@@ -26,7 +30,7 @@ const article = {
 };
 ---
 <Base title={entry.data.title} description={entry.data.description} type="article" image={entry.data.image?.src} schema={[article]}>
-  <PageHero title={entry.data.title} lead={entry.data.description} crumbs={[{ href: '/blog/', label: 'Ratgeber' }, { label: entry.data.title }]}>
+  <PageHero title={entry.data.title} lead={entry.data.description} crumbs={[{ href: '/blog/', label: page.text('hero.crumb') }, { label: entry.data.title }]}>
     <p class="meta"><Icon name="calendar" size={16} /> <time datetime={entry.data.date.toISOString()}>{fmt(entry.data.date)}</time> · {entry.data.author}</p>
   </PageHero>
   <section class="section">
@@ -38,13 +42,13 @@ const article = {
       <aside>
         {toc.length > 1 && (
           <nav class="card toc" aria-label="Inhalt">
-            <b>Inhalt</b>
+            <b>{page.text('article.tocTitle')}</b>
             <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
           </nav>
         )}
         <div class="card help">
-          <b>Fragen zu Ihrer Situation?</b>
-          <p>Wir beraten Sie kostenlos – am Telefon oder bei Ihnen zu Hause.</p>
+          <b>{page.text('article.helpTitle')}</b>
+          <p>{page.text('article.helpText')}</p>
           <a class="btn btn--primary" href={SITE.phoneHref}><Icon name="phone" size={18} /> {SITE.phone}</a>
         </div>
       </aside>
@@ -53,7 +57,7 @@ const article = {
   {related.length > 0 && (
     <section class="section section--soft">
       <div class="wrap">
-        <h2>Weitere Artikel</h2>
+        <h2>{page.text('article.relatedTitle')}</h2>
         <div class="grid grid-2">{related.map((p) => <a class="card rel" href={`/blog/${p.id}/`}><h3>{p.data.title}</h3><p>{p.data.description}</p></a>)}</div>
       </div>
     </section>
