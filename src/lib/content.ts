@@ -126,7 +126,15 @@ export function getPage(id: string): Page {
     const src = str(v, f, path);
     if (!src) return null;
     const meta = images[`/src/assets/img/${src}`] ?? fail(`${file}: image "${src}" of "${path}" not found in src/assets/img/`);
-    return { src: meta, alt: alt == null ? '' : fillTokens(String(alt), `${file} "${path}" alt`) };
+    const text = alt == null ? '' : fillTokens(String(alt), `${file} "${path}" alt`);
+    if (!text.trim()) fail(`${file}: image "${src}" of "${path}" has an empty alt`);
+    return { src: meta, alt: text };
+  };
+  // Картинка в элементе списка — объект { value, alt }, те же ключи, что у поля image
+  const listImg = (v: unknown, f: Field, path: string): Img | null => {
+    if (v != null && (typeof v !== 'object' || Array.isArray(v))) fail(`${file}: value of "${path}" must be an object { "value", "alt" }`);
+    const { value, alt } = (v ?? {}) as { value?: unknown; alt?: unknown };
+    return imgOf(value, alt, f, path);
   };
 
   const page: Page = {
@@ -140,11 +148,12 @@ export function getPage(id: string): Page {
       if (!Array.isArray(f.value)) fail(`${file}: value of "${path}" must be an array`);
       const subs = f.fields ?? fail(`${file}: list "${path}" has no "fields"`);
       return (f.value as Record<string, unknown>[]).map((item, i) => {
-        const out: Record<string, string> = {};
+        const out: Record<string, string | Img | null> = {};
         for (const s of subs) {
           const p = `${path}[${i}].${s.id}`;
           if (s.type === 'richtext') out[s.id] = htmlOf(item?.[s.id], s, p);
           else if (s.type === 'text' || s.type === 'textarea') out[s.id] = textOf(item?.[s.id], s, p);
+          else if (s.type === 'image') out[s.id] = listImg(item?.[s.id], s, p);
           else fail(`${file}: sub-field type "${s.type}" in list "${path}" is not supported`);
         }
         return out as T;

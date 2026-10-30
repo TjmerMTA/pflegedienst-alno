@@ -5,15 +5,13 @@ import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import Icon from '../../components/Icon.astro';
 import CtaBand from '../../components/CtaBand.astro';
-import { SITE } from '../../config/site';
+import { SITE, getPage } from '../../config/site';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
   return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry, posts } }));
 }
 // Тексты шаблона — в src/content/pages/blog.json, сама статья — в коллекции blog
-// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
-const { getPage } = await import('../../lib/content');
 const page = getPage('blog');
 const { entry, posts } = Astro.props;
 const { Content, headings } = await render(entry);

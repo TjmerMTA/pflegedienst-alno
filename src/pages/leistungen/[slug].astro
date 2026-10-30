@@ -5,15 +5,13 @@ import PageHero from '../../components/PageHero.astro';
 import Icon from '../../components/Icon.astro';
 import ContactForm from '../../components/ContactForm.astro';
 import CtaBand from '../../components/CtaBand.astro';
-import { SITE, whatsappUrl } from '../../config/site';
+import { SITE, whatsappUrl, getPage } from '../../config/site';
 
 export async function getStaticPaths() {
   const items = await getCollection('leistungen');
   return items.map((entry) => ({ params: { slug: entry.id }, props: { entry, all: items } }));
 }
 // Тексты шаблона — в src/content/pages/leistungen.json, сама услуга — в коллекции leistungen
-// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
-const { getPage } = await import('../../lib/content');
 const p = getPage('leistungen');
 const { entry, all } = Astro.props;
 const { Content } = await render(entry);
