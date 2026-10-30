@@ -645,7 +645,7 @@ const p = getPage('pflege-rechner');
   .rc .svc:hover { border-color: var(--brand); background: var(--bg-soft); }
   .rc .svc[aria-pressed=true] { border-color: var(--brand-600); background: var(--brand-50); box-shadow: 0 0 0 3px var(--brand-50); }
   .rc .ci { inline-size: 38px; block-size: 38px; border-radius: 10px; display: grid; place-items: center; flex: none; }
-  .rc .svc .nm { flex: 1; min-inline-size: 0; font-size: .95rem; line-height: 1.3; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 17 5 5; }
+  .rc .svc .nm { flex: 1; min-inline-size: 0; font-size: .95rem; line-height: 1.3; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 16 5 5; }
   .rc .svc .nm small, .rc .pitem .info small { display: block; color: var(--muted); font-size: .78rem; }
   .rc .svc .pr-tag { font-weight: 700; white-space: nowrap; font-size: .93rem; }
   .rc .per { font-weight: 400; color: var(--muted); }
@@ -678,7 +678,7 @@ const p = getPage('pflege-rechner');
   .rc .pitem { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; animation: rc-in .35s; }
   .rc .pitem.out { animation: rc-out .25s forwards; }
   @keyframes rc-out { to { opacity: 0; transform: translateX(30px); } }
-  .rc .pitem .info { flex: 1; min-inline-size: 0; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 17 5 5; }
+  .rc .pitem .info { flex: 1; min-inline-size: 0; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 16 5 5; }
   .rc .pitem .info b { display: block; font-size: .95rem; line-height: 1.3; }
   .rc .pitem .amt { text-align: end; white-space: nowrap; }
   .rc .pitem .amt b { display: block; }
