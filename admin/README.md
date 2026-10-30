@@ -226,7 +226,7 @@ or, where cron runs PHP scripts directly, `php ~/public_html/admin-alno/wp-admin
 
 - **HTTPS:** `public_html/admin-alno/.htaccess` redirects HTTP and sets HSTS.
 - **Logs:** `~/alno-data/logs/admin.log` for events, `access.log` for who read which submission (ids only).
-- **Data folder:** `~/alno-data`, found exactly as `public/api/anfrage.php` finds it (`ALNO_DATA_DIR`, the user's home from `posix_getpwuid`, `$HOME`; if none of them answers, nothing is guessed: setup refuses and the forms answer with an error until `ALNO_DATA_DIR` is set). Both must agree; if the home is detected wrongly, set `ALNO_DATA_DIR` with `SetEnv` in `.htaccess`. Setup refuses a folder inside the web root.
+- **Data folder:** one file, `data-dir.php`, finds it for the form endpoint and the admin: `ALNO_DATA_DIR` as an override, else the absolute path setup wrote into `.alno-data-dir` beside `public_html` (never in it), else `~/alno-data` from `posix_getpwuid` or `$HOME`. If none of them answers, nothing is guessed. A path that really lies in a web root, by `realpath` and through every parent, is refused whatever it is called: setup refuses, the admin stops reading it, the form stores nothing and answers 500. Set `ALNO_DATA_DIR` for both with one `SetEnv` in `public_html/.htaccess`: the admin folder inherits it. To move the folder, change `.alno-data-dir` by hand.
 - **Token expired:** the admin says so. Create a new one and replace `token` in `~/alno-data/config.json` by SFTP.
 - **Locked out, no administrator left:** by SFTP delete `~/alno-data/users.json` and `~/alno-data/config.json`, open the setup screen, paste a token. Content and Anfragen are not affected.
 - **Backups:** `~/alno-data` is not in Git. It holds health data, so keep the backup as protected as the host.

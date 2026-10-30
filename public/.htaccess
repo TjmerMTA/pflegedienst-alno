@@ -18,6 +18,11 @@ DirectoryIndex index.html
   RewriteRule ^ https://pflegedienst-alno.de%{REQUEST_URI} [R=301,L]
 </IfModule>
 
+# Папка данных лежит вне сайта; если её всё же положат сюда, ни один адрес до неё не дойдёт
+<If "%{REQUEST_URI} =~ m#alno-data#i">
+  Require all denied
+</If>
+
 # Админка открывается только со своего адреса, даже если её .htaccess ещё не загрузился
 <If "%{REQUEST_URI} =~ m#^/admin-alno(/|$)#i && %{HTTP_HOST} !~ /^admin\.pflegedienst-alno\.de(:[0-9]+)?$/i">
   Require all denied

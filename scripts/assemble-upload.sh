@@ -8,6 +8,11 @@ out=$1
 for f in dist/index.html admin/public/wp-admin/index.html; do
   if [ ! -s "$f" ]; then echo "$f is missing or empty: nothing to deploy." >&2; exit 1; fi
 done
+# The form endpoint and the admin must find one data folder: one file, uploaded twice.
+if [ -e dist/api/anfrage.php ] && ! cmp -s dist/api/data-dir.php admin/public/wp-admin/lib/data-dir.php; then
+  echo "dist/api/data-dir.php and the admin's copy differ: nothing to deploy." >&2
+  exit 1
+fi
 rm -rf "$out"
 mkdir -p "$out/site" "$out/admin"
 cp -R dist/. "$out/site/"

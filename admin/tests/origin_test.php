@@ -226,6 +226,26 @@ test('the site\'s rules stay off the admin: it inherits this file. Any other hos
     has($h, "DirectoryIndex index.html\n");
     eq(preg_match('/^\s*Header\b/m', (string) preg_replace('/<If "%\{HTTP_HOST\} !~.*?<\/If>/s', '', $h)), 0);
 });
+test('a data folder is out of reach by its name too, on every host', function () use ($root) {
+    $h = (string) file_get_contents("$root/public/.htaccess");
+    has($h, "<If \"%{REQUEST_URI} =~ m#alno-data#i\">\n  Require all denied\n</If>");
+});
+test('a deploy stops if the site and the admin would not find one data folder', function () use ($root) {
+    $d = tmpDir('alno-assemble-dir');
+    mkdir("$d/dist/api", 0755, true);
+    file_put_contents("$d/dist/index.html", 'x');
+    file_put_contents("$d/dist/api/anfrage.php", '<?php');
+    file_put_contents("$d/dist/api/data-dir.php", '<?php // anders');
+    symlink("$root/admin", "$d/admin");
+    exec('cd ' . escapeshellarg($d) . ' && bash ' . escapeshellarg("$root/scripts/assemble-upload.sh") . ' upload 2>&1', $o, $code);
+    ok($code !== 0, 'must fail');
+    has(implode("\n", $o), 'differ');
+    copy("$root/public/api/data-dir.php", "$d/dist/api/data-dir.php");
+    exec('cd ' . escapeshellarg($d) . ' && bash ' . escapeshellarg("$root/scripts/assemble-upload.sh") . ' upload 2>&1', $o2, $code2);
+    eq($code2, 0, implode("\n", $o2));
+    unlink("$d/admin");
+    rmTree($d);
+});
 test('the admin folder answers its own host only, and sends one CSP', function () use ($root) {
     $h = (string) file_get_contents("$root/admin/public/.htaccess");
     ok(strpos($h, '<If "%{HTTP_HOST} !~ /^(admin\.pflegedienst-alno\.de|') < strpos($h, 'RewriteEngine'), 'the refusal comes first');

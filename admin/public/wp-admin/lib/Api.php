@@ -28,6 +28,7 @@ final class Api
     private Store $store;
     private Auth $auth;
     private ?array $config;
+    private bool $exposed;
     private ?GitHub $gh = null;
     private ?Site $site = null;
     private ?array $user = null;
@@ -36,7 +37,9 @@ final class Api
     {
         $this->store = new Store();
         $this->auth = new Auth($this->store);
-        $this->config = $this->store->readJson('config.json');
+        // Fail closed: a folder a URL can reach is not used, whatever it holds. Only setup answers, and it refuses.
+        $this->exposed = $this->store->exposed();
+        $this->config = $this->exposed ? null : $this->store->readJson('config.json');
         if ($this->config) {
             $this->gh = new GitHub($this->store, $this->config['token']);
             $this->site = new Site($this->gh, $this->store);
@@ -293,19 +296,6 @@ final class Api
 
     // ---------------- setup, login ----------------
 
-    /**
-     * The data folder holds the token and the submissions: no URL may reach it. The admin's docroot
-     * lies inside the site's, whatever either is called or linked to, so its parent is a web root too.
-     */
-    private function dataExposed(): bool
-    {
-        if ($this->store->dir === '') return true;
-        foreach ([(string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), dirname(__DIR__, 2)] as $root) {
-            if ($this->store->isInside($root) || $this->store->isInside(dirname($root))) return true;
-        }
-        return false;
-    }
-
     /** What the host offers, so that a missing extension is seen before anything fails. */
     private function checks(): array
     {
@@ -315,7 +305,7 @@ final class Api
             'curl' => function_exists('curl_init') || (bool) ini_get('allow_url_fopen'), 'mbstring' => extension_loaded('mbstring'),
             'fileinfo' => class_exists('finfo'), 'imageEngine' => $engine, 'webp' => Media::supportsWebp(),
             'uploadMax' => ini_get('upload_max_filesize'), 'postMax' => ini_get('post_max_size'), 'memory' => ini_get('memory_limit'),
-            'dataOutside' => !$this->dataExposed(),
+            'dataOutside' => !$this->exposed,
         ];
     }
 
@@ -372,7 +362,7 @@ final class Api
     private function setup(): void
     {
         $this->checkLoginNonce();
-        if ($this->dataExposed()) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb von public_html setzen.');
+        if ($this->exposed) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb von public_html setzen.');
         $b = self::readJson(65536);
         $token = trim((string) ($b['token'] ?? ''));
         $name = strtolower(trim((string) ($b['user'] ?? '')));
@@ -396,6 +386,7 @@ final class Api
                 'cron_key' => bin2hex(random_bytes(24)), 'created' => gmdate('c'),
             ]);
         });
+        if (!$this->store->fixDir()) $this->store->log(['event' => 'data-dir-not-fixed']);
         $this->store->log(['event' => 'setup', 'user' => $name, 'ip' => self::clientIp()]);
         self::json(200, ['ok' => true]);
     }

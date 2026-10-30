@@ -16,8 +16,10 @@ The admin's «Anfragen» screen reads these files. They hold personal data, some
     files/<stored>               uploaded files, 0600, no extension
 ```
 
-`~` is the hosting user's home, found through `posix_getpwuid()`, then `$HOME`. The environment variable `ALNO_DATA_DIR`
-overrides it. If none of them answers, or the path is inside the web root, the endpoint stores nothing and answers 500.
+`public/api/data-dir.php` finds the folder, and the admin uses the same file: `ALNO_DATA_DIR` as an override, else the
+absolute path written at setup into `.alno-data-dir` beside the web root, else `~` from `posix_getpwuid()` or `$HOME`. If none
+of them answers, or the path really lies in a web root (by `realpath`, through every parent), the endpoint stores nothing
+and answers 500.
 
 ## 2. One submission
 

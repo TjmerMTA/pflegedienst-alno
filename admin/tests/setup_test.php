@@ -221,10 +221,77 @@ test('a folder that only starts with the same name is outside', function () {
     mkdir("$root/site");
     mkdir("$root/site-data");
     mkdir("$root/site/data");
-    ok(!(new Store("$root/site-data"))->isInside("$root/site"));
-    ok((new Store("$root/site/data"))->isInside("$root/site"));
-    ok((new Store("$root/site"))->isInside("$root/site"), 'the root itself');
-    ok(!(new Store("$root/site"))->isInside(''), 'no document root, as on the command line');
+    $roots = [realpath("$root/site")];
+    ok(!alno_inside_web("$root/site-data", $roots));
+    ok(alno_inside_web("$root/site/data", $roots));
+    ok(alno_inside_web("$root/site", $roots), 'the root itself');
+    ok(!alno_inside_web("$root/site", []), 'no document root, as on the command line');
+    rmTree($root);
+});
+
+// public_html a link, no posix, no HOME: the case in which a folder used to land in the web root.
+$linked = static function (string $home = '') {
+    $root = tmpDir('alno-root');
+    mkdir("$root/www/users/x/admin-alno", 0755, true);
+    mkdir("$root/home");
+    symlink("$root/www/users/x", "$root/home/public_html");
+    exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/www/users/x/admin-alno/wp-admin"));
+    file_put_contents("$root/prep.php", '<?php putenv("ALNO_DATA_DIR");' . ($home === '' ? ' putenv("HOME");' : ' putenv("HOME=' . str_replace('ROOT', $root, $home) . '");'));
+    return $root;
+};
+$serve = static function (string $root, Env $gh) {
+    return new Server(['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$root/prep.php", '-t', "$root/www/users/x/admin-alno"], ['ALNO_GITHUB_API' => "http://127.0.0.1:{$gh->gh->port}"]);
+};
+test('link, no posix, no HOME: no folder is guessed, setup refuses and leaves nothing behind', function () use ($linked, $serve, $post, $form) {
+    $root = $linked();
+    $gh = new Env(false);
+    $admin = $serve($root, $gh);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    eq($c->get('session')['json']['checks']['dataOutside'], false);
+    $r = $post($c, $form());
+    $admin->stop();
+    $gh->stop();
+    eq($r['status'], 422, $r['body']);
+    eq($r['json']['error'], 'data_dir');
+    eq((string) shell_exec('find ' . escapeshellarg($root) . " -name 'alno-data*' -o -name '.alno-data-dir'"), '');
+    rmTree($root);
+});
+test('setup fixes the folder beside the site, and after that HOME no longer matters', function () use ($linked, $serve, $post, $form) {
+    $root = $linked('ROOT/home');
+    $gh = new Env(false);
+    $admin = $serve($root, $gh);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    eq($c->get('session')['json']['checks']['dataOutside'], true);
+    $r = $post($c, $form());
+    eq($r['status'], 200, $r['body']);
+    $admin->stop();
+    eq(trim((string) file_get_contents("$root/www/users/.alno-data-dir")), "$root/home/alno-data");
+    ok(is_file("$root/home/alno-data/config.json"), 'config not in the fixed folder');
+    file_put_contents("$root/prep.php", '<?php putenv("ALNO_DATA_DIR"); putenv("HOME");');
+    $admin = $serve($root, $gh);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    $s = $c->get('session');
+    eq($s['json']['error'] ?? '', 'login', $s['body']);
+    $admin->stop();
+    $gh->stop();
+    rmTree($root);
+});
+test('a setting that leads into the web root locks the admin: it does not read what lies there', function () use ($linked, $serve, $post, $form) {
+    $root = $linked('ROOT/home');
+    symlink("$root/www/users/x", "$root/umweg");
+    mkdir("$root/www/users/x/daten");
+    file_put_contents("$root/www/users/x/daten/config.json", json_encode(['token' => 'x', 'site_url' => 'https://a.de', 'hosts' => ['127.0.0.1']]));
+    file_put_contents("$root/www/users/.alno-data-dir", "$root/umweg/daten\n");
+    $gh = new Env(false);
+    $admin = $serve($root, $gh);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    $s = $c->get('session');
+    eq($s['json']['error'] ?? '', 'setup', $s['body']);
+    eq($s['json']['checks']['dataOutside'], false);
+    $r = $post($c, $form());
+    $admin->stop();
+    $gh->stop();
+    eq($r['json']['error'], 'data_dir');
     rmTree($root);
 });
 finish();
