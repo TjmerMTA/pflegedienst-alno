@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../lib/config.js';
-import { createApp } from '../lib/app.js';
+import { createApp } from '../lib/api.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const test = path.join(here, '..', 'test');

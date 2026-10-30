@@ -6,7 +6,7 @@ import http from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../lib/config.js';
-import { createApp } from '../lib/app.js';
+import { createApp } from '../lib/api.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const FIXTURE = path.join(here, 'fixtures', 'site');

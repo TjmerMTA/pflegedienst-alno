@@ -43,7 +43,8 @@ function splitFlow(inner, lineNo) {
   let cur = ''; let q = null;
   for (const ch of inner) {
     if (q) { cur += ch; if (ch === q) q = null; continue; }
-    if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
+    // A quote opens a string only at the start of an item: «it's» is a plain word.
+    if ((ch === '"' || ch === "'") && !cur.trim()) { q = ch; cur += ch; continue; }
     if (ch === '[' || ch === '{') throw new FrontmatterError(`Zeile ${lineNo}: verschachtelte Listen werden nicht unterstützt`);
     if (ch === ',') { items.push(cur); cur = ''; continue; }
     cur += ch;
@@ -60,7 +61,7 @@ export function parseFrontmatter(fm) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (/^\s*(#.*)?$/.test(line)) continue;
-    const m = /^([A-Za-z_][\w-]*):(?:\s+(.*)|\s*)$/.exec(line);
+    const m = /^([A-Za-z_][\w-]*):(?:\s+([\s\S]*)|\s*)$/.exec(line);
     if (!m) throw new FrontmatterError(`Zeile ${i + 1}: nicht unterstütztes YAML`);
     const key = m[1];
     const rest = (m[2] ?? '').trim();
@@ -89,7 +90,7 @@ function quoteIfNeeded(s) {
   const str = String(s);
   if (str === '') return '""';
   const risky = /^[\s\-?:,\[\]{}#&*!|>'"%@`]/.test(str) || /:(\s|$)|\s#|\n|\t|\s$/.test(str)
-    || /^(true|false|null|~|yes|no|on|off|y|n)$/i.test(str) || /^\d{4}-\d{2}-\d{2}/.test(str)
+    || /^(true|false|null|~|yes|no|on|off|y|n)$/i.test(str) || /^\d{4}-\d{1,2}-\d{1,2}/.test(str)
     || (str.trim() !== '' && !Number.isNaN(Number(str))) || /^[-+]?[\d_]+(\.\d*)?$/.test(str) || /^[-+]?\.(inf|nan)$/i.test(str);
   return risky ? JSON.stringify(str) : str;
 }
@@ -99,7 +100,7 @@ function fmtScalar(v, inFlow) {
   if (typeof v === 'boolean' || typeof v === 'number') return String(v);
   if (typeof v === 'object' && v.date) return v.date;
   const q = quoteIfNeeded(v);
-  return inFlow && q[0] !== '"' && /[,\[\]{}]/.test(q) ? JSON.stringify(String(v)) : q;
+  return inFlow && q[0] !== '"' && /[,\[\]{}'"]/.test(q) ? JSON.stringify(String(v)) : q;
 }
 
 // `flowKeys`: arrays written as `key: [a, b]` (like the site's `tags`), all others as block lists.

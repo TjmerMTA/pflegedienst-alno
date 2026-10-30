@@ -1,8 +1,8 @@
 // Markdown <-> HTML for the classic editor of blog/Leistungen bodies.
 // Covers what the site's Markdown uses: headings (##–####), paragraphs, bold/italic, links, inline code,
 // bullet and numbered lists (nested), blockquotes, horizontal rules, hard line breaks.
-// Pure ESM without Node imports: the browser editor loads the same file.
-import { sanitizeHtml, safeHref, decodeEntities, MD_TAGS } from './sanitize.js';
+// Runs in the browser only; what gets stored is decided by rules.js on the server.
+import { sanitizeHtml, safeHref, decodeEntities, MD_TAGS } from './rules.js';
 
 const escText = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escAttr = (s) => escText(s).replace(/"/g, '&quot;');
@@ -17,6 +17,9 @@ export function unsupportedMarkdown(md) {
   if (/<[a-zA-Z/!?]/.test(s.replace(/`[^`\n]*`/g, ''))) found.push('HTML');
   if (/^[ \t]*\[[^\]\n]+\]:[ \t]*\S/m.test(s)) found.push('Referenz-Link');
   if (hasSetextHeading(s)) found.push('Setext-Überschrift');
+  if (/\]\([^)\n]*\s"[^"\n]*"\)/.test(s)) found.push('Link-Titel');
+  if (/^[ \t]*(#|#{5,6})[ \t]/m.test(s)) found.push('Überschrift der Ebene 1, 5 oder 6');
+  if (/^[ \t]*[-*+][ \t]+\[[ xX]\]/m.test(s)) found.push('Aufgabenliste');
   return found;
 }
 
@@ -275,36 +278,4 @@ export function htmlToMarkdown(htmlStr) {
   const out = [];
   blocksMd(parseTree(clean).children, out);
   return out.join('\n\n') + (out.length ? '\n' : '');
-}
-
-// ---------- sanitising Markdown bodies ----------
-
-// Removes tags in one linear pass.
-function stripTags(s) {
-  let out = '';
-  let pos = 0;
-  while (pos < s.length) {
-    const lt = s.indexOf('<', pos);
-    if (lt === -1) { out += s.slice(pos); break; }
-    if (!/[a-zA-Z/]/.test(s[lt + 1] || '')) { out += s.slice(pos, lt + 1); pos = lt + 1; continue; }
-    const gt = s.indexOf('>', lt);
-    if (gt === -1) { out += s.slice(pos); break; }
-    out += s.slice(pos, lt);
-    pos = gt + 1;
-  }
-  return out;
-}
-
-// Raw HTML in Markdown would be rendered by Astro as-is: strip tags (outside inline code), turn any
-// `<` that could still open one into an entity (removing a tag can join two halves into a new one),
-// and neutralise unsafe link targets.
-export function sanitizeMarkdown(md) {
-  let s = String(md ?? '').replace(/\r\n?/g, '\n').replace(/\u0000/g, '');
-  const codes = [];
-  s = s.replace(/`[^`\n]*`/g, (m) => { codes.push(m); return `\u0000C${codes.length - 1}\u0000`; });
-  s = s.replace(/<!--[\s\S]*?(-->|$)/g, '');
-  s = stripTags(s).replace(/<(?=[a-zA-Z/!?])/g, '&lt;');
-  s = s.replace(/(\]\(\s*<?)([^)\s>]*)/g, (m, a, url) => (safeHref(url) ? m : `${a}#`));
-  s = s.replace(/^([ \t]*\[[^\]\n]+\]:[ \t]*)(\S+)/gm, (m, a, url) => (safeHref(url) ? m : `${a}#`));
-  return s.replace(/\u0000C(\d+)\u0000/g, (m, i) => codes[i]);
 }

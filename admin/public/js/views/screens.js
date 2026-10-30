@@ -3,10 +3,9 @@ import { html, raw } from '../html.js';
 import { formatDate } from '../i18n.js';
 import { textInput, textArea, editor, imagePicker, pageField, listField, stringList, idOf, thumbUrl } from './fields.js';
 import { icon } from './layout.js';
-import { COLLECTIONS } from '../collections.js';
 
+export const editUrl = (e) => (e.type === 'page' ? `/wp-admin/post.php?post_type=page&post=${encodeURIComponent(e.id)}` : `/wp-admin/post.php?post_type=${e.type}&post=${encodeURIComponent(e.id)}`);
 const fmtSize = (n) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
-const nonce = (ctx) => html`<input type="hidden" name="_wpnonce" value="${ctx.csrf}">`;
 
 function errorMap(errors) {
   const m = new Map();
@@ -116,7 +115,7 @@ function publishBox(ctx, { modified, revCount, revUrl, buttonLabel, extra, statu
       </div></div>` });
 }
 
-export function pageEdit(ctx, { id, page, errors = [], hash, modified, revCount, tokens, structureErrors }) {
+export function pageEdit(ctx, { id, page, errors = [], modified, revCount, tokens, structureErrors }) {
   const { t } = ctx;
   const errs = errorMap(errors);
   const isGlobal = id === '_global';
@@ -138,9 +137,7 @@ export function pageEdit(ctx, { id, page, errors = [], hash, modified, revCount,
   }));
   const revUrl = `/wp-admin/revision.php?file=${encodeURIComponent(`src/content/pages/${id}.json`)}`;
   return html`<h1 class="wp-heading-inline">${heading}</h1>${view}<hr class="wp-header-end">
-  <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form" novalidate>
-    ${nonce(ctx)}<input type="hidden" name="action" value="editpost"><input type="hidden" name="post_type" value="page">
-    <input type="hidden" name="post" value="${id}"><input type="hidden" name="_hash" value="${hash}">
+  <form id="post" class="js-edit-form" novalidate>
     <div id="poststuff"><div id="post-body" class="metabox-holder columns-2">
       <div id="post-body-content"><div id="normal-sortables">${boxes}</div></div>
       <div id="postbox-container-1" class="postbox-container">
@@ -155,9 +152,9 @@ export function pageEdit(ctx, { id, page, errors = [], hash, modified, revCount,
 
 // ---------------- Collections ----------------
 
-export function collectionList(ctx, { coll, entries, trash, view, search, counts }) {
+export function collectionList(ctx, { def, entries, trash, view, search, counts }) {
   const { t } = ctx;
-  const def = COLLECTIONS[coll];
+  const coll = def.key;
   const pt = def.postType;
   const base = `/wp-admin/edit.php?post_type=${pt}`;
   const heading = { blog: t('menu.posts'), leistungen: t('menu.leistungen'), team: t('menu.team') }[coll];
@@ -177,8 +174,8 @@ export function collectionList(ctx, { coll, entries, trash, view, search, counts
     rows = trash.map((e) => html`<tr><td class="column-title column-primary" colspan="${cols.length}"><strong>${e.title || e.slug}</strong> <span class="post-state">— ${e.slug}</span>
       <p class="description">${t('list.deletedby', { user: e.by, date: formatDate(e.at, t.lang) })}</p>
       <div class="row-actions visible">
-        <form method="post" action="/wp-admin/post.php" class="inline-form">${nonce(ctx)}<input type="hidden" name="post_type" value="${pt}"><input type="hidden" name="action" value="untrash"><input type="hidden" name="trash_id" value="${e.id}"><button type="submit" class="button-link">${t('list.restore')}</button></form> |
-        <form method="post" action="/wp-admin/post.php" class="inline-form">${nonce(ctx)}<input type="hidden" name="post_type" value="${pt}"><input type="hidden" name="action" value="delete"><input type="hidden" name="trash_id" value="${e.id}"><button type="submit" class="button-link link-delete">${t('list.delete')}</button></form>
+        <form class="inline-form" data-api="entry/untrash" data-then="entry" data-type="${pt}" data-message="untrashed"><input type="hidden" name="type" value="${pt}"><input type="hidden" name="trashId" value="${e.id}"><button type="submit" class="button-link">${t('list.restore')}</button></form> |
+        <form class="inline-form" data-api="entry/delete" data-next="/wp-admin/edit.php?post_type=${pt}&post_status=trash&message=deleted"><input type="hidden" name="type" value="${pt}"><input type="hidden" name="trashId" value="${e.id}"><button type="submit" class="button-link link-delete">${t('list.delete')}</button></form>
       </div></td></tr>`);
   } else {
     rows = entries.map((e) => {
@@ -192,7 +189,7 @@ export function collectionList(ctx, { coll, entries, trash, view, search, counts
           case 'title': return html`<td class="title column-title column-primary"><strong><a class="row-title" href="${editUrl}">${title}</a>${state ? html` <span class="post-state">— ${state}</span>` : ''}</strong>
             ${e.error ? html`<p class="field-error">${t('list.unreadable')}: ${e.error}</p>` : ''}
             <div class="row-actions"><span class="edit"><a href="${editUrl}">${t('list.edit')}</a></span>
-            ${def.canDelete ? html` | <span class="trash"><form method="post" action="/wp-admin/post.php" class="inline-form">${nonce(ctx)}<input type="hidden" name="post_type" value="${pt}"><input type="hidden" name="action" value="trash"><input type="hidden" name="post" value="${e.slug}"><button type="submit" class="button-link link-delete">${t('list.trash')}</button></form></span>` : ''}
+            ${def.canDelete ? html` | <span class="trash"><form class="inline-form" data-api="entry/trash" data-next="/wp-admin/edit.php?post_type=${pt}&message=trashed"><input type="hidden" name="type" value="${pt}"><input type="hidden" name="id" value="${e.slug}"><button type="submit" class="button-link link-delete">${t('list.trash')}</button></form></span>` : ''}
             ${url && !(coll === 'blog' && v.draft) ? html` | <span class="view"><a href="${ctx.cfg.siteUrl}${url}" target="_blank" rel="noopener">${t('list.view')}</a></span>` : ''}
             | <span class="revisions"><a href="/wp-admin/revision.php?file=${encodeURIComponent(`src/content/${def.dir}/${e.slug}.md`)}">${t('list.revisions')}</a></span></div></td>`;
           case 'author': return html`<td class="column-author">${v.author || 'Team Pflegedienst ALNO'}</td>`;
@@ -202,7 +199,7 @@ export function collectionList(ctx, { coll, entries, trash, view, search, counts
           case 'payer': return html`<td class="column-payer">${v.payer}</td>`;
           case 'order': return html`<td class="column-order">${v.order ?? ''}</td>`;
           case 'role': return html`<td class="column-role">${v.role}</td>`;
-          case 'photo': return html`<td class="column-photo">${v.photo ? html`<img src="${thumbUrl(v.photo)}" alt="" class="list-thumb">` : html`<span class="list-thumb empty">${icon('profile')}</span>`}</td>`;
+          case 'photo': return html`<td class="column-photo">${v.photo?.value ? html`<img src="${thumbUrl(v.photo.value)}" alt="" class="list-thumb">` : html`<span class="list-thumb empty">${icon('profile')}</span>`}</td>`;
           default: return html`<td></td>`;
         }
       };
@@ -211,7 +208,7 @@ export function collectionList(ctx, { coll, entries, trash, view, search, counts
   }
   return html`<h1 class="wp-heading-inline">${heading}</h1>${def.canCreate ? html` <a href="/wp-admin/post-new.php?post_type=${pt}" class="page-title-action">${t('list.addnew')}</a>` : ''}<hr class="wp-header-end">
   <ul class="subsubsub">${views.map(([href, label, n, cur], i) => html`<li><a href="${href}"${cur ? raw(' class="current" aria-current="page"') : ''}>${label} <span class="count">(${n})</span></a>${i < views.length - 1 ? ' |' : ''}</li>`)}</ul>
-  ${view !== 'trash' ? html`<form method="get" action="/wp-admin/edit.php" class="search-form"><p class="search-box"><input type="hidden" name="post_type" value="${pt}"><input type="search" name="s" value="${search || ''}" aria-label="${t('list.search')}"><button type="submit" class="button">${t('list.search')}</button></p></form>` : ''}
+  ${view !== 'trash' ? html`<form method="get" action="/wp-admin/edit.php" class="search-form" data-get><p class="search-box"><input type="hidden" name="post_type" value="${pt}"><input type="search" name="s" value="${search || ''}" aria-label="${t('list.search')}"><button type="submit" class="button">${t('list.search')}</button></p></form>` : ''}
   <div class="tablenav top"><div class="tablenav-pages"><span class="displaying-num">${t('list.items', { n: view === 'trash' ? trash.length : entries.length })}</span></div></div>
   <table class="wp-list-table widefat fixed striped table-view-list posts coll-${coll}">
     <thead>${head}</thead>
@@ -230,20 +227,19 @@ function collField(ctx, f, values, errs) {
     case 'textarea': return textArea(ctx, { name: f.id, id, label: f.label, value: v, max: f.max, required: f.required, help: f.help, errs: e });
     case 'number': return html`<div class="field${e ? ' has-error' : ''}"><label for="${id}">${f.label}${f.required ? raw(' <span class="req">*</span>') : ''}</label><input type="number" id="${id}" name="${f.id}" value="${v}" step="1" class="small-text"${f.placeholder ? html` placeholder="${f.placeholder}"` : ''}>${e ? html`<p class="field-error">${e.map(ctx.t.msg).join(' · ')}</p>` : ''}</div>`;
     case 'date': return html`<div class="field${e ? ' has-error' : ''}"><label for="${id}">${f.label}${f.required ? raw(' <span class="req">*</span>') : ''}</label><input type="date" id="${id}" name="${f.id}" value="${v}">${e ? html`<p class="field-error">${e.map(ctx.t.msg).join(' · ')}</p>` : ''}</div>`;
-    case 'boolean': return html`<div class="field field-check"><label><input type="checkbox" name="${f.id}" value="on"${v ? raw(' checked') : ''}> ${f.label}</label></div>`;
+    case 'boolean': return html`<div class="field field-check"><label><input type="checkbox" name="${f.id}"${v ? raw(' checked') : ''}> ${f.label}</label></div>`;
     case 'select': return html`<div class="field${e ? ' has-error' : ''}"><label for="${id}">${f.label}</label><select id="${id}" name="${f.id}">${f.options.map((o) => html`<option value="${o}"${o === v ? raw(' selected') : ''}>${o}</option>`)}</select>${e ? html`<p class="field-error">${e.map(ctx.t.msg).join(' · ')}</p>` : ''}</div>`;
-    case 'tags': return html`<div class="field${e ? ' has-error' : ''}"><label for="${id}">${f.label}</label><input type="text" id="${id}" name="${f.id}" value="${(v || []).join(', ')}" class="large-text"><p class="description">${f.help}</p>${e ? html`<p class="field-error">${e.map(ctx.t.msg).join(' · ')}</p>` : ''}</div>`;
+    case 'tags': return html`<div class="field${e ? ' has-error' : ''}"><label for="${id}">${f.label}</label><input type="text" id="${id}" name="${f.id}" value="${(v || []).join(', ')}" class="large-text" data-comma-list><p class="description">${f.help}</p>${e ? html`<p class="field-error">${e.map(ctx.t.msg).join(' · ')}</p>` : ''}</div>`;
     case 'strings': return stringList(ctx, f, { name: f.id, id, value: v, errs: e });
-    case 'image': return imagePicker(ctx, { name: `${f.id}[value]`, altName: `${f.id}[alt]`, id, label: f.label, value: v, alt: f.altKey ? values[f.altKey] : '', withAlt: !!f.altKey, errs: e, altErrs: f.altKey ? errs.get(f.altKey) : null });
+    case 'image': return imagePicker(ctx, { name: `${f.id}[value]`, altName: `${f.id}[alt]`, id, label: f.label, value: v?.value, alt: v?.alt, withAlt: !!f.altKey, errs: e, altErrs: f.altKey ? errs.get(f.altKey) : null });
     default: return '';
   }
 }
 
-export function collectionEdit(ctx, { coll, slug, isNew, values, body, errors = [], hash, modified, revCount, visualOff }) {
+export function collectionEdit(ctx, { def, slug, isNew, values, body, errors = [], modified, revCount, visualOff }) {
   const { t } = ctx;
-  const def = COLLECTIONS[coll];
+  const coll = def.key;
   const errs = errorMap(errors);
-  const pt = def.postType;
   const heading = isNew ? t(coll === 'team' ? 'edit.team.new' : 'edit.post.new') : t({ blog: 'edit.post', leistungen: 'edit.leistung', team: 'edit.team' }[coll]);
   const url = def.urlPrefix ? `${def.urlPrefix}${slug || ''}/` : def.url;
   const titleField = def.fields.find((f) => f.box === 'title');
@@ -267,9 +263,7 @@ export function collectionEdit(ctx, { coll, slug, isNew, values, body, errors = 
   const relFile = `src/content/${def.dir}/${slug}.md`;
   return html`<h1 class="wp-heading-inline">${heading}</h1>${!isNew && url && !(coll === 'blog' && values.draft) ? html` <a class="page-title-action" href="${ctx.cfg.siteUrl}${url}" target="_blank" rel="noopener">${t('edit.view')}</a>` : ''}
   <hr class="wp-header-end">
-  <form method="post" action="/wp-admin/post.php" id="post" class="js-edit-form" novalidate>
-    ${nonce(ctx)}<input type="hidden" name="action" value="editpost"><input type="hidden" name="post_type" value="${pt}">
-    <input type="hidden" name="post" value="${isNew ? '' : slug}"><input type="hidden" name="_hash" value="${hash || ''}">
+  <form id="post" class="js-edit-form" novalidate>
     <div id="poststuff"><div id="post-body" class="metabox-holder columns-2">
       <div id="post-body-content">
         <div id="titlediv"${titleErr ? raw(' class="has-error"') : ''}>
@@ -294,7 +288,7 @@ export function collectionEdit(ctx, { coll, slug, isNew, values, body, errors = 
       </div>
     </div></div>
   </form>
-  ${!isNew && def.canDelete ? html`<form method="post" action="/wp-admin/post.php" id="trash-form">${nonce(ctx)}<input type="hidden" name="post_type" value="${pt}"><input type="hidden" name="action" value="trash"><input type="hidden" name="post" value="${slug}"></form>` : ''}
+  ${!isNew && def.canDelete ? html`<form id="trash-form" data-api="entry/trash" data-next="/wp-admin/edit.php?post_type=${pt}&message=trashed"><input type="hidden" name="type" value="${pt}"><input type="hidden" name="id" value="${slug}"></form>` : ''}
   ${mediaModal(ctx)}`;
 }
 
@@ -305,11 +299,7 @@ export function uploader(ctx, { compact } = {}) {
   return html`<div class="uploader${compact ? ' compact' : ''}" data-uploader>
     <div class="drag-drop-area">
       <p class="drag-drop-info">${t('media.drop')}</p><p>${t('media.or')}</p>
-      <form method="post" action="/wp-admin/async-upload.php" enctype="multipart/form-data" class="upload-form">
-        <input type="hidden" name="_wpnonce" value="${ctx.csrf}">
-        <label class="button button-hero browser">${t('media.select')}<input type="file" name="async-upload" accept="image/jpeg,image/png,image/webp" multiple class="screen-reader-text js-upload-input"></label>
-        <noscript><button type="submit" class="button">${t('media.select')}</button></noscript>
-      </form>
+      <div class="upload-form"><label class="button button-hero browser">${t('media.select')}<input type="file" accept="image/jpeg,image/png,image/webp" multiple class="screen-reader-text js-upload-input"></label></div>
     </div>
     <p class="max-upload-size">${t('media.limits', { mb: Math.round(ctx.cfg.uploadMaxBytes / 1048576), px: 2400 })}</p>
     <ul class="upload-progress" aria-live="polite"></ul>
@@ -320,7 +310,7 @@ export function mediaLibrary(ctx, { images, selected, search }) {
   const { t } = ctx;
   return html`<h1 class="wp-heading-inline">${t('media.title')}</h1> <a href="/wp-admin/media-new.php" class="page-title-action js-toggle-uploader">${t('media.add')}</a><hr class="wp-header-end">
   <div class="media-uploader-inline" hidden>${uploader(ctx)}</div>
-  <div class="media-toolbar wp-filter"><form method="get" action="/wp-admin/upload.php" class="media-search"><input type="search" name="s" value="${search || ''}" placeholder="${t('media.filter')}" class="js-media-filter" aria-label="${t('media.filter')}"></form>
+  <div class="media-toolbar wp-filter"><form method="get" action="/wp-admin/upload.php" class="media-search" data-get><input type="search" name="s" value="${search || ''}" placeholder="${t('media.filter')}" class="js-media-filter" aria-label="${t('media.filter')}"></form>
     <span class="displaying-num">${t('list.items', { n: images.length })}</span></div>
   <ul class="attachments media-grid">${images.length ? images.map((im) => html`<li class="attachment${selected === im.path ? ' selected' : ''}" data-path="${im.path}"><a href="/wp-admin/upload.php?item=${encodeURIComponent(im.path)}" title="${im.path}" class="attachment-preview"><img src="${thumbUrl(im.path)}" alt="" loading="lazy"><span class="attachment-name">${im.path}</span></a></li>`) : html`<li class="no-media">${t('media.empty')}</li>`}</ul>`;
 }
@@ -330,7 +320,7 @@ export function mediaDetails(ctx, { image, info, usedOn, defaultAlt }) {
   return html`<div class="media-modal-backdrop static"></div><div class="media-modal static" role="dialog" aria-labelledby="media-details-title">
     <div class="media-modal-header"><h2 id="media-details-title">${t('media.details')}</h2><a href="/wp-admin/upload.php" class="media-modal-close" aria-label="${t('media.close')}">×</a></div>
     <div class="media-modal-content attachment-details">
-      <div class="attachment-media-view"><img src="/wp-admin/media-file?f=${encodeURIComponent(image.path)}" alt="" class="details-image"></div>
+      <div class="attachment-media-view"><img src="/wp-admin/api/media/file?path=${encodeURIComponent(image.path)}" alt="" class="details-image"></div>
       <div class="attachment-info">
         <div class="details">
           <p><strong>${t('media.file')}:</strong> ${image.name}</p>
@@ -339,15 +329,15 @@ export function mediaDetails(ctx, { image, info, usedOn, defaultAlt }) {
           <p><strong>${t('media.size')}:</strong> ${fmtSize(image.size)}</p>
           ${info.width ? html`<p><strong>${t('media.dims')}:</strong> ${info.width} × ${info.height} px</p>` : ''}
         </div>
-        <form method="post" action="/wp-admin/upload.php" class="settings">${nonce(ctx)}<input type="hidden" name="action" value="save-meta"><input type="hidden" name="item" value="${image.path}">
+        <form class="settings" data-api="media/meta" data-next="/wp-admin/upload.php?item=${encodeURIComponent(image.path)}&message=mediasaved"><input type="hidden" name="path" value="${image.path}">
           <label for="attachment-alt">${t('media.defaultalt')}</label>
           <textarea id="attachment-alt" name="alt" rows="2" class="large-text">${defaultAlt || ''}</textarea>
           <p class="description">${t('media.defaultalt.help')}</p>
           <p><button type="submit" class="button button-primary">${t('media.save')}</button></p>
         </form>
         <h3>${t('media.usedon')}</h3>
-        ${usedOn.length ? html`<ul class="used-on">${usedOn.map((u) => html`<li><a href="${u.editUrl}">${u.title}</a> <span class="description">— ${u.where}${u.alt ? html` · Alt: „${u.alt}“` : ''}</span></li>`)}</ul>` : html`<p class="description">${t('media.unused')}</p>`}
-        <div class="actions">${usedOn.length ? html`<p class="description">${t('media.delete.used')}</p>` : html`<form method="post" action="/wp-admin/upload.php">${nonce(ctx)}<input type="hidden" name="action" value="delete"><input type="hidden" name="item" value="${image.path}"><button type="submit" class="button-link link-delete">${t('media.delete')}</button></form>`}</div>
+        ${usedOn.length ? html`<ul class="used-on">${usedOn.map((u) => html`<li>${u.edit ? html`<a href="${editUrl(u.edit)}">${u.title}</a>` : u.title} <span class="description">— ${u.where}${u.alt ? html` · Alt: „${u.alt}“` : ''}</span></li>`)}</ul>` : html`<p class="description">${t('media.unused')}</p>`}
+        <div class="actions">${usedOn.length ? html`<p class="description">${t('media.delete.used')}</p>` : html`<form data-api="media/delete" data-next="/wp-admin/upload.php?message=mediatrashed"><input type="hidden" name="path" value="${image.path}"><button type="submit" class="button-link link-delete">${t('media.delete')}</button></form>`}</div>
       </div>
     </div></div>`;
 }
@@ -387,11 +377,11 @@ export function revisionIndex(ctx, { files, isRepo }) {
   <tbody>${files.length ? files.map((f) => html`<tr><td class="column-primary"><strong><a class="row-title" href="/wp-admin/revision.php?file=${encodeURIComponent(f.file)}">${f.title}</a></strong><br><code class="description">${f.file}</code></td><td>${formatDate(f.date, t.lang)} ${t('rev.by', { author: f.author })}<br><span class="description">${f.subject}</span></td><td class="num">${f.count}</td></tr>`) : html`<tr class="no-items"><td colspan="3">${t('rev.none')}</td></tr>`}</tbody></table>`;
 }
 
-export function revisionFile(ctx, { file, title, editUrl, revs, selected, diff, same, isRepo }) {
+export function revisionFile(ctx, { file, title, edit, revs, selected, diff, same, isRepo }) {
   const { t } = ctx;
   if (!isRepo) return html`<h1>${t('rev.title')}</h1><div class="notice notice-warning"><p>${t('rev.nogit')}</p></div>`;
   return html`<h1 class="wp-heading-inline">${t('rev.for', { title })}</h1><hr class="wp-header-end">
-  ${editUrl ? html`<p><a href="${editUrl}">${t('rev.back')}</a></p>` : ''}
+  ${edit ? html`<p><a href="${editUrl(edit)}">${t('rev.back')}</a></p>` : ''}
   <div class="revisions-wrap">
     <ol class="revisions-list">${revs.length ? revs.map((r, i) => html`<li class="${selected && selected.hash === r.hash ? 'current' : ''}">
       <a href="/wp-admin/revision.php?file=${encodeURIComponent(file)}&rev=${r.hash}"><span class="rev-date">${formatDate(r.date, t.lang)}</span> <span class="rev-author">${t('rev.by', { author: r.author })}</span>${i === 0 ? html` <span class="post-state">— ${t('rev.current')}</span>` : ''}<br><span class="description">${r.subject}</span></a></li>`) : html`<li>${t('rev.none')}</li>`}</ol>
@@ -399,7 +389,7 @@ export function revisionFile(ctx, { file, title, editUrl, revs, selected, diff, 
       ${same ? html`<p class="description">${t('rev.same')}</p>` : html`
         <table class="diff"><tbody>${diff.map((d) => html`<tr class="diff-${d.op}"><td class="diff-sign">${d.op === 'add' ? '+' : d.op === 'del' ? '−' : ''}</td><td class="diff-line">${d.text}</td></tr>`)}</tbody></table>
         <p class="diff-legend"><span class="diff-del">− ${t('rev.current')}</span> <span class="diff-add">+ ${formatDate(selected.date, t.lang)}</span></p>
-        <form method="post" action="/wp-admin/revision.php">${nonce(ctx)}<input type="hidden" name="action" value="restore"><input type="hidden" name="file" value="${file}"><input type="hidden" name="rev" value="${selected.hash}">
+        <form data-api="revisions/restore" data-then="restored"><input type="hidden" name="file" value="${file}"><input type="hidden" name="rev" value="${selected.hash}">
           <p><button type="submit" class="button button-primary">${t('rev.restore')}</button></p><p class="description">${t('rev.restore.note')}</p></form>`}` : ''}</div>
   </div>`;
 }
@@ -409,7 +399,7 @@ export function revisionFile(ctx, { file, title, editUrl, revs, selected, diff, 
 export function profile(ctx, { user, lang, errors = [] }) {
   const { t } = ctx;
   return html`<h1>${t('profile.title')}</h1>
-  <form method="post" action="/wp-admin/profile.php" class="profile-form">${nonce(ctx)}<input type="hidden" name="action" value="profile">
+  <form class="profile-form" data-profile novalidate>
     <table class="form-table"><tbody>
       <tr><th scope="row">${t('profile.user')}</th><td><input type="text" value="${user}" disabled class="regular-text"></td></tr>
       <tr><th scope="row"><label for="lang">${t('profile.lang')}</label></th><td><select name="lang" id="lang"><option value="de"${lang === 'de' ? raw(' selected') : ''}>Deutsch</option><option value="ru"${lang === 'ru' ? raw(' selected') : ''}>Русский</option></select></td></tr>

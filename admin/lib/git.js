@@ -1,7 +1,6 @@
 // Git through execFile with argument arrays (no shell). Paths are repo-relative and checked by callers.
 import { execFile } from 'node:child_process';
-
-export const REV_RE = /^[0-9a-f]{7,40}$/;
+import { REV_RE } from '../public/js/rules.js';
 
 export function createGit(siteDir) {
   function git(args, { input, author } = {}) {

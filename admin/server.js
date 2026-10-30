@@ -2,7 +2,7 @@
 // ALNO Admin — start with `npm run admin`. Configuration: see admin/README.md.
 import http from 'node:http';
 import { loadConfig, assertConfig } from './lib/config.js';
-import { createApp } from './lib/app.js';
+import { createApp } from './lib/api.js';
 
 const cfg = loadConfig();
 assertConfig(cfg);

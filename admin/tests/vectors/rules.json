@@ -1,0 +1,1172 @@
+{
+ "sanitizeHtml": [
+  [
+   "<p>a <strong>b</strong> <b>c</b> <em>d</em> <i>e</i><br></p><ul><li>x</li></ul><ol><li>y</li></ol><h2>h</h2><h3>i</h3><a href=\"/kontakt/\">k</a>",
+   "<p>a <strong>b</strong> <b>c</b> <em>d</em> <i>e</i><br></p><ul><li>x</li></ul><ol><li>y</li></ol><h2>h</h2><h3>i</h3><a href=\"/kontakt/\">k</a>"
+  ],
+  [
+   "<p><span style=\"color:red\">Hallo</span> <u>Welt</u></p>",
+   "<p>Hallo Welt</p>"
+  ],
+  [
+   "<h1>Groß</h1><div>x</div>",
+   "Großx"
+  ],
+  [
+   "<p>a</p><script>alert(1)</script><p>b</p>",
+   "<p>a</p><p>b</p>"
+  ],
+  [
+   "<style>p{}</style><iframe src=x>y</iframe>z",
+   "z"
+  ],
+  [
+   "<svg><script>alert(1)</script></svg>ok",
+   "ok"
+  ],
+  [
+   "<SCRIPT>x</SCRIPT >ok",
+   "ok"
+  ],
+  [
+   "<p onclick=\"x()\" class=\"y\">t</p>",
+   "<p>t</p>"
+  ],
+  [
+   "<a href=\"/x\" onclick=\"y()\" target=\"_blank\">t</a>",
+   "<a href=\"/x\">t</a>"
+  ],
+  [
+   "<img src=x onerror=alert(1)>t",
+   "t"
+  ],
+  [
+   "<a href=\"javascript:alert(1)\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"JaVaScRiPt:alert(1)\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\" javascript:alert(1)\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"java\tscript:alert(1)\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"data:text/html;base64,xx\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"vbscript:x\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"&#106;avascript:alert(1)\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"javascript&colon;alert(1)\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"//evil.example/x\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"{{x}}\">t</a>",
+   "t"
+  ],
+  [
+   "<a href=\"tel:{{phone}}\">t</a>",
+   "<a href=\"tel:{{phone}}\">t</a>"
+  ],
+  [
+   "<scr<script>ipt>alert(1)</scr</script>ipt>",
+   "ipt&gt;alert(1)ipt&gt;"
+  ],
+  [
+   "<<script>alert(1)//<</script>",
+   "&lt;"
+  ],
+  [
+   "<img src=\"x\" onerror=\"1\"",
+   "&lt;img src=\"x\" onerror=\"1\""
+  ],
+  [
+   "<a href=\"x\" onclick=\"y\"",
+   "&lt;a href=\"x\" onclick=\"y\""
+  ],
+  [
+   "<!--<script>x</script>-->",
+   ""
+  ],
+  [
+   "<p/onclick=x>t</p>",
+   "<p>t</p>"
+  ],
+  [
+   "<p>a &amp; b &lt;c&gt;</p>",
+   "<p>a &amp; b &lt;c&gt;</p>"
+  ],
+  [
+   "a < b",
+   "a &lt; b"
+  ],
+  [
+   "<p>{{phone}}</p>",
+   "<p>{{phone}}</p>"
+  ],
+  [
+   "<p><strong>x</p>",
+   "<p><strong>x</strong></p>"
+  ],
+  [
+   "x</p></li>",
+   "x"
+  ],
+  [
+   "<a href=\"/x?a=1&amp;b=2\">t</a>",
+   "<a href=\"/x?a=1&amp;b=2\">t</a>"
+  ],
+  [
+   "a < b > c",
+   "a &lt; b &gt; c"
+  ],
+  [
+   "<ul><li>x<ul><li>y</li></ul></li></ul>",
+   "<ul><li>x<ul><li>y</li></ul></li></ul>"
+  ],
+  [
+   "<p>a</p><a href=\"x <b>y</b>",
+   "<p>a</p>&lt;a href=\"x &lt;b&gt;y&lt;/b&gt;"
+  ],
+  [
+   "<![CDATA[x]]>y",
+   "y"
+  ],
+  [
+   "<?php echo 1; ?>y",
+   "y"
+  ],
+  [
+   "<!doctype html>y",
+   "y"
+  ],
+  [
+   "<a>nur text</a>",
+   "nur text"
+  ],
+  [
+   "<p>ä ü € 😀</p>",
+   "<p>ä ü € 😀</p>"
+  ],
+  [
+   "<a href=\"/ä\">x</a>",
+   "<a href=\"/ä\">x</a>"
+  ],
+  [
+   "<a href='/x'>t</a>",
+   "<a href=\"/x\">t</a>"
+  ],
+  [
+   "<a href=/x>t</a>",
+   "<a href=\"/x\">t</a>"
+  ],
+  [
+   "<br/>a<br />b",
+   "<br>a<br>b"
+  ],
+  [
+   "<hr>a",
+   "a"
+  ],
+  [
+   "&#60;script&#62;",
+   "&lt;script&gt;"
+  ],
+  [
+   "&#9999999;x",
+   "x"
+  ],
+  [
+   "&nbsp;a",
+   "a"
+  ],
+  [
+   "  <p>x</p>  ",
+   "<p>x</p>"
+  ],
+  [
+   "<p title=\">\">x</p>",
+   "<p>x</p>"
+  ],
+  [
+   "<p title='>'>x</p>",
+   "<p>x</p>"
+  ],
+  [
+   "<script>x<script>y</script>z</script>k",
+   "k"
+  ],
+  [
+   "<textarea><b>x</b></textarea>y",
+   "y"
+  ],
+  [
+   "<ul><li>a<li>b</ul>",
+   "<ul><li>a<li>b</li></li></ul>"
+  ],
+  [
+   "</a>",
+   ""
+  ],
+  [
+   "<",
+   "&lt;"
+  ],
+  [
+   "<a",
+   "&lt;a"
+  ],
+  [
+   "</",
+   "&lt;/"
+  ],
+  [
+   "</ p>",
+   "&lt;/ p&gt;"
+  ],
+  [
+   "<1>",
+   "&lt;1&gt;"
+  ],
+  [
+   "a<b",
+   "a&lt;b"
+  ]
+ ],
+ "sanitizeHtmlMd": [
+  [
+   "<blockquote>x</blockquote><h4>y</h4><hr><code>z</code>",
+   "<blockquote>x</blockquote><h4>y</h4><hr><code>z</code>"
+  ],
+  [
+   "<h2>a</h2>",
+   "<h2>a</h2>"
+  ]
+ ],
+ "safeHref": [
+  [
+   "https://a.example/",
+   "https://a.example/"
+  ],
+  [
+   "mailto:a@b.de",
+   "mailto:a@b.de"
+  ],
+  [
+   "tel:+49231",
+   "tel:+49231"
+  ],
+  [
+   "#anker",
+   "#anker"
+  ],
+  [
+   "/x/",
+   "/x/"
+  ],
+  [
+   "x/y",
+   "x/y"
+  ],
+  [
+   "?a=1",
+   "?a=1"
+  ],
+  [
+   "javascript:alert(1)",
+   null
+  ],
+  [
+   " JAVASCRIPT:x",
+   null
+  ],
+  [
+   "data:x",
+   null
+  ],
+  [
+   "//x",
+   null
+  ],
+  [
+   "ftp://x",
+   null
+  ],
+  [
+   "",
+   null
+  ],
+  [
+   "{{x}}",
+   null
+  ],
+  [
+   "a b",
+   "ab"
+  ],
+  [
+   "ä/b",
+   null
+  ],
+  [
+   "java&#115;cript:x",
+   null
+  ],
+  [
+   "javascript&colon;x",
+   null
+  ],
+  [
+   "java\nscript:x",
+   null
+  ]
+ ],
+ "looksLikeHtml": [
+  [
+   "<b>x</b>",
+   true
+  ],
+  [
+   "<script>",
+   true
+  ],
+  [
+   "a < 5 und b > 3",
+   false
+  ],
+  [
+   "Pflegedienst ALNO GmbH</script a",
+   true
+  ],
+  [
+   "<img src=x onerror=alert(1) a",
+   true
+  ],
+  [
+   "<!-- x",
+   true
+  ],
+  [
+   "<?php",
+   true
+  ],
+  [
+   "<{{name}}",
+   true
+  ],
+  [
+   "Preis < 5 €",
+   false
+  ],
+  [
+   "a <5",
+   false
+  ],
+  [
+   "3 > 2",
+   false
+  ],
+  [
+   "<",
+   false
+  ],
+  [
+   ">",
+   false
+  ]
+ ],
+ "sanitizeMarkdown": [
+  [
+   "## T\n\na < 5 und **b** [c](/d/)\n",
+   "## T\n\na < 5 und **b** [c](/d/)\n"
+  ],
+  [
+   "a <script>alert(1)</script> b",
+   "a &lt;script>alert(1)&lt;/script> b"
+  ],
+  [
+   "<<b>script>",
+   "<&lt;b>script>"
+  ],
+  [
+   "<scr<x>ipt>alert(1)",
+   "&lt;scr&lt;x>ipt>alert(1)"
+  ],
+  [
+   "<!doctype html>",
+   "&lt;!doctype html>"
+  ],
+  [
+   "<a href=x",
+   "&lt;a href=x"
+  ],
+  [
+   "<![CDATA[x]]>",
+   "&lt;![CDATA[x]]>"
+  ],
+  [
+   "nutze `<div>` hier",
+   "nutze `&lt;div>` hier"
+  ],
+  [
+   "a \\`<img src=x onerror=alert(1)>\\` b",
+   "a \\`&lt;img src=x onerror=alert(1)>\\` b"
+  ],
+  [
+   "<info@alno.de> und <https://alno.de>",
+   "&lt;info@alno.de> und &lt;https://alno.de>"
+  ],
+  [
+   "a<b und c>d",
+   "a&lt;b und c>d"
+  ],
+  [
+   "```\n<div>\n```",
+   "```\n&lt;div>\n```"
+  ],
+  [
+   "<!-- offen",
+   "&lt;!-- offen"
+  ],
+  [
+   "x\r\ny\rz",
+   "x\ny\nz"
+  ],
+  [
+   "a\u0000<\u0000img>",
+   "a&lt;img>"
+  ],
+  [
+   "a b﻿cd",
+   "abcd"
+  ]
+ ],
+ "hasUnsafeLink": [
+  [
+   "[x](javascript:alert(1))",
+   true
+  ],
+  [
+   "[x](javascript\\:alert(1))",
+   true
+  ],
+  [
+   "[x](javascript&colon;alert(1))",
+   true
+  ],
+  [
+   "[x][r]\n\n> [r]: javascript:alert(1)",
+   true
+  ],
+  [
+   "- [r]: javascript:alert(1)",
+   true
+  ],
+  [
+   "[r]:\n  javascript:alert(1)",
+   true
+  ],
+  [
+   "[x](java&#115;cript:a)",
+   true
+  ],
+  [
+   "[x](JAVASCRIPT:a)",
+   true
+  ],
+  [
+   "[x](data:text/html,x)",
+   true
+  ],
+  [
+   "[x](vbscript:a)",
+   true
+  ],
+  [
+   "Metadata: 5",
+   false
+  ],
+  [
+   "data: 7",
+   false
+  ],
+  [
+   "Die Daten: javascript ist toll",
+   false
+  ],
+  [
+   "[x](/kontakt/)",
+   false
+  ],
+  [
+   "[x](https://a.example/)",
+   false
+  ],
+  [
+   "[x](&#106;avascript&colon;a)",
+   true
+  ]
+ ],
+ "cleanText": [
+  [
+   "a\nb",
+   false,
+   "a b"
+  ],
+  [
+   "a\n\nb",
+   false,
+   "a b"
+  ],
+  [
+   "a\r\nb",
+   true,
+   "a\nb"
+  ],
+  [
+   "  x  ",
+   false,
+   "x"
+  ],
+  [
+   "a b",
+   false,
+   "ab"
+  ],
+  [
+   "a￾b￿c",
+   false,
+   "abc"
+  ],
+  [
+   "abcd",
+   false,
+   "abcd"
+  ],
+  [
+   "a\u0000b\tc",
+   false,
+   "ab\tc"
+  ],
+  [
+   "﻿x",
+   false,
+   "x"
+  ],
+  [
+   " x ",
+   false,
+   "x"
+  ],
+  [
+   "　x ",
+   false,
+   "x"
+  ]
+ ],
+ "slugify": [
+  [
+   "Größe & Mut im Alltag",
+   "groesse-mut-im-alltag"
+  ],
+  [
+   "Über Größe",
+   "ueber-groesse"
+  ],
+  [
+   "../../etc/passwd",
+   "etc-passwd"
+  ],
+  [
+   "  Hallo   Welt  ",
+   "hallo-welt"
+  ],
+  [
+   "ÄÖÜ äöü ß",
+   "aeoeue-aeoeue-ss"
+  ],
+  [
+   "Crème Brûlée",
+   "creme-brulee"
+  ],
+  [
+   "a--b",
+   "a-b"
+  ],
+  [
+   "---",
+   ""
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  ],
+  [
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa b",
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ]
+ ],
+ "isImagePath": [
+  [
+   "team.jpg",
+   true
+  ],
+  [
+   "uploads/ab12.webp",
+   true
+  ],
+  [
+   "a/b/c.png",
+   true
+  ],
+  [
+   "x.JPEG",
+   true
+  ],
+  [
+   "../team.jpg",
+   false
+  ],
+  [
+   "a/../team.jpg",
+   false
+  ],
+  [
+   "/team.jpg",
+   false
+  ],
+  [
+   "team.svg",
+   false
+  ],
+  [
+   "team.jpg.php",
+   false
+  ],
+  [
+   ".team.jpg",
+   false
+  ],
+  [
+   "a//b.jpg",
+   false
+  ],
+  [
+   "a\\b.jpg",
+   false
+  ],
+  [
+   "",
+   false
+  ],
+  [
+   "a/.b/c.jpg",
+   false
+  ],
+  [
+   "x.gif",
+   false
+  ]
+ ],
+ "validDate": [
+  [
+   "2026-01-31",
+   true
+  ],
+  [
+   "2026-02-29",
+   false
+  ],
+  [
+   "2024-02-29",
+   true
+  ],
+  [
+   "2026-13-01",
+   false
+  ],
+  [
+   "2026-1-1",
+   false
+  ],
+  [
+   "",
+   false
+  ],
+  [
+   "2026-02-31x",
+   false
+  ]
+ ],
+ "slugRe": [
+  [
+   "a",
+   true
+  ],
+  [
+   "a-b",
+   true
+  ],
+  [
+   "a--b",
+   false
+  ],
+  [
+   "-a",
+   false
+  ],
+  [
+   "a-",
+   false
+  ],
+  [
+   "A",
+   false
+  ],
+  [
+   "a_b",
+   false
+  ],
+  [
+   "a/b",
+   false
+  ],
+  [
+   "ä",
+   false
+  ]
+ ],
+ "pageIdRe": [
+  [
+   "index",
+   true
+  ],
+  [
+   "_global",
+   true
+  ],
+  [
+   "__x",
+   false
+  ],
+  [
+   "a-b",
+   true
+  ],
+  [
+   "a.b",
+   false
+  ],
+  [
+   "../x",
+   false
+  ]
+ ],
+ "revFileRe": [
+  [
+   "src/content/pages/index.json",
+   true
+  ],
+  [
+   "src/content/pages/_global.json",
+   true
+  ],
+  [
+   "src/content/blog/a-b.md",
+   true
+  ],
+  [
+   "src/content/team/x.md",
+   true
+  ],
+  [
+   "src/content/leistungen/x.md",
+   true
+  ],
+  [
+   "deploy.sh",
+   false
+  ],
+  [
+   "src/content/pages/../../x.json",
+   false
+  ],
+  [
+   "src/content/other/x.md",
+   false
+  ],
+  [
+   ".git/config",
+   false
+  ]
+ ],
+ "revRe": [
+  [
+   "abcdef1",
+   true
+  ],
+  [
+   "HEAD",
+   false
+  ],
+  [
+   "abc",
+   false
+  ],
+  [
+   "--help",
+   false
+  ],
+  [
+   "0123456789abcdef0123456789abcdef01234567",
+   true
+  ]
+ ],
+ "frontmatterBuild": [
+  [
+   [
+    [
+     "title",
+     "Pflege: alles klar"
+    ],
+    [
+     "a",
+     "true"
+    ],
+    [
+     "b",
+     "123"
+    ],
+    [
+     "c",
+     "2026-01-01"
+    ],
+    [
+     "d",
+     "- x"
+    ],
+    [
+     "e",
+     "mit # Raute"
+    ],
+    [
+     "f",
+     "Zitat \"x\""
+    ]
+   ],
+   "---\ntitle: \"Pflege: alles klar\"\na: \"true\"\nb: \"123\"\nc: \"2026-01-01\"\nd: \"- x\"\ne: \"mit # Raute\"\nf: Zitat \"x\"\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "a",
+     "1e3"
+    ],
+    [
+     "b",
+     "0x10"
+    ],
+    [
+     "c",
+     "0o7"
+    ],
+    [
+     "d",
+     ".5"
+    ],
+    [
+     "e",
+     "+5"
+    ],
+    [
+     "f",
+     "1_000"
+    ],
+    [
+     "g",
+     ".inf"
+    ],
+    [
+     "h",
+     ".NaN"
+    ],
+    [
+     "i",
+     "Null"
+    ],
+    [
+     "j",
+     "TRUE"
+    ],
+    [
+     "k",
+     "yes"
+    ],
+    [
+     "l",
+     "n"
+    ],
+    [
+     "m",
+     "~"
+    ],
+    [
+     "n",
+     "Grundpflege"
+    ],
+    [
+     "o",
+     "Pflege 24 Stunden"
+    ],
+    [
+     "p",
+     "2001-1-1 10:00:00"
+    ]
+   ],
+   "---\na: \"1e3\"\nb: \"0x10\"\nc: \"0o7\"\nd: \".5\"\ne: \"+5\"\nf: \"1_000\"\ng: \".inf\"\nh: \".NaN\"\ni: \"Null\"\nj: \"TRUE\"\nk: \"yes\"\nl: \"n\"\nm: \"~\"\nn: Grundpflege\no: Pflege 24 Stunden\np: \"2001-1-1 10:00:00\"\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "t",
+     "x\ndraft: true"
+    ]
+   ],
+   "---\nt: \"x\\ndraft: true\"\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "tags",
+     [
+      "it's",
+      "a\"",
+      "b, c",
+      "d"
+     ]
+    ]
+   ],
+   "---\ntags: [\"it's\", \"a\\\"\", \"b, c\", d]\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "tags",
+     []
+    ]
+   ],
+   "---\ntags: []\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "list",
+     [
+      "x",
+      "y: z"
+     ]
+    ]
+   ],
+   "---\nlist:\n  - x\n  - \"y: z\"\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "n",
+     5
+    ],
+    [
+     "b",
+     true
+    ],
+    [
+     "c",
+     false
+    ],
+    [
+     "d",
+     {
+      "date": "2026-09-10"
+     }
+    ]
+   ],
+   "---\nn: 5\nb: true\nc: false\nd: 2026-09-10\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "s",
+     ""
+    ],
+    [
+     "u",
+     "ä € 😀"
+    ],
+    [
+     "v",
+     "a: b"
+    ]
+   ],
+   "---\ns: \"\"\nu: ä € 😀\nv: \"a: b\"\n---\n\nText\n"
+  ],
+  [
+   [
+    [
+     "q",
+     "'x'"
+    ],
+    [
+     "r",
+     "\"y\""
+    ],
+    [
+     "s",
+     "[a]"
+    ],
+    [
+     "t",
+     "{a}"
+    ],
+    [
+     "u",
+     "*x"
+    ],
+    [
+     "v",
+     "&x"
+    ],
+    [
+     "w",
+     "!x"
+    ],
+    [
+     "x",
+     "%x"
+    ],
+    [
+     "y",
+     "@x"
+    ],
+    [
+     "z",
+     "`x"
+    ]
+   ],
+   "---\nq: \"'x'\"\nr: \"\\\"y\\\"\"\ns: \"[a]\"\nt: \"{a}\"\nu: \"*x\"\nv: \"&x\"\nw: \"!x\"\nx: \"%x\"\ny: \"@x\"\nz: \"`x\"\n---\n\nText\n"
+  ]
+ ],
+ "frontmatterParse": [
+  [
+   "title: \"A: b\"\ndescription: Plain text\ndate: 2026-09-10\norder: 5\ndraft: true\ntags: [Pflegegrad, Antrag]\nhighlights:\n  - a\n  - b: c\nempty:\nq: 'it''s'\nnul: null\nc: x # comment\n",
+   [
+    [
+     "title",
+     "A: b"
+    ],
+    [
+     "description",
+     "Plain text"
+    ],
+    [
+     "date",
+     {
+      "date": "2026-09-10"
+     }
+    ],
+    [
+     "order",
+     5
+    ],
+    [
+     "draft",
+     true
+    ],
+    [
+     "tags",
+     [
+      "Pflegegrad",
+      "Antrag"
+     ]
+    ],
+    [
+     "highlights",
+     [
+      "a",
+      "b: c"
+     ]
+    ],
+    [
+     "empty",
+     null
+    ],
+    [
+     "q",
+     "it's"
+    ],
+    [
+     "nul",
+     null
+    ],
+    [
+     "c",
+     "x"
+    ]
+   ]
+  ],
+  [
+   "tags: [it's, \"a, b\", 'c']",
+   [
+    [
+     "tags",
+     [
+      "it's",
+      "a, b",
+      "c"
+     ]
+    ]
+   ]
+  ],
+  [
+   "a: 1\n\n# comment\nb: 2",
+   [
+    [
+     "a",
+     1
+    ],
+    [
+     "b",
+     2
+    ]
+   ]
+  ]
+ ],
+ "frontmatterRefused": [
+  "a: |\n  block",
+  "a:\n  b: c",
+  "a: \"offen",
+  "a: 1\na: 2",
+  "a: &x y",
+  "[x]: y",
+  "a: [b"
+ ]
+}

@@ -1,9 +1,9 @@
 // Form controls: text, textarea with counter, classic editor, image picker, repeatable list.
 import { html, raw } from '../html.js';
-import { readItemImage } from '../pages.js';
+import { itemImage } from '../rules.js';
 
 const idOf = (s) => String(s).replace(/[^a-zA-Z0-9_-]+/g, '-');
-const thumbUrl = (p) => `/wp-admin/media-file?f=${encodeURIComponent(p)}&thumb=1`;
+const thumbUrl = (p) => `/wp-admin/api/media/file?path=${encodeURIComponent(p)}&thumb=1`;
 const chars = (s) => Array.from(String(s ?? '')).length;
 
 function fieldError(ctx, errs) {
@@ -127,7 +127,7 @@ function listItem(ctx, f, { name, id, item, index, errPathBase, errors, key }) {
         const subId = idOf(`${id}-${k}-${sub.id}`);
         const errPath = `${errPathBase}[${index + 1}].${sub.id}`;
         if (sub.type === 'image') {
-          const im = readItemImage(item || {}, sub);
+          const im = itemImage(item || {}, sub);
           return imagePicker(ctx, { name: `${subName}[value]`, altName: `${subName}[alt]`, id: subId, label: sub.label, value: im.value, alt: im.alt, required: sub.required, help: sub.help, errs: errors.get(errPath) });
         }
         return pageField(ctx, sub, { name: subName, id: subId, value: item?.[sub.id] ?? '', errPath, errors });

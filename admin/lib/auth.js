@@ -3,8 +3,9 @@
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { readJsonFile, writeJsonPrivate, createMutex } from './fsutil.js';
+import { USERNAME_RE } from '../public/js/rules.js';
 
-export const USERNAME_RE = /^[a-z][a-z0-9._-]{1,31}$/;
+export { USERNAME_RE };
 export const MIN_PASSWORD = 10;
 
 const SCRYPT = { N: 1 << 15, r: 8, p: 1, keylen: 64, maxmem: 128 * 1024 * 1024 };
@@ -135,16 +136,19 @@ export function createAuth({ dataDir, sessionIdleMs = 8 * 3600e3, now = () => Da
     const ukey = `u:${uname}`; const ikey = `ip:${ip}`;
     const locked = Math.max(lockedFor(ukey), lockedFor(ikey));
     if (locked) return { ok: false, reason: 'locked', retryMs: locked };
+    // Counted before the slow hash: otherwise parallel guesses all pass the check above.
+    recordFail(ukey, L.maxFails);
+    recordFail(ikey, L.ipMax);
     const users = await loadUsers();
     const u = USERNAME_RE.test(uname) ? users[uname] : null;
     const ok = await verifyPassword(String(password || ''), u ? u.hash : await dummy);
     if (!u || !ok) {
-      recordFail(ukey, L.maxFails);
-      recordFail(ikey, L.ipMax);
       const now2 = Math.max(lockedFor(ukey), lockedFor(ikey));
       return now2 ? { ok: false, reason: 'locked', retryMs: now2 } : { ok: false, reason: 'invalid' };
     }
     fails.delete(ukey);
+    const ip = fails.get(ikey);
+    if (ip) { ip.count--; if (ip.count < L.ipMax) ip.lockedUntil = 0; }
     return { ok: true, user: uname };
   }
 

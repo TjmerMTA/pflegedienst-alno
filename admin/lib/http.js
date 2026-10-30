@@ -1,4 +1,5 @@
-// Request/response helpers without a framework: body limits, form parsing, cookies, headers.
+// Request/response helpers without a framework: body limits, JSON, multipart, cookies, headers.
+import { LIMITS } from '../public/js/rules.js';
 
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -22,42 +23,21 @@ export function readBody(req, limit) {
 
 const BAD_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 
-// Turns ordered [name, value] pairs into nested objects: `f[hero][h1]=x` → { f: { hero: { h1: 'x' } } }.
-// Keys keep their order of appearance (list items are ordered by it). `name[]` collects an array.
-export function parseNested(pairs) {
-  const root = Object.create(null);
-  for (const [name, value] of pairs) {
-    const m = /^([^\[\]]+)((?:\[[^\[\]]*\])*)$/.exec(name);
-    if (!m) continue;
-    const keys = [m[1], ...[...m[2].matchAll(/\[([^\[\]]*)\]/g)].map((x) => x[1])];
-    if (keys.length > 8 || keys.some((k) => BAD_KEYS.has(k))) throw new HttpError(400, 'Ungültiges Formular');
-    let o = root;
-    for (let i = 0; i < keys.length; i++) {
-      const k = keys[i];
-      if (i === keys.length - 1) {
-        if (k === '') { if (!Array.isArray(o)) throw new HttpError(400, 'Ungültiges Formular'); o.push(value); }
-        else { if (Array.isArray(o) || (o[k] !== undefined && typeof o[k] !== 'string')) throw new HttpError(400, 'Ungültiges Formular'); o[k] = value; }
-        break;
-      }
-      if (k === '' || Array.isArray(o)) throw new HttpError(400, 'Ungültiges Formular');
-      const wantArray = keys[i + 1] === '';
-      if (o[k] === undefined) o[k] = wantArray ? [] : Object.create(null);
-      else if (typeof o[k] !== 'object' || wantArray !== Array.isArray(o[k])) throw new HttpError(400, 'Ungültiges Formular');
-      o = o[k];
-    }
-  }
-  return root;
-}
-
-export const FORM_MAX_BYTES = 1024 * 1024;
-
-export async function readForm(req, limit = FORM_MAX_BYTES) {
+// Requests that change something carry JSON: a foreign page cannot send that with a plain form.
+export async function readJson(req, limit = LIMITS.FORM_MAX_BYTES) {
   const type = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
-  if (type !== 'application/x-www-form-urlencoded') throw new HttpError(415, 'Falscher Inhaltstyp');
+  if (type !== 'application/json') throw new HttpError(415, 'Falscher Inhaltstyp');
   const buf = await readBody(req, limit);
-  const params = new URLSearchParams(buf.toString('utf8'));
-  if ([...params.keys()].length > 5000) throw new HttpError(400, 'Zu viele Felder');
-  return parseNested([...params.entries()]);
+  try {
+    const data = JSON.parse(buf.toString('utf8'), (k, v) => {
+      if (BAD_KEYS.has(k)) throw new HttpError(400, 'Ungültige Daten');
+      return v;
+    });
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new HttpError(400, 'Ungültige Daten');
+    return data;
+  } catch (e) {
+    throw e instanceof HttpError ? e : new HttpError(400, 'Ungültige Daten');
+  }
 }
 
 // Minimal multipart/form-data parser for one or more files plus simple fields.
@@ -131,10 +111,6 @@ export function send(res, status, body, headers = {}) {
   if (!h['Content-Type']) h['Content-Type'] = 'text/html; charset=utf-8';
   res.writeHead(status, h);
   res.end(body);
-}
-
-export function redirect(res, location, headers = {}) {
-  send(res, 303, '', { Location: location, ...headers });
 }
 
 export function json(res, status, obj) {

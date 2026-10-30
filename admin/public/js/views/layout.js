@@ -37,8 +37,8 @@ export function notices(list, t) {
   </div>`);
 }
 
-export function layout(ctx, { title, body, notices: ns = [], bodyClass = '' }) {
-  const { t, user, csrf, cfg } = ctx;
+export function layout(ctx, { body, notices: ns = [] }) {
+  const { t, user, cfg } = ctx;
   const pages = (ctx.pages || []).filter((p) => p.id !== '_global');
   const st = ctx.status || {};
   const state = st.state && st.state !== 'idle' ? st.state : (st.lastError ? 'failed' : 'idle');
@@ -62,18 +62,7 @@ export function layout(ctx, { title, body, notices: ns = [], bodyClass = '' }) {
     { key: 'revisions', href: '/wp-admin/revision.php', label: t('menu.revisions'), iconName: 'revisions' },
     { key: 'profile', href: '/wp-admin/profile.php', label: t('menu.profile'), iconName: 'profile' },
   ];
-  return html`<!DOCTYPE html>
-<html lang="${t.lang}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>${title} ‹ ${t('site.name')} — ${t('admin.title')}</title>
-<link rel="stylesheet" href="/wp-admin/assets/admin.css">
-<script type="module" src="/wp-admin/assets/admin.js"></script>
-</head>
-<body class="wp-admin ${bodyClass}" data-nonce="${csrf}" data-lang="${t.lang}">
-<a class="skip-link" href="#wpbody-content">Zum Inhalt springen</a>
+  return html`<a class="skip-link" href="#wpbody-content">Zum Inhalt springen</a>
 <div id="wpadminbar" role="navigation">
   <ul class="ab-left">
     <li class="ab-logo"><a href="/wp-admin/" title="${t('admin.title')}">${icon('logo', 'ab-icon')}</a></li>
@@ -91,8 +80,8 @@ export function layout(ctx, { title, body, notices: ns = [], bodyClass = '' }) {
     <li class="ab-account"><a href="/wp-admin/profile.php">${t('bar.hello', { name: user })}<span class="ab-avatar">${String(user).slice(0, 1).toUpperCase()}</span></a>
       <ul class="ab-sub">
         <li><a href="/wp-admin/profile.php">${t('bar.profile')}</a></li>
-        <li><form method="post" action="/wp-admin/profile.php" class="ab-form"><input type="hidden" name="_wpnonce" value="${csrf}"><input type="hidden" name="action" value="lang"><input type="hidden" name="lang" value="${t.lang === 'ru' ? 'de' : 'ru'}"><input type="hidden" name="back" value="${ctx.path || '/wp-admin/'}"><button type="submit">${t('bar.lang')}</button></form></li>
-        <li><form method="post" action="/wp-login.php?action=logout" class="ab-form"><input type="hidden" name="_wpnonce" value="${csrf}"><button type="submit">${t('bar.logout')}</button></form></li>
+        <li><form class="ab-form" data-api="profile/lang"><input type="hidden" name="lang" value="${t.lang === 'ru' ? 'de' : 'ru'}"><button type="submit">${t('bar.lang')}</button></form></li>
+        <li><form class="ab-form" data-api="logout" data-next="/wp-login.php?loggedout=true"><button type="submit">${t('bar.logout')}</button></form></li>
       </ul></li>
   </ul>
 </div>
@@ -102,42 +91,25 @@ ${notices(ns, t)}
 ${body}
 </div></div>
 <div id="wpfooter"><p>${t('admin.title')} · ${t('site.name')}</p></div>
-</div>
-</body>
-</html>`;
+</div>`;
 }
 
 // Login screen (/wp-login.php).
-export function loginPage({ t, error, info, token, user = '', redirectTo = '' }) {
-  return html`<!DOCTYPE html>
-<html lang="${t.lang}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>${t('login.title')} ‹ ${t('site.name')}</title>
-<link rel="stylesheet" href="/wp-admin/assets/admin.css">
-</head>
-<body class="login">
-<div id="login">
+export function loginPage({ t, error, info, user = '' }) {
+  return html`<div id="login">
   <h1 class="login-logo"><a href="/wp-login.php">${icon('logo', 'login-icon')}<span>${t('site.name')}</span></a></h1>
   ${error ? html`<div id="login_error" class="notice notice-error" role="alert"><p>${raw(error)}</p></div>` : ''}
   ${info ? html`<div class="notice notice-info message"><p>${info}</p></div>` : ''}
-  <form name="loginform" id="loginform" method="post" action="/wp-login.php">
+  <form id="loginform" data-login novalidate>
     <p><label for="user_login">${t('login.user')}</label>
-    <input type="text" name="log" id="user_login" class="input" value="${user}" autocomplete="username" autocapitalize="off" spellcheck="false" required autofocus></p>
+    <input type="text" name="user" id="user_login" class="input" value="${user}" autocomplete="username" autocapitalize="off" spellcheck="false" required autofocus></p>
     <p><label for="user_pass">${t('login.pass')}</label>
-    <input type="password" name="pwd" id="user_pass" class="input" autocomplete="current-password" required></p>
-    <input type="hidden" name="_login_nonce" value="${token}">
-    <input type="hidden" name="redirect_to" value="${redirectTo}">
+    <input type="password" name="password" id="user_pass" class="input" autocomplete="current-password" required></p>
     <p class="submit"><button type="submit" class="button button-primary button-large">${t('login.submit')}</button></p>
   </form>
-</div>
-</body>
-</html>`;
+</div>`;
 }
 
-export function errorPage(t, status, message) {
-  return html`<!DOCTYPE html><html lang="${t.lang}"><head><meta charset="utf-8"><title>${status}</title><link rel="stylesheet" href="/wp-admin/assets/admin.css"></head>
-<body class="wp-die"><div class="wp-die-message"><p>${message}</p><p><a href="/wp-admin/">${t('err.back')}</a></p></div></body></html>`;
+export function errorScreen(t, message) {
+  return html`<div class="wp-die-message"><p>${message}</p><p><a href="/wp-admin/">${t('err.back')}</a></p></div>`;
 }

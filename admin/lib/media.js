@@ -3,10 +3,10 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
-import { IMAGE_RE } from './pages.js';
+import { IMAGE_RE, LIMITS, sniffImage } from '../public/js/rules.js';
 
-export const MAX_SIDE = 2400;
-export const MAX_PIXELS = 80e6;
+const MAX_SIDE = LIMITS.IMAGE_MAX_SIDE;
+const MAX_PIXELS = LIMITS.IMAGE_MAX_PIXELS;
 
 let sharpMod = null;
 // sharp comes with astro; look in the admin first, then in the edited site.
@@ -43,15 +43,6 @@ export async function listImages(imgDir) {
   await walk(imgDir, '');
   out.sort((a, b) => b.mtime - a.mtime || a.path.localeCompare(b.path));
   return out;
-}
-
-// Type by content, not by name or the browser's claim.
-export function sniffImage(buf) {
-  if (!Buffer.isBuffer(buf) || buf.length < 12) return null;
-  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'jpeg';
-  if (buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
-  if (buf.toString('latin1', 0, 4) === 'RIFF' && buf.toString('latin1', 8, 12) === 'WEBP') return 'webp';
-  return null;
 }
 
 export class UploadError extends Error {}

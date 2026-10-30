@@ -27,20 +27,6 @@ export function safeJoin(base, rel) {
   return abs;
 }
 
-// Slug for a file name: lower-case a–z, 0–9 and single dashes.
-export const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-export function slugify(s) {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-    .replace(/-+$/, '');
-}
-
 export async function writeAtomic(file, data) {
   await fsp.mkdir(path.dirname(file), { recursive: true });
   const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.${crypto.randomBytes(4).toString('hex')}.tmp`);
