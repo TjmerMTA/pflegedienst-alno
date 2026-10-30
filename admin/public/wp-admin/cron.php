@@ -1,6 +1,6 @@
 <?php
 // Automatic deletion of expired submissions, so that it does not wait for someone to log in.
-// konsoleH cron: php /usr/home/<user>/public_html/wp-admin/cron.php, or call the URL with ?key=
+// konsoleH cron: php /usr/home/<user>/admin_html/wp-admin/cron.php, or call the URL with ?key=
 // (the key is shown under Anfragen for administrators).
 declare(strict_types=1);
 

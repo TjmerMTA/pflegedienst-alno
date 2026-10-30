@@ -31,11 +31,13 @@ test('locked attempts do not fill the log, and reads go to their own', function 
     ok(substr_count((string) $e->store->read('logs/admin.log'), '"user":"flut"') <= Auth::MAX_FAILS);
 });
 test('a stranger cannot keep someone else locked out', function () use ($e) {
-    $a = new Auth($e->store);
+    $t = time();
+    $a = new Auth($e->store, function () use (&$t) { return $t; });
     $a->addUser('opfer2', $e->password, false);
-    for ($i = 0; $i < 6; $i++) $r = $a->login('opfer2', 'falsch', '203.0.113.9');
+    $device = $a->rememberDevice('opfer2');
+    for ($i = 0; $i < 6; $i++) { $r = $a->login('opfer2', 'falsch', '203.0.113.9'); $t += 20; }
     eq($r['reason'], 'locked');
-    eq($a->login('opfer2', $e->password, '198.51.100.7')['ok'], true);
+    eq($a->login('opfer2', $e->password, '198.51.100.7', $device)['ok'], true);
 });
 test('an IPv6 /64 counts as one address', function () {
     eq(Auth::network('2001:db8:1:2:aaaa::1'), Auth::network('2001:db8:1:2:bbbb::2'));

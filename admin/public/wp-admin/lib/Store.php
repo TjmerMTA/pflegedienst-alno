@@ -22,7 +22,7 @@ final class Store
 
     /**
      * ~/alno-data, found exactly as public/api/anfrage.php finds it: the form endpoint writes here.
-     * Not from this file's path: on the host public_html can be a link into another tree.
+     * Not from this file's path: on the host a docroot can be a link into another tree.
      */
     public static function defaultDir(): string
     {
@@ -34,7 +34,7 @@ final class Store
             $home = is_array($user) ? (string) $user['dir'] : '';
         }
         if ($home === '' || !@is_dir($home)) $home = (string) getenv('HOME');
-        if ($home === '' || !@is_dir($home)) $home = dirname(__DIR__, 3); // lib/ is public_html/wp-admin/lib
+        if ($home === '' || !@is_dir($home)) $home = dirname(__DIR__, 3); // lib/ is <docroot>/wp-admin/lib
         return rtrim($home, '/') . '/alno-data';
     }
 

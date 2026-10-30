@@ -24,7 +24,7 @@ test('nothing but api.php and cron.php is an entry point', function () {
     $root = WP_ROOT . '/wp-admin';
     eq(array_map('basename', glob("$root/*.php")), ['api.php', 'cron.php']);
     foreach (['lib', 'schema'] as $dir) has((string) file_get_contents("$root/$dir/.htaccess"), 'Require all denied', $dir);
-    has((string) file_get_contents("$root/.htaccess"), 'Options -Indexes');
+    has((string) file_get_contents(WP_ROOT . '/.htaccess'), 'Options -Indexes');
 });
 
 test('edit screens refuse path-like ids', function () use ($c) {

@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Uploads a folder to public_html by SFTP. It owns exactly the files of the last upload, listed with
-# their hashes in a manifest next to public_html: only changed files go up, and the only files it
+# Uploads a folder to a docroot by SFTP. It owns exactly the files of the last upload, listed with
+# their hashes in a manifest next to the docroot: only changed files go up, and the only files it
 # ever deletes are ones it uploaded earlier. Anything else on the host stays, and nothing outside
-# public_html is touched except the manifest (never ~/alno-data).
+# the docroot is touched except the manifest (never ~/alno-data).
 #
 # Hashed assets go first, pages after them, stale files last: at no moment does a page refer to a
 # file that is not there yet. The manifest comes at the very end, so a run that dies is repaired by
 # the next one.
 #
-# Usage: scripts/deploy-sftp.sh <folder>
+# Usage: scripts/deploy-sftp.sh <folder> <docroot on the host> <manifest file name>
 # Env: SFTP_HOST SFTP_USER SFTP_PORT SFTP_KEY_FILE SFTP_KNOWN_HOSTS_FILE, FULL=true uploads everything.
 set -euo pipefail
 
 src=$(cd "$1" && pwd)
 key=${SFTP_KEY_FILE/#\~/$HOME}
 known=${SFTP_KNOWN_HOSTS_FILE/#\~/$HOME}
-root=public_html
-manifest=.alno-deploy-manifest
+root=$2
+manifest=$3
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
@@ -71,11 +71,14 @@ if [ -d "$stage/_astro" ]; then
 fi
 if [ -n "$(ls -A "$stage")" ]; then up "$stage" "$root"; fi
 
-# Dotfiles are what keeps lib/ closed: if .htaccess did not arrive, this run has failed.
-if [ -f "$src/wp-admin/.htaccess" ]; then
-  sftp "get $root/wp-admin/.htaccess -o $work/htaccess"
-  cmp "$src/wp-admin/.htaccess" "$work/htaccess"
-fi
+# Dotfiles are what keeps lib/ closed and sets the headers: if one did not arrive, this run has failed.
+for f in .htaccess wp-admin/.htaccess wp-admin/lib/.htaccess; do
+  if [ -f "$src/$f" ]; then
+    rm -f "$work/htaccess"
+    sftp "get $root/$f -o $work/htaccess"
+    cmp "$src/$f" "$work/htaccess"
+  fi
+done
 
 if [ -s "$work/stale" ]; then
   # A delete that fails stops the run before the manifest: the next run tries again.

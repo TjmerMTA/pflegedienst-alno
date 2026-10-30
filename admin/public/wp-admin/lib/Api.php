@@ -20,7 +20,10 @@ final class Api
 {
     const SESSION_COOKIE = 'alno_session';
     const LOGIN_COOKIE = 'alno_login';
-    const COOKIE_PATH = '/wp-admin/';
+    const DEVICE_COOKIE = 'alno_device';
+    const COOKIE_PATH = '/';
+    const ADMIN_HOST = 'admin.pflegedienst-alno.de';
+    const SITE_URL = 'https://pflegedienst-alno.de';
 
     private Store $store;
     private Auth $auth;
@@ -74,7 +77,7 @@ final class Api
     private function hostAllowed(): bool
     {
         if (self::isLocal()) return true;
-        return in_array(self::host(), $this->config['hosts'] ?? ['pflegedienst-alno.de', 'www.pflegedienst-alno.de'], true);
+        return in_array(self::host(), $this->config['hosts'] ?? [self::ADMIN_HOST], true);
     }
 
     private static function originOk(): bool
@@ -93,6 +96,16 @@ final class Api
         return !self::isLocal() || (($_SERVER['HTTPS'] ?? '') !== '' && ($_SERVER['HTTPS'] ?? '') !== 'off');
     }
 
+    /**
+     * Host-only by name: the browser refuses a __Host- cookie that has a Domain, a path other than /
+     * or no Secure, so the public site next door can neither read these nor plant one here. It needs
+     * HTTPS, so local development uses the plain name.
+     */
+    private static function cookieName(string $name): string
+    {
+        return self::secureCookie() ? "__Host-$name" : $name;
+    }
+
     private static function readJson(int $limit = Rules::FORM_MAX_BYTES): array
     {
         $type = strtolower(trim(explode(';', (string) ($_SERVER['CONTENT_TYPE'] ?? ''))[0]));
@@ -107,7 +120,7 @@ final class Api
 
     private static function setCookie(string $name, string $value, int $maxAge): void
     {
-        setcookie($name, $value, ['expires' => $maxAge ? time() + $maxAge : 1, 'path' => self::COOKIE_PATH, 'httponly' => true, 'samesite' => 'Strict', 'secure' => self::secureCookie()]);
+        setcookie(self::cookieName($name), $value, ['expires' => $maxAge ? time() + $maxAge : 1, 'path' => self::COOKIE_PATH, 'httponly' => true, 'samesite' => 'Strict', 'secure' => self::secureCookie()]);
     }
 
     private static function clientIp(): string
@@ -123,7 +136,7 @@ final class Api
         ini_set('session.use_only_cookies', '1');
         session_cache_limiter('');
         ini_set('session.gc_maxlifetime', (string) (Auth::SESSION_IDLE * 2));
-        session_name(self::SESSION_COOKIE);
+        session_name(self::cookieName(self::SESSION_COOKIE));
         if (!is_dir($this->store->path('sessions'))) @mkdir($this->store->path('sessions'), 0700, true);
         session_save_path($this->store->path('sessions'));
         session_set_cookie_params(['lifetime' => 0, 'path' => self::COOKIE_PATH, 'httponly' => true, 'samesite' => 'Strict', 'secure' => self::secureCookie()]);
@@ -133,7 +146,7 @@ final class Api
     private function loadSession(): void
     {
         // Only a session this server made: PHP would answer a made-up id with a new file.
-        $sid = (string) ($_COOKIE[self::SESSION_COOKIE] ?? '');
+        $sid = (string) ($_COOKIE[self::cookieName(self::SESSION_COOKIE)] ?? '');
         if (!preg_match('/^[a-zA-Z0-9,-]{22,256}$/D', $sid) || !$this->store->exists("sessions/sess_$sid")) return;
         $this->sessionSetup();
         session_start(['read_and_close' => true]);
@@ -212,6 +225,8 @@ final class Api
     private function route(string $r, string $method): void
     {
         if (!$this->hostAllowed()) throw new HttpError(421, 'bad_request', 'Host nicht erlaubt');
+        // The public site is same-site with this host, so SameSite cookies do not tell them apart.
+        if (in_array($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '', ['same-site', 'cross-site'], true)) throw new HttpError(403, 'forbidden', 'origin');
         if ($method === 'POST' && !self::originOk()) throw new HttpError(403, 'forbidden', 'origin');
         if (!$this->config) {
             if ($r === 'setup' && $method === 'POST') { $this->setup(); return; }
@@ -309,14 +324,14 @@ final class Api
 
     private function checkLoginNonce(): void
     {
-        $cookie = (string) ($_COOKIE[self::LOGIN_COOKIE] ?? '');
+        $cookie = (string) ($_COOKIE[self::cookieName(self::LOGIN_COOKIE)] ?? '');
         if ($cookie === '' || !hash_equals($cookie, (string) ($_SERVER['HTTP_X_LOGIN_NONCE'] ?? ''))) throw new HttpError(403, 'forbidden', 'csrf');
     }
 
     private function sessionInfo(): void
     {
         if (!$this->config) { self::json(401, ['error' => 'setup', 'loginNonce' => $this->loginNonce(), 'checks' => $this->checks()]); return; }
-        if (!$this->user) { self::json(401, ['error' => 'login', 'loginNonce' => $this->loginNonce()]); return; }
+        if (!$this->user) { self::json(401, ['error' => 'login', 'loginNonce' => $this->loginNonce(), 'siteUrl' => $this->config['site_url'] ?? self::SITE_URL]); return; }
         $u = $this->user;
         $status = ['state' => 'idle', 'failed' => false];
         $pages = [];
@@ -371,9 +386,9 @@ final class Api
         $this->store->withLock('setup', function () use ($token, $name, $password) {
             if ($this->store->exists('config.json')) throw new HttpError(403, 'forbidden');
             $this->auth->addUser($name, $password, true);
-            $hosts = array_values(array_unique(['pflegedienst-alno.de', 'www.pflegedienst-alno.de', self::host()]));
+            $hosts = array_values(array_unique([self::ADMIN_HOST, self::host()]));
             $this->store->writeJson('config.json', [
-                'token' => $token, 'site_url' => 'https://pflegedienst-alno.de', 'hosts' => $hosts,
+                'token' => $token, 'site_url' => self::SITE_URL, 'hosts' => $hosts,
                 'cron_key' => bin2hex(random_bytes(24)), 'created' => gmdate('c'),
             ]);
         });
@@ -386,15 +401,18 @@ final class Api
         $this->checkLoginNonce();
         $b = self::readJson(65536);
         $ip = self::clientIp();
-        $r = $this->auth->login($b['user'] ?? '', $b['password'] ?? '', $ip);
+        $device = (string) ($_COOKIE[self::cookieName(self::DEVICE_COOKIE)] ?? '');
+        $r = $this->auth->login($b['user'] ?? '', $b['password'] ?? '', $ip, $device);
         if (!$r['ok']) {
             // Locked attempts cost nothing to send: logging each would let anyone flush the log.
-            if ($r['reason'] !== 'locked') $this->store->log(['event' => 'login-failed', 'user' => mb_substr((string) (is_string($b['user'] ?? null) ? $b['user'] : ''), 0, 40), 'ip' => $ip, 'reason' => $r['reason']]);
+            if ($r['reason'] === 'invalid') $this->store->log(['event' => 'login-failed', 'user' => mb_substr((string) (is_string($b['user'] ?? null) ? $b['user'] : ''), 0, 40), 'ip' => $ip, 'reason' => $r['reason']]);
             if ($r['reason'] === 'locked') throw new HttpError(429, 'locked', '', ['retryMinutes' => (int) ceil($r['retry'] / 60)]);
+            if ($r['reason'] === 'slow') throw new HttpError(429, 'slow', '', ['retrySeconds' => (int) $r['retry']]);
             throw new HttpError(401, 'invalid');
         }
         $this->createSession($r['user']);
         self::setCookie(self::LOGIN_COOKIE, '', 0);
+        self::setCookie(self::DEVICE_COOKIE, $this->auth->rememberDevice($r['user']), Auth::DEVICE_DAYS * 86400);
         $this->store->log(['event' => 'login', 'user' => $r['user'], 'ip' => $ip]);
         self::json(200, ['ok' => true]);
     }
@@ -914,6 +932,7 @@ final class Api
         if ($problem) throw new HttpError(422, $problem);
         $this->auth->setPassword($name, $password);
         $this->createSession($name);
+        self::setCookie(self::DEVICE_COOKIE, $this->auth->rememberDevice($name), Auth::DEVICE_DAYS * 86400);
         $this->store->log(['event' => 'password', 'user' => $name]);
         self::json(200, ['ok' => true]);
     }
@@ -961,7 +980,7 @@ final class Api
         $raw = (string) ($_GET['view'] ?? '');
         $a = new Anfragen($this->store);
         $out = $a->listing(in_array($raw, ['neu', 'erledigt', 'trash'], true) ? $raw : 'all') + ['warning' => $a->warning()];
-        if ($this->user['admin']) $out['cronUrl'] = rtrim((string) $this->config['site_url'], '/') . '/wp-admin/cron.php?key=' . rawurlencode((string) ($this->config['cron_key'] ?? ''));
+        if ($this->user['admin']) $out['cronUrl'] = (self::secureCookie() ? 'https://' : 'http://') . self::host() . '/wp-admin/cron.php?key=' . rawurlencode((string) ($this->config['cron_key'] ?? ''));
         self::json(200, $out);
     }
 

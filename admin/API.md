@@ -1,6 +1,6 @@
 # Admin API
 
-One front controller: `/wp-admin/api.php?r=<route>`. Implemented in `public/wp-admin/lib/Api.php`.
+One front controller on the admin's own origin: `https://admin.pflegedienst-alno.de/wp-admin/api.php?r=<route>`. Implemented in `public/wp-admin/lib/Api.php`.
 
 - **GET** takes its parameters in the query.
 - **POST** takes JSON (`Content-Type: application/json`, at most 1 MB) and the header `X-WP-Nonce: <nonce>` from `session`. Upload is the exception.
@@ -16,7 +16,7 @@ One front controller: `/wp-admin/api.php?r=<route>`. Implemented in `public/wp-a
 |---|---|---|
 | 400 | `bad_request` | not a JSON object, bad value |
 | 401 | `login`, `invalid` | no session, wrong login |
-| 403 | `forbidden` | `message: csrf` or `origin`, or no permission |
+| 403 | `forbidden` | `message: csrf` or `origin` (also for `Sec-Fetch-Site: same-site` or `cross-site`), or no permission |
 | 404 | `not_found` | |
 | 405 | `bad_request` | wrong method |
 | 409 | `conflict` | the file changed; `hash` (and `page`) if it could be read |
@@ -28,6 +28,7 @@ One front controller: `/wp-admin/api.php?r=<route>`. Implemented in `public/wp-a
 | 422 | `structure`, `unreadable` | the file cannot be edited |
 | 422 | `token`, `bad_name`, `too_short`, `too_long`, `wrong_password`, `retention` | |
 | 429 | `locked` | `retryMinutes` |
+| 429 | `slow` | wait per account after failed logins; `retrySeconds` |
 | 500 | `server` | details in the log only |
 | 502 | `github` | GitHub refused or is unreachable; `message` says why |
 | 503 | `setup` | not set up yet |
@@ -36,7 +37,7 @@ One front controller: `/wp-admin/api.php?r=<route>`. Implemented in `public/wp-a
 
 | Route | Method | Who | In | Out |
 |---|---|---|---|---|
-| `session` | GET | anyone | | 200 `user lang admin anfragen nonce siteUrl actionsUrl uploadMaxBytes pages status newAnfragen`; 401 `error: login, loginNonce`; 401 `error: setup, loginNonce, checks` |
+| `session` | GET | anyone | | 200 `user lang admin anfragen nonce siteUrl actionsUrl uploadMaxBytes pages status newAnfragen`; 401 `error: login, loginNonce, siteUrl`; 401 `error: setup, loginNonce, checks` |
 | `setup` | POST | anyone, once | `token user password` | `ok` |
 | `login` | POST | anyone | `user password` | `ok` |
 | `logout` | POST | user | | `ok` |

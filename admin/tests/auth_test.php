@@ -48,13 +48,14 @@ test('every route needs a login', function () use ($e) {
 
 // ---------------- session cookie ----------------
 
-test('login sets a HttpOnly SameSite=Strict cookie on /wp-admin/; no Secure on plain local http', function () use ($e, $cookieOf) {
+test('login sets a HttpOnly SameSite=Strict cookie; no Secure on plain local http', function () use ($e, $cookieOf) {
     $c = $e->client();
     $r = $c->login('redakteurin', $e->password);
     eq($r['status'], 200, $r['body']);
     $ck = $cookieOf($r, 'alno_session');
     ok($ck !== '', 'cookie set');
-    ok(stripos($ck, 'path=/wp-admin/') !== false, $ck);
+    ok(stripos($ck, 'path=/;') !== false, $ck);
+    ok(stripos($ck, 'domain') === false, $ck);
     ok(stripos($ck, 'HttpOnly') !== false, $ck);
     ok(stripos($ck, 'SameSite=Strict') !== false, $ck);
     ok(stripos($ck, 'Secure') === false, $ck);
@@ -67,10 +68,10 @@ test('on a real host the cookies are Secure', function () use ($e, $cookieOf) {
     $c = $e->client();
     $c->headers = ['Host' => 'admin.example'];
     $s = $c->get('session');
-    ok(stripos($cookieOf($s, 'alno_login'), 'Secure') !== false, 'login cookie');
+    ok(stripos($cookieOf($s, '__Host-alno_login'), 'Secure') !== false, 'login cookie');
     $r = $c->post('login', ['user' => 'redakteurin', 'password' => $e->password], ['X-Login-Nonce: ' . $s['json']['loginNonce']]);
     eq($r['status'], 200, $r['body']);
-    $ck = $cookieOf($r, 'alno_session');
+    $ck = $cookieOf($r, '__Host-alno_session');
     ok(stripos($ck, 'Secure') !== false, $ck);
     ok(stripos($ck, 'HttpOnly') !== false, $ck);
     ok(stripos($ck, 'SameSite=Strict') !== false, $ck);
@@ -214,7 +215,7 @@ test('the login nonce is cleared after use', function () use ($e) {
 test('lockout: five wrong passwords lock the account, even for the right password', function () use ($e) {
     (new Auth($e->store))->addUser('opfer', $e->password);
     $c = $e->client();
-    for ($i = 0; $i < 4; $i++) eq($c->login('opfer', 'falsch')['status'], 401);
+    for ($i = 0; $i < 4; $i++) { eq($c->login('opfer', 'falsch')['status'], 401); $e->openDelay(); }
     $r = $c->login('opfer', 'falsch');
     eq($r['status'], 429);
     $r = $c->login('opfer', $e->password);
@@ -231,13 +232,14 @@ test('lockout ends after the lock time; success resets the counter', function ()
     $t = 1000000;
     $auth = new Auth($store, function () use (&$t) { return $t; });
     $auth->addUser('anna', $e->password);
-    for ($i = 0; $i < 5; $i++) $auth->login('anna', 'x', '1.1.1.1');
+    $wrong = function (int $n) use ($auth, &$t) { for ($i = 0; $i < $n; $i++) { $auth->login('anna', 'x', '1.1.1.1'); $t += 20; } };
+    $wrong(5);
     eq($auth->login('anna', $e->password, '1.1.1.1')['reason'], 'locked');
     $t += 16 * 60;
     eq($auth->login('anna', $e->password, '1.1.1.1')['ok'], true);
-    for ($i = 0; $i < 4; $i++) $auth->login('anna', 'x', '1.1.1.1');
+    $wrong(4);
     eq($auth->login('anna', $e->password, '1.1.1.1')['ok'], true);
-    for ($i = 0; $i < 4; $i++) $auth->login('anna', 'x', '1.1.1.1');
+    $wrong(4);
     eq($auth->login('anna', $e->password, '1.1.1.1')['ok'], true, 'counter starts over after success');
     rmTree($store->dir);
 });
@@ -289,6 +291,7 @@ test('login with junk in the fields is a wrong login, not a crash', function () 
     foreach ([['user' => ['a'], 'password' => ['b']], ['user' => 5, 'password' => null], ['user' => ['x' => 1]], []] as $body) {
         $r = $c->raw('POST', '/wp-admin/api.php?r=login', json_encode((object) $body), ['Content-Type: application/json', "X-Login-Nonce: $n"]);
         eq($r['status'], 401, $r['body']);
+        $e->openDelay();
     }
 });
 
@@ -300,10 +303,25 @@ test('40 parallel wrong logins cannot get more than MAX_FAILS guesses past the l
     $by = array_count_values(array_column($rs, 'status'));
     eq(count($rs), 40);
     eq(array_sum(array_intersect_key($by, [401 => 1, 429 => 1])), 40, show($by));
+    eq($by[401] ?? 0, Auth::SLOW_FREE + 1, show($by));
+    $t = $p->store->readJson('lockout.json');
+    eq($t['u:' . sha1('redakteurin|127.0.0.1')]['count'], Auth::SLOW_FREE + 1, 'attempts that reached the hash');
+    eq($p->client()->login('redakteurin', $p->password)['status'], 429, 'the right password waits too');
+    @unlink("$p->data/lockout.json");
+});
+
+test('from a known browser the wait does not apply, and the lock still counts in parallel', function () use ($p) {
+    $c = $p->client();
+    eq($c->login('admin', $p->password)['status'], 200);
+    eq($c->post('logout')['status'], 200);
+    ok(isset($c->cookies['alno_device']), 'device cookie');
+    $n = $c->get('session')['json']['loginNonce'];
+    $rs = $c->burst('login', ['user' => 'admin', 'password' => 'falsch-falsch'], 40, ["X-Login-Nonce: $n"]);
+    $by = array_count_values(array_column($rs, 'status'));
     ok(($by[401] ?? 0) <= Auth::MAX_FAILS, show($by));
     $t = $p->store->readJson('lockout.json');
-    eq($t['u:' . sha1('redakteurin|127.0.0.1')]['count'], Auth::MAX_FAILS, 'attempts that reached the hash');
-    eq($p->client()->login('redakteurin', $p->password)['status'], 429, 'the right password is locked out too');
+    eq($t['u:' . sha1('admin|127.0.0.1')]['count'], Auth::MAX_FAILS, 'attempts that reached the hash');
+    eq($c->login('admin', $p->password)['status'], 429, 'the lock holds');
 });
 
 // ---------------- CSRF, Origin, Host ----------------

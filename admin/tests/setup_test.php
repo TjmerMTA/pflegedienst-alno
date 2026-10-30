@@ -79,7 +79,8 @@ test('the right token sets it up; the token stays on the server', function () us
     $config = $e->store->readJson('config.json');
     eq($config['token'], TEST_TOKEN);
     ok(strlen($config['cron_key']) >= 32);
-    ok(in_array('pflegedienst-alno.de', $config['hosts'], true));
+    ok(in_array('admin.pflegedienst-alno.de', $config['hosts'], true));
+    ok(!in_array('pflegedienst-alno.de', $config['hosts'], true), 'the public site is another origin');
     eq(fileperms("$e->data/config.json") & 0077, 0, 'config.json is private');
     eq((new Auth($e->store))->users()['chefin']['admin'], true);
     hasNot($e->log(), TEST_TOKEN);
@@ -100,7 +101,8 @@ test('a second setup is refused, whoever asks', function () use ($e, $form, $pas
     $admin->login('chefin', $password);
     eq($admin->post('setup', $form(['user' => 'dieb']))['status'], 404);
     eq((string) file_get_contents("$e->data/config.json"), $config);
-    eq((string) file_get_contents("$e->data/users.json"), $users);
+    $names = static fn (string $json) => array_map(static fn ($u) => $u['hash'], (array) json_decode($json, true));
+    eq($names((string) file_get_contents("$e->data/users.json")), $names($users), 'no user added or changed');
 });
 
 $p = new Env(false, 6);

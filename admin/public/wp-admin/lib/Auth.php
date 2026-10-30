@@ -9,6 +9,13 @@ final class Auth
     const WINDOW = 900;
     const LOCK = 900;
     const SESSION_IDLE = 28800;
+    // Per account, over all networks: a growing wait after each failure, so that guesses spread over
+    // many addresses stay slow. Two typos are free; after that 2, 4, 8 … seconds, at most five minutes.
+    const SLOW_FREE = 2;
+    const SLOW_MAX = 300;
+    const SLOW_RESET = 86400;
+    const DEVICE_DAYS = 90;
+    const DEVICE_MAX = 10;
 
     private Store $store;
     /** @var callable */
@@ -90,6 +97,7 @@ final class Auth
             $users = $this->users();
             $users[$name]['hash'] = $hash;
             $users[$name]['pwv'] = (int) ($users[$name]['pwv'] ?? 1) + 1;
+            unset($users[$name]['devices']);
             $this->saveUsers($users);
             return $users[$name]['pwv'];
         });
@@ -109,7 +117,41 @@ final class Auth
         return $u !== null && password_verify($password, $u['hash']);
     }
 
+    // ---------------- known browsers ----------------
+
+    /**
+     * A browser that has logged in before skips the per-account wait, and only that. Without this a
+     * stranger could keep the wait closed for the real user with one request a minute. Only hashes are
+     * stored. Returns the token for the cookie.
+     */
+    public function rememberDevice(string $name): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->store->withLock('users', function () use ($name, $token) {
+            $users = $this->users();
+            if (!isset($users[$name])) return;
+            $now = ($this->now)();
+            $devices = array_filter($users[$name]['devices'] ?? [], static fn ($until) => $until > $now);
+            $devices[hash('sha256', $token)] = $now + self::DEVICE_DAYS * 86400;
+            arsort($devices);
+            $users[$name]['devices'] = array_slice($devices, 0, self::DEVICE_MAX, true);
+            $this->saveUsers($users);
+        });
+        return $token;
+    }
+
+    private function knownDevice(string $name, ?string $token): bool
+    {
+        if ($token === null || $token === '') return false;
+        return (int) ($this->users()[$name]['devices'][hash('sha256', $token)] ?? 0) > ($this->now)();
+    }
+
     // ---------------- lockout ----------------
+
+    public static function delayAfter(int $fails): int
+    {
+        return $fails <= self::SLOW_FREE ? 0 : min(self::SLOW_MAX, 2 ** min(20, $fails - self::SLOW_FREE));
+    }
 
     /** One IPv6 customer owns a whole /64, so that is what counts as one address. */
     public static function network(string $ip): string
@@ -138,41 +180,52 @@ final class Auth
     /**
      * Returns ['ok' => true, 'user' => name] or ['ok' => false, 'reason' => 'invalid'|'locked', 'retry' => seconds].
      * The attempt is counted before the slow hash: otherwise parallel guesses all pass the check.
-     * The name's counter is per network, or a stranger could keep any account locked for good.
+     * The name's counter is per network, or a stranger could keep any account locked for good. The
+     * per-account wait answers before the hash too, for unknown names the same as for real ones.
+     * Reasons: invalid, locked, slow.
      */
-    public function login($name, $password, string $ip): array
+    public function login($name, $password, string $ip, ?string $device = null): array
     {
         $uname = strtolower(Rules::trim(is_string($name) ? $name : ''));
         $net = self::network($ip);
         $ukey = 'u:' . sha1("$uname|$net");
         $ikey = 'ip:' . sha1($net);
-        $locked = $this->store->withLock('lockout', function () use ($ukey, $ikey) {
+        $slow = 'd:' . sha1($uname);
+        $known = $this->knownDevice($uname, $device);
+        $refused = $this->store->withLock('lockout', function () use ($ukey, $ikey, $slow, $known) {
             $t = $this->store->readJson('lockout.json', []);
             $left = max($this->lockedFor($t, $ukey), $this->lockedFor($t, $ikey));
-            if ($left) return $left;
+            if ($left) return ['ok' => false, 'reason' => 'locked', 'retry' => $left];
+            $now = ($this->now)();
+            if (!$known && ($wait = $this->lockedFor($t, $slow))) return ['ok' => false, 'reason' => 'slow', 'retry' => $wait];
             $this->recordFail($t, $ukey, self::MAX_FAILS);
             $this->recordFail($t, $ikey, self::IP_MAX);
-            $now = ($this->now)();
+            if (!$known) {
+                $e = $t[$slow] ?? null;
+                $count = $e && $now - $e['first'] <= self::SLOW_RESET ? (int) $e['count'] + 1 : 1;
+                $t[$slow] = ['count' => $count, 'first' => $now, 'until' => $now + self::delayAfter($count)];
+            }
             foreach ($t as $k => $e) {
-                if ($now - $e['first'] > 2 * self::WINDOW && (int) ($e['until'] ?? 0) < $now) unset($t[$k]);
+                $age = strncmp((string) $k, 'd:', 2) === 0 ? self::SLOW_RESET : 2 * self::WINDOW;
+                if ($now - $e['first'] > $age && (int) ($e['until'] ?? 0) < $now) unset($t[$k]);
             }
             $this->store->writeJson('lockout.json', $t);
-            return 0;
+            return null;
         });
-        if ($locked) return ['ok' => false, 'reason' => 'locked', 'retry' => $locked];
+        if ($refused) return $refused;
 
         $users = $this->users();
         $u = preg_match(Rules::USERNAME_RE, $uname) ? ($users[$uname] ?? null) : null;
         // A hash of the same cost for unknown users, so they answer as slowly as known ones.
         if ($u === null) self::hashPassword(bin2hex(random_bytes(8)));
         $good = $u !== null && password_verify(is_string($password) ? $password : '', $u['hash']);
-        return $this->store->withLock('lockout', function () use ($good, $uname, $ukey, $ikey) {
+        return $this->store->withLock('lockout', function () use ($good, $uname, $ukey, $ikey, $slow) {
             $t = $this->store->readJson('lockout.json', []);
             if (!$good) {
                 $left = max($this->lockedFor($t, $ukey), $this->lockedFor($t, $ikey));
                 return $left ? ['ok' => false, 'reason' => 'locked', 'retry' => $left] : ['ok' => false, 'reason' => 'invalid'];
             }
-            unset($t[$ukey]);
+            unset($t[$ukey], $t[$slow]);
             if (isset($t[$ikey])) {
                 $t[$ikey]['count']--;
                 if ($t[$ikey]['count'] < self::IP_MAX) $t[$ikey]['until'] = 0;

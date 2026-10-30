@@ -246,6 +246,14 @@ final class Env
         return $c;
     }
 
+    /** Opens the per-account wait, for tests about what comes after it. */
+    public function openDelay(): void
+    {
+        $t = (array) $this->store->readJson('lockout.json', []);
+        foreach (array_keys($t) as $k) if (strncmp((string) $k, 'd:', 2) === 0) unset($t[$k]);
+        $this->store->writeJson('lockout.json', $t);
+    }
+
     /** The admin's own log. */
     public function log(): string
     {

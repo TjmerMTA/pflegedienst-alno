@@ -107,7 +107,7 @@ ${body}
 }
 
 // Login screen.
-export function loginPage({ t, error, info, user = '' }) {
+export function loginPage({ t, error, info, user = '', siteUrl }) {
   return html`<div id="login">
   <h1 class="login-logo"><a href="#/login">${icon('logo', 'login-icon')}<span>${t('site.name')}</span></a></h1>
   ${error ? html`<div id="login_error" class="notice notice-error" role="alert"><p>${error}</p></div>` : ''}
@@ -119,7 +119,7 @@ export function loginPage({ t, error, info, user = '' }) {
     <input type="password" name="password" id="user_pass" class="input" autocomplete="current-password" required></p>
     <p class="submit"><button type="submit" class="button button-primary button-large">${t('login.submit')}</button></p>
   </form>
-  <p class="login-back"><a href="/">${t('login.back')}</a></p>
+  <p class="login-back"><a href="${siteUrl}/">${t('login.back')}</a></p>
 </div>`;
 }
 

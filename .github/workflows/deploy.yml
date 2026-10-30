@@ -25,6 +25,8 @@ env:
   SFTP_HOST: www810.your-server.de
   SFTP_USER: ftdq3y
   SFTP_PORT: '22'
+  SITE_ROOT: public_html
+  ADMIN_ROOT: admin_html
 
 jobs:
   build:
@@ -42,7 +44,7 @@ jobs:
           SITE_URL: https://pflegedienst-alno.de
           PUBLIC_FORM_ENDPOINT: /api/anfrage.php
           PUBLIC_GA_ID: ${{ vars.PUBLIC_GA_ID }}
-      - name: Assemble what goes to public_html
+      - name: Assemble the two docroots
         run: scripts/assemble-upload.sh upload
       # As one tar: an artifact of the folder itself would lose .htaccess.
       - run: tar -czf upload.tgz -C upload .
@@ -85,6 +87,8 @@ jobs:
           FULL: ${{ inputs.full }}
           SFTP_KEY_FILE: ~/.ssh/alno_sftp
           SFTP_KNOWN_HOSTS_FILE: ~/.ssh/alno_known_hosts
-        run: scripts/deploy-sftp.sh upload
+        run: |
+          scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest
+          scripts/deploy-sftp.sh upload/admin "$ADMIN_ROOT" .alno-deploy-manifest-admin
       - if: always()
         run: rm -f ~/.ssh/alno_sftp

@@ -13,6 +13,7 @@ const SESSION_MAX_AGE = 60000;
 let session = null;        // answer of GET session
 let sessionAt = 0;
 let loginNonce = '';
+let siteUrl = 'https://pflegedienst-alno.de';
 let setupChecks = null;
 let t = translator('de');
 let navSeq = 0;
@@ -82,6 +83,7 @@ async function loadSession() {
   session = null;
   t = translator('de');
   loginNonce = data.loginNonce || '';
+  siteUrl = data.siteUrl || siteUrl;
   setupChecks = data.checks || null;
   return data.error === 'setup' ? 'setup' : 'login';
 }
@@ -283,7 +285,7 @@ async function render() {
       if (s === 'login') {
         if (path !== '/login' && path !== '/') afterLogin = location.hash;
         const info = q.loggedout ? t('login.loggedout') : q.expired ? t('login.expired') : q.setup ? t('login.setupdone') : '';
-        showBare(seq, t('login.title'), loginPage({ t, info }));
+        showBare(seq, t('login.title'), loginPage({ t, info, siteUrl }));
         return;
       }
     }
@@ -409,9 +411,9 @@ async function submitLogin(form) {
     go(to && !to.startsWith('#/login') ? to : '#/');
   } catch (e) {
     const code = e.data?.error;
-    const error = code === 'locked' ? t('login.locked', { min: e.data.retryMinutes }) : code === 'invalid' ? t('login.invalid') : code === 'forbidden' ? t('login.csrf') : errorText(e);
+    const error = code === 'locked' ? t('login.locked', { min: e.data.retryMinutes }) : code === 'slow' ? t('login.slow', { n: e.data.retrySeconds }) : code === 'invalid' ? t('login.invalid') : code === 'forbidden' ? t('login.csrf') : errorText(e);
     if (code === 'forbidden') await loadSession();
-    showBare(seq, t('login.title'), loginPage({ t, error, user }));
+    showBare(seq, t('login.title'), loginPage({ t, error, user, siteUrl }));
   }
 }
 

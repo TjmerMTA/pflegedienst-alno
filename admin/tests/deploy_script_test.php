@@ -71,11 +71,11 @@ function setup(): array
     file_put_contents("$d/src/wp-admin/api.php", '<?php');
     return [$d, new class($d) {
         public function __construct(public string $d) {}
-        public function run(array $env = [], ?string $src = null): int
+        public function run(array $env = [], ?string $src = null, string $root = 'public_html', string $manifest = '.alno-deploy-manifest'): int
         {
             @unlink("$this->d/log");
             $e = array_merge(getenv(), ['PATH' => "$this->d/bin:" . getenv('PATH'), 'FAKE_HOST' => "$this->d/host", 'FAKE_LOG' => "$this->d/log", 'SFTP_HOST' => 'h', 'SFTP_USER' => 'u', 'SFTP_PORT' => '22', 'SFTP_KEY_FILE' => '~/k', 'SFTP_KNOWN_HOSTS_FILE' => '~/n'], $env);
-            $p = proc_open(['bash', SCRIPT, $src ?? "$this->d/src"], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
+            $p = proc_open(['bash', SCRIPT, $src ?? "$this->d/src", $root, $manifest], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
             return proc_close($p);
         }
         public function log(): array { return file("$this->d/log", FILE_IGNORE_NEW_LINES) ?: []; }
@@ -170,6 +170,26 @@ test('a delete that fails keeps the file in the manifest, so the next run tries 
     has((string) file_get_contents("$d/host/.alno-deploy-manifest"), 'kontakt/index.html');
     eq($h->run(), 0, (string) @file_get_contents("$d/err"));
     ok(!is_file("$d/host/public_html/kontakt/index.html"));
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
+test('two docroots with two manifests do not touch each other', function () {
+    [$d, $h] = setup();
+    mkdir("$d/adm/wp-admin/lib", 0755, true);
+    file_put_contents("$d/adm/.htaccess", 'headers');
+    file_put_contents("$d/adm/wp-admin/.htaccess", 'x');
+    file_put_contents("$d/adm/wp-admin/lib/.htaccess", 'Require all denied');
+    file_put_contents("$d/adm/wp-admin/api.php", '<?php');
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    eq($h->run([], "$d/adm", 'admin_html', '.alno-deploy-manifest-admin'), 0, (string) @file_get_contents("$d/err"));
+    ok(is_file("$d/host/admin_html/.htaccess"), 'the docroot .htaccess arrived');
+    ok(is_file("$d/host/admin_html/wp-admin/lib/.htaccess"));
+    ok(is_file("$d/host/public_html/index.html"), 'site untouched');
+    unlink("$d/adm/wp-admin/api.php");
+    eq($h->run([], "$d/adm", 'admin_html', '.alno-deploy-manifest-admin'), 0, (string) @file_get_contents("$d/err"));
+    ok(!is_file("$d/host/admin_html/wp-admin/api.php"), 'stale admin file deleted');
+    ok(is_file("$d/host/public_html/wp-admin/.htaccess"), 'the other docroot keeps its own');
+    eq(file_get_contents("$d/host/alno-data/users.json"), '{"keep":true}');
     exec('rm -rf ' . escapeshellarg($d));
 });
 

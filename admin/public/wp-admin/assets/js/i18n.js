@@ -42,6 +42,7 @@ const de = {
   'login.locked': 'Fehler: Zu viele fehlgeschlagene Anmeldeversuche. Bitte in {min} Minuten erneut versuchen.',
   'login.loggedout': 'Du hast dich erfolgreich abgemeldet.',
   'login.expired': 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.',
+  'login.slow': 'Fehler: Zu viele Fehlversuche für dieses Konto. Bitte noch {n} s warten und erneut versuchen.',
   'login.csrf': 'Das Formular ist abgelaufen. Bitte noch einmal versuchen.',
   'login.back': '← Zur Website',
   'dash.welcome': 'Willkommen im ALNO Admin!',

@@ -128,11 +128,14 @@ Frontmatter is parsed and written by `Frontmatter.php`. A file it does not under
 
 ## Requests
 
-- Host must be local or in `hosts` of `config.json` (421).
+- Host must be local or in `hosts` of `config.json`, by default `admin.pflegedienst-alno.de` alone (421). The public domain is refused.
+- `Sec-Fetch-Site: same-site` or `cross-site` is refused on every route, GET included: the public site is same-site with the admin, so `SameSite` does not separate them.
+- Cookies: `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Strict`, path `/`, no `Domain`. Over plain local HTTP the plain name, without `Secure`.
 - POST: `Origin`, or else `Referer`, must match the host; `Origin: null` is refused.
 - POST needs `X-WP-Nonce` equal to the session's token. Login and setup: `X-Login-Nonce` equal to the cookie `alno_login`.
 - JSON bodies need `Content-Type: application/json`.
 - Login: 5 failures per name and network, 20 per network, within 15 minutes lock for 15 minutes. A network is the IPv4 address or the IPv6 /64. The attempt is counted before the slow hash, under a file lock, so parallel guesses cannot pass the check together. Locked attempts are not logged. A stranger cannot lock someone else out from another network.
+- Per account, over all networks: two failures are free, then the next attempt waits 2, 4, 8 … seconds, at most 300; a login or a day without failures resets it. During the wait the answer is 429 `slow`, before the hash and without counting, for unknown names too. A browser that has logged in before (a 90-day cookie, hashed on the server, forgotten by a password change) skips this wait, not the lock.
 - Reads of Anfragen go to `logs/access.log`, which only logged-in users can fill.
 - Saves carry the blob id they were based on. Another id answers 409 and the input stays on the screen.
 - Anfragen: rules in `docs/anfragen-format.md`, section 4.
