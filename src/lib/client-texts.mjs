@@ -8,7 +8,7 @@ import { PAGES_DIR, readPage } from './page-files.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (id) => readPage(ROOT, id);
-const fillTokens = (s, tokens) => String(s ?? '').replace(/\{\{\s*([\w-]+)\s*\}\}/g, (m, key) => tokens[key] ?? m);
+const fillTokens = (s, tokens) => String(s ?? '').replace(/\{\{\s*([\w-]+)\s*\}\}/g, (m, key) => (Object.hasOwn(tokens, key) ? tokens[key] : m));
 
 // Нет группы или самого списка групп — та же понятная ошибка сборки, что в content.ts
 function findGroup(id, groupId) {
@@ -66,8 +66,7 @@ export function clientTexts() {
       fail: forms('msgFail'),
       spam: forms('msgSpam'),
     }),
-    // Вставляется в атрибут title внутри innerHTML
-    __KONTAKT_MAP_TITLE__: jsonForScript(reader('kontakt', 'anfahrt', tokens)('mapTitle').replace(/"/g, '&quot;')),
+    __KONTAKT_MAP_TITLE__: jsonForScript(reader('kontakt', 'anfahrt', tokens)('mapTitle')),
   };
 }
 
@@ -75,14 +74,15 @@ export function clientTexts() {
 // а vite.define умеет только готовые значения. Поэтому там макросы — плагин разворачивает их при сборке
 // в обычные литералы, и минификатор видит тот же код, что и с текстом прямо в скрипте:
 //   __T('группа.поле', { имя: выражение })  текст, {имя} в значении → ${выражение}; для textContent
-//   __H(…)                                  то же для innerHTML: текст экранируется как textHtml() в content.ts
+//   __H(…)                                  то же для innerHTML: экранируется и для разметки, и для атрибутов
 //   __N('группа.поле')                      число: «1.497», «7,08», «131 €»
 //   __LEISTUNGEN('группа.поле')             список услуг для src/config/rechner.ts
 // Незнакомый {имя} остаётся как написан, убранный редактором просто не выводится.
 const RECHNER_SOURCES = /\/src\/(components\/Rechner\.astro\?astro&type=script|config\/rechner\.ts$)/;
 const PAGE = 'pflege-rechner';
 
-const escText = (s) => s.replace(/&(?=[#a-zA-Z0-9])/g, '&amp;').replace(/</g, '&lt;');
+// Как textHtml() в content.ts, плюс кавычки: значение __H может попасть и в атрибут
+const escHtml = (s) => s.replace(/&(?=[#a-zA-Z0-9])/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const inTemplate = (s) => s.replace(/[\\`]|\$\{/g, '\\$&');
 
 // Сайт обязан собраться с любым значением из админки: не число — предупреждение и 0
@@ -120,12 +120,12 @@ function expandMacro(call, code, tokens, page) {
   if (call.callee.name === '__LEISTUNGEN') return serviceList(page, path);
   const value = breakScriptTags(fillTokens(field(page, path, 'text', 'textarea').value, tokens));
   if (call.callee.name === '__N') return String(number(value, path));
-  const text = call.callee.name === '__H' ? escText(value) : value;
+  const text = call.callee.name === '__H' ? escHtml(value) : value;
   if (!partsArg) return JSON.stringify(text);
   const parts = Object.fromEntries(partsArg.properties.map((n) => [n.key.name, code.slice(n.value.start, n.value.end)]));
   const pieces = text.split(/\{(\w+)\}/).map((piece, i) => {
     if (i % 2 === 0) return inTemplate(piece);
-    return piece in parts ? `\${${parts[piece]}}` : inTemplate(`{${piece}}`);
+    return Object.hasOwn(parts, piece) ? `\${${parts[piece]}}` : inTemplate(`{${piece}}`);
   });
   return `\`${pieces.join('')}\``;
 }
