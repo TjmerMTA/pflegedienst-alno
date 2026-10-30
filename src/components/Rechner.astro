@@ -640,12 +640,12 @@ const p = getPage('pflege-rechner');
   .rc .chips { display: flex; gap: 8px; overflow-x: auto; padding-block-end: 8px; margin-block-end: 8px; scrollbar-width: thin; }
   .rc .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-block-size: 40px; padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; color: var(--ink-2); transition: .2s; }
   .rc .chip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .rc .svc-list { display: grid; gap: 8px; max-block-size: 340px; overflow: auto; padding: 3px; margin: -3px; overscroll-behavior: contain; }
+  .rc .svc-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; max-block-size: 340px; overflow: auto; padding: 3px; margin: -3px; overscroll-behavior: contain; }
   .rc .svc { display: flex; align-items: center; gap: 12px; inline-size: 100%; text-align: start; font: inherit; color: inherit; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; cursor: pointer; transition: .15s; min-block-size: 56px; }
   .rc .svc:hover { border-color: var(--brand); background: var(--bg-soft); }
   .rc .svc[aria-pressed=true] { border-color: var(--brand-600); background: var(--brand-50); box-shadow: 0 0 0 3px var(--brand-50); }
   .rc .ci { inline-size: 38px; block-size: 38px; border-radius: 10px; display: grid; place-items: center; flex: none; }
-  .rc .svc .nm { flex: 1; min-inline-size: 0; font-size: .95rem; line-height: 1.3; }
+  .rc .svc .nm { flex: 1; min-inline-size: 0; font-size: .95rem; line-height: 1.3; -webkit-hyphens: auto; hyphens: auto; }
   .rc .svc .nm small, .rc .pitem .info small { display: block; color: var(--muted); font-size: .78rem; }
   .rc .svc .pr-tag { font-weight: 700; white-space: nowrap; font-size: .93rem; }
   .rc .per { font-weight: 400; color: var(--muted); }
@@ -674,11 +674,11 @@ const p = getPage('pflege-rechner');
   .rc .add-row .sum b { color: var(--ink); font-size: 1.05rem; }
 
   /* Plan */
-  .rc .plan { display: grid; gap: 8px; }
+  .rc .plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .rc .pitem { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; animation: rc-in .35s; }
   .rc .pitem.out { animation: rc-out .25s forwards; }
   @keyframes rc-out { to { opacity: 0; transform: translateX(30px); } }
-  .rc .pitem .info { flex: 1; min-inline-size: 0; }
+  .rc .pitem .info { flex: 1; min-inline-size: 0; -webkit-hyphens: auto; hyphens: auto; }
   .rc .pitem .info b { display: block; font-size: .95rem; line-height: 1.3; }
   .rc .pitem .amt { text-align: end; white-space: nowrap; }
   .rc .pitem .amt b { display: block; }
