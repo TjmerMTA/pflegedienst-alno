@@ -3,32 +3,33 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Icon from '../components/Icon.astro';
 import ContactForm from '../components/ContactForm.astro';
-import { SITE, whatsappUrl } from '../config/site';
+import { SITE, whatsappUrl, getPage, escText } from '../config/site';
+// Тексты — в src/content/pages/erstbegutachtung.json (правятся в админке)
+const p = getPage('erstbegutachtung');
 ---
-<Base title="Kostenlose Erstbegutachtung zu Hause buchen" description="Termin für eine kostenlose Erstbegutachtung beim Pflegedienst ALNO in Dortmund anfragen: Eine Pflegefachkraft besucht Sie zu Hause und plant die passende Versorgung.">
-  <PageHero title="Kostenlose Erstbegutachtung" lead="Eine Pflegefachkraft besucht Sie zu Hause oder im Krankenhaus, erfasst den Hilfebedarf und plant mit Ihnen die passende Versorgung – kostenlos und unverbindlich." crumbs={[{ label: 'Erstbegutachtung' }]} />
+<Base title={p.text('seo.title')} description={p.text('seo.description')}>
+  <PageHero title={p.text('hero.title')} lead={p.text('hero.lead')} crumbs={[{ label: p.text('hero.crumb') }]} />
   <section class="section">
     <div class="wrap layout">
       <div class="card">
-        <h2>Wunschtermin anfragen</h2>
-        <p class="muted">Wir bestätigen den Termin telefonisch – meist innerhalb eines Werktags. Sie können den Termin auch direkt telefonisch vereinbaren: <a href={SITE.phoneHref}>{SITE.phone}</a> (8–22 Uhr).</p>
+        <h2>{p.text('form.h2')}</h2>
+        <p class="muted">{p.text('form.noteBefore')} <a href={SITE.phoneHref}>{SITE.phone}</a> {p.text('form.noteAfter')}</p>
         <ContactForm variant="erstbegutachtung" id="eb-form" />
       </div>
       <aside>
-        <h2 class="h3">Das erwartet Sie</h2>
+        <h2 class="h3">{p.text('expect.h2')}</h2>
         <ol class="tl">
-          <li><span><Icon name="phone" size={18} /></span><div><b>Kurzes Telefonat</b><p>Wir klären, wer Pflege braucht und bestätigen den Termin.</p></div></li>
-          <li><span><Icon name="home" size={18} /></span><div><b>Besuch bei Ihnen</b><p>Ca. 45–60 Minuten. Angehörige sind herzlich willkommen.</p></div></li>
-          <li><span><Icon name="clipboard" size={18} /></span><div><b>Pflegeplan & Kosten</b><p>Sie erhalten einen Vorschlag mit allen Leistungen und dem, was die Kasse übernimmt.</p></div></li>
-          <li><span><Icon name="heart" size={18} /></span><div><b>Start der Pflege</b><p>Oft schon innerhalb weniger Tage.</p></div></li>
+          {p.list<{ icon: string; title: string; text: string }>('expect.items').map((e) => (
+            <li><span><Icon name={e.icon} size={18} /></span><div><b set:html={escText(e.title)} /><p>{e.text}</p></div></li>
+          ))}
         </ol>
         <div class="card mini">
-          <b>Bitte bereithalten (falls vorhanden):</b>
-          <ul class="checks"><li>Bescheid über den Pflegegrad</li><li>Ärztliche Verordnungen</li><li>Medikamentenplan</li><li>Versichertenkarte</li></ul>
+          <b>{p.text('prepare.title')}</b>
+          <ul class="checks">{p.list<{ text: string }>('prepare.items').map((i) => <li>{i.text}</li>)}</ul>
         </div>
         <div class="btn-row">
-          <a class="btn btn--ghost" href={SITE.phoneHref}><Icon name="phone" size={20} /> Lieber anrufen</a>
-          <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> WhatsApp</a>
+          <a class="btn btn--ghost" href={SITE.phoneHref}><Icon name="phone" size={20} /> {p.text('buttons.call')}</a>
+          <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> {p.text('buttons.whatsapp')}</a>
         </div>
       </aside>
     </div>
