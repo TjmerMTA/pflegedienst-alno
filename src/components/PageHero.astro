@@ -2,7 +2,9 @@
 import { Image } from 'astro:assets';
 interface Props { title: string; lead?: string; crumbs?: { href?: string; label: string }[]; bg?: string }
 const { title, lead, crumbs = [], bg } = Astro.props;
-const all = [{ href: '/', label: 'Startseite' }, ...crumbs];
+// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
+const { getGlobal } = await import('../lib/content');
+const all = [{ href: '/', label: getGlobal().text('header.crumbHome') }, ...crumbs];
 const schema = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: all.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.label, ...(c.href ? { item: new URL(c.href, Astro.site).href } : {}) })),

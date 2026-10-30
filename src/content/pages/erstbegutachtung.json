@@ -1,0 +1,206 @@
+{
+  "label": "Erstbegutachtung",
+  "url": "/erstbegutachtung/",
+  "order": 5,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "help": "Ohne „ALNO“ im Titel hängt die Seite „| Pflegedienst ALNO Dortmund“ an",
+          "required": true,
+          "max": 70,
+          "value": "Kostenlose Erstbegutachtung zu Hause buchen"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Termin für eine kostenlose Erstbegutachtung beim Pflegedienst ALNO in Dortmund anfragen: Eine Pflegefachkraft besucht Sie zu Hause und plant die passende Versorgung."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Kostenlose Erstbegutachtung"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Eine Pflegefachkraft besucht Sie zu Hause oder im Krankenhaus, erfasst den Hilfebedarf und plant mit Ihnen die passende Versorgung – kostenlos und unverbindlich."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in den Brotkrumen",
+          "type": "text",
+          "required": true,
+          "value": "Erstbegutachtung"
+        }
+      ]
+    },
+    {
+      "id": "form",
+      "label": "Formular",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Felder des Formulars: „Allgemein → Kontaktformular“",
+          "required": true,
+          "value": "Wunschtermin anfragen"
+        },
+        {
+          "id": "noteBefore",
+          "label": "Hinweis: Text vor der Telefonnummer",
+          "type": "textarea",
+          "value": "Wir bestätigen den Termin telefonisch – meist innerhalb eines Werktags. Sie können den Termin auch direkt telefonisch vereinbaren:"
+        },
+        {
+          "id": "noteAfter",
+          "label": "Hinweis: Text nach der Telefonnummer",
+          "type": "text",
+          "value": "({{hours}})."
+        }
+      ]
+    },
+    {
+      "id": "expect",
+      "label": "Das erwartet Sie",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Das erwartet Sie"
+        },
+        {
+          "id": "items",
+          "label": "Schritte",
+          "type": "list",
+          "max": 6,
+          "itemLabel": "Schritt",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "icon": "phone",
+              "title": "Kurzes Telefonat",
+              "text": "Wir klären, wer Pflege braucht und bestätigen den Termin."
+            },
+            {
+              "icon": "home",
+              "title": "Besuch bei Ihnen",
+              "text": "Ca. 45–60 Minuten. Angehörige sind herzlich willkommen."
+            },
+            {
+              "icon": "clipboard",
+              "title": "Pflegeplan & Kosten",
+              "text": "Sie erhalten einen Vorschlag mit allen Leistungen und dem, was die Kasse übernimmt."
+            },
+            {
+              "icon": "heart",
+              "title": "Start der Pflege",
+              "text": "Oft schon innerhalb weniger Tage."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prepare",
+      "label": "Bitte bereithalten",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Bitte bereithalten (falls vorhanden):"
+        },
+        {
+          "id": "items",
+          "label": "Unterlagen",
+          "type": "list",
+          "max": 8,
+          "itemLabel": "Unterlage",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Bescheid über den Pflegegrad"
+            },
+            {
+              "text": "Ärztliche Verordnungen"
+            },
+            {
+              "text": "Medikamentenplan"
+            },
+            {
+              "text": "Versichertenkarte"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buttons",
+      "label": "Buttons",
+      "fields": [
+        {
+          "id": "call",
+          "label": "Button: anrufen",
+          "type": "text",
+          "required": true,
+          "value": "Lieber anrufen"
+        },
+        {
+          "id": "whatsapp",
+          "label": "Button: WhatsApp",
+          "type": "text",
+          "required": true,
+          "value": "WhatsApp"
+        }
+      ]
+    }
+  ]
+}

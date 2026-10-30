@@ -34,7 +34,7 @@ const fail = (msg: string): never => { throw new Error(`[content] ${msg}`); };
 // Экранирование текста для set:html — ровно настолько, насколько нужно: «<» и «&», с которого
 // мог бы начаться HTML-символ. Так «Kosten & Finanzierung» и «geht's» выходят байт в байт
 // как написанные прямо в разметке (обычное {выражение} дало бы &amp; и &#39;).
-const escText = (s: string) => s.replace(/</g, '&lt;').replace(/&(?=[#a-zA-Z0-9])/g, '&amp;');
+export const escText = (s: string) => s.replace(/</g, '&lt;').replace(/&(?=[#a-zA-Z0-9])/g, '&amp;');
 
 // Richtext: только p br strong b em i a[href] ul ol li h2 h3, всё остальное вырезается.
 // Разрешённые теги без атрибутов остаются как были, у <a> остаётся только безопасный href.

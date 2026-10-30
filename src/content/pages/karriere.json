@@ -1,0 +1,445 @@
+{
+  "label": "Karriere",
+  "url": "/karriere/",
+  "order": 7,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "help": "Ohne „ALNO“ im Titel hängt die Seite „| Pflegedienst ALNO Dortmund“ an",
+          "required": true,
+          "max": 70,
+          "value": "Karriere – Pflegekraft gesucht in Dortmund"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 190,
+          "value": "Jobs beim Pflegedienst ALNO in Dortmund-Hörde: Pflegefachkraft, Pflegehelfer/in und Betreuungskraft (m/w/d) gesucht. Familiäres Team, feste Touren, faire Bezahlung – jetzt online bewerben."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Karriere: Pflegen mit Herz – in einem Team, das zusammenhält"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Wir suchen Pflegefachkräfte, Pflegehelfer/innen und Betreuungskräfte für Dortmund. Bewerben Sie sich in wenigen Minuten – ganz ohne Anschreiben."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in den Brotkrumen",
+          "type": "text",
+          "required": true,
+          "value": "Karriere"
+        },
+        {
+          "id": "buttonApply",
+          "label": "Button: bewerben",
+          "type": "text",
+          "required": true,
+          "value": "Jetzt bewerben"
+        },
+        {
+          "id": "buttonJobs",
+          "label": "Button: Stellen",
+          "type": "text",
+          "required": true,
+          "value": "Offene Stellen"
+        }
+      ]
+    },
+    {
+      "id": "why",
+      "label": "Warum ALNO",
+      "fields": [
+        {
+          "id": "image",
+          "label": "Bild",
+          "type": "image",
+          "required": true,
+          "value": "karriere.jpg",
+          "alt": "Mehrere Hände liegen in einem Kreis übereinander – Zusammenhalt im Team"
+        },
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Warum ALNO"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Ein Pflegedienst, bei dem Sie ankommen"
+        },
+        {
+          "id": "paragraphs",
+          "label": "Absätze",
+          "type": "list",
+          "max": 4,
+          "itemLabel": "Absatz",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "text": "Der Pflegedienst ALNO ist ein familiärer, inhabergeführter Pflegedienst aus Dortmund-Hörde. Wir pflegen mit Herz und Kompetenz – und genauso gehen wir miteinander um: respektvoll, zuverlässig und auf Augenhöhe."
+            },
+            {
+              "text": "Wenn Sie Menschen gern im eigenen Zuhause unterstützen und dabei ein Team im Rücken haben möchten, sind Sie bei uns richtig."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "benefits",
+      "label": "Ihre Vorteile",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Ihre Vorteile"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Darum lohnt sich ALNO"
+        },
+        {
+          "id": "items",
+          "label": "Vorteile",
+          "type": "list",
+          "max": 8,
+          "itemLabel": "Vorteil",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "icon": "users",
+              "title": "Familiäres Team",
+              "text": "Inhabergeführt, kurze Wege, ein offenes Ohr: Bei uns sind Sie kein Mitarbeiter unter vielen."
+            },
+            {
+              "icon": "calendar",
+              "title": "Feste Touren",
+              "text": "Planbare Dienste und feste Patientinnen und Patienten – Sie kennen die Menschen, die Sie pflegen."
+            },
+            {
+              "icon": "euro",
+              "title": "Faire Bezahlung",
+              "text": "Pünktliches, leistungsgerechtes Gehalt – Details besprechen wir offen im Gespräch."
+            },
+            {
+              "icon": "award",
+              "title": "Fortbildung",
+              "text": "Wir unterstützen Fort- und Weiterbildungen, damit Sie fachlich und persönlich wachsen können."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jobs",
+      "label": "Offene Stellen",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Offene Stellen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Wir suchen Verstärkung"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Nichts Passendes dabei? Bewerben Sie sich gern initiativ – wir freuen uns über jede Nachricht."
+        },
+        {
+          "id": "items",
+          "label": "Stellen",
+          "type": "list",
+          "help": "Die Titel erscheinen auch als Auswahl im Bewerbungsformular",
+          "max": 9,
+          "itemLabel": "Stelle",
+          "min": 1,
+          "fields": [
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            },
+            {
+              "id": "tags",
+              "label": "Eckdaten (eine pro Zeile)",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "title": "Pflegefachkraft (m/w/d)",
+              "text": "Grund- und Behandlungspflege bei unseren Patientinnen und Patienten zu Hause, Pflegeplanung und -dokumentation.",
+              "tags": "Vollzeit / Teilzeit\nExamen als Pflegefachkraft"
+            },
+            {
+              "title": "Pflegehelfer/in (m/w/d)",
+              "text": "Unterstützung bei der Grundpflege, Mobilisation und Alltagshilfe – mit Einarbeitung durch erfahrene Kolleginnen.",
+              "tags": "Vollzeit / Teilzeit\nPflegehelfer-Ausbildung oder Erfahrung"
+            },
+            {
+              "title": "Betreuungskraft / Alltagsbegleiter/in (m/w/d)",
+              "text": "Zeit schenken: Gespräche, gemeinsame Spaziergänge, Begleitung zu Terminen und Unterstützung im Haushalt.",
+              "tags": "Teilzeit / Minijob\nQualifizierung nach § 53b SGB XI von Vorteil"
+            }
+          ]
+        },
+        {
+          "id": "button",
+          "label": "Button in den Karten",
+          "type": "text",
+          "required": true,
+          "value": "Dafür bewerben"
+        }
+      ]
+    },
+    {
+      "id": "offers",
+      "label": "Das bieten wir",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Das bieten wir"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Gute Arbeit verdient gute Bedingungen"
+        },
+        {
+          "id": "items",
+          "label": "Angebote",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Angebot",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "Anstellung in Voll- oder Teilzeit, auch Minijob möglich"
+            },
+            {
+              "text": "Feste Touren und verlässliche Dienstplanung"
+            },
+            {
+              "text": "Faire Regelung für Fahrzeug bzw. Fahrtkosten auf der Tour"
+            },
+            {
+              "text": "Gründliche Einarbeitung mit festen Ansprechpartnern"
+            },
+            {
+              "text": "Fort- und Weiterbildungen, Praxisanleitung für neue Kolleginnen und Kollegen"
+            },
+            {
+              "text": "Regelmäßige Teambesprechungen und Raum für Ihre Ideen"
+            }
+          ]
+        },
+        {
+          "id": "noteBefore",
+          "label": "Hinweis: Text vor dem Link",
+          "type": "text",
+          "value": "Sie möchten in der Pflege starten? Schauen Sie auch auf unsere Seite"
+        },
+        {
+          "id": "noteLink",
+          "label": "Hinweis: Link zur Ausbildung",
+          "type": "text",
+          "required": true,
+          "value": "Ausbildung & Praktikum"
+        },
+        {
+          "id": "noteAfter",
+          "label": "Hinweis: Text nach dem Link",
+          "type": "text",
+          "value": "."
+        }
+      ]
+    },
+    {
+      "id": "steps",
+      "label": "So läuft die Bewerbung",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "So läuft die Bewerbung"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "In vier Schritten zu uns"
+        },
+        {
+          "id": "items",
+          "label": "Schritte",
+          "type": "list",
+          "help": "Die Nummern setzt die Seite selbst",
+          "max": 6,
+          "itemLabel": "Schritt",
+          "min": 1,
+          "fields": [
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "title": "Bewerbung senden",
+              "text": "Per Formular, E-Mail oder WhatsApp. Ein kurzer Lebenslauf reicht uns für den Anfang."
+            },
+            {
+              "title": "Kennenlernen",
+              "text": "Wir rufen Sie zurück und laden Sie zu einem persönlichen Gespräch in Dortmund-Hörde ein."
+            },
+            {
+              "title": "Probearbeiten",
+              "text": "Sie begleiten eine Tour und lernen das Team kennen – unverbindlich und ganz ohne Druck."
+            },
+            {
+              "title": "Zusage & Start",
+              "text": "Wir besprechen Vertrag und Starttermin – und Sie werden Schritt für Schritt eingearbeitet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apply",
+      "label": "Bewerbung",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Felder des Formulars: „Allgemein → Bewerbungsformular“",
+          "required": true,
+          "value": "Jetzt bewerben"
+        },
+        {
+          "id": "sideTitle",
+          "label": "Rechte Spalte: Überschrift",
+          "type": "text",
+          "value": "Lieber persönlich?"
+        },
+        {
+          "id": "sideText",
+          "label": "Rechte Spalte: Text",
+          "type": "textarea",
+          "value": "Rufen Sie uns an oder schicken Sie Ihren Lebenslauf direkt per E-Mail oder WhatsApp."
+        },
+        {
+          "id": "phoneLabel",
+          "label": "Kachel Telefon: Titel",
+          "type": "text",
+          "value": "Telefon"
+        },
+        {
+          "id": "emailLabel",
+          "label": "Kachel E-Mail: Titel",
+          "type": "text",
+          "value": "E-Mail"
+        },
+        {
+          "id": "whatsappLabel",
+          "label": "Kachel WhatsApp: Titel",
+          "type": "text",
+          "value": "WhatsApp"
+        },
+        {
+          "id": "whatsappText",
+          "label": "Kachel WhatsApp: Text",
+          "type": "text",
+          "value": "Nachricht schreiben"
+        }
+      ]
+    }
+  ]
+}
