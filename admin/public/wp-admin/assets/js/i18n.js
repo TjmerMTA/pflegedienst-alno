@@ -766,7 +766,7 @@ const ruMessages = [
   [/^ungültiger Wert$/, 'неверное значение'],
   [/^Das Bild ist zu klein: mindestens (\d+) × (\d+) Pixel, dieses hat (\d+) × (\d+)\.$/, 'картинка слишком маленькая: нужно не меньше $1 × $2 пикселей, у этой $3 × $4'],
   [/^Das Bild muss quadratisch sein\.$/, 'картинка должна быть квадратной'],
-  [/^Bitte eine Telefonnummer mit Vorwahl eingeben\.$/, 'введите номер телефона с кодом города'],
+  [/^Bitte nur die Telefonnummer mit Vorwahl eingeben, ohne Zusätze wie Zeiten oder eine zweite Nummer\.$/, 'введите только номер телефона с кодом города, без дополнений вроде часов работы или второго номера'],
   [/^Bitte leer lassen oder mit \+ und Ländervorwahl schreiben.*$/, 'оставьте пустым или напишите с + и кодом страны, например +49 231 5467686'],
   [/^ungültige Liste$/, 'неверный список'],
   [/^ungültiger Eintrag$/, 'неверный элемент'],

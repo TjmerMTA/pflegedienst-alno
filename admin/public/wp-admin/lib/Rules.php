@@ -40,7 +40,7 @@ final class Rules
     const MSG_ALT_TOO_LONG = 'Alternativtext zu lang';
     const MSG_BAD_IMAGE = 'ungültiger Bildpfad';
     const MSG_IMAGE_SQUARE = 'Das Bild muss quadratisch sein.';
-    const MSG_BAD_PHONE = 'Bitte eine Telefonnummer mit Vorwahl eingeben.';
+    const MSG_BAD_PHONE = 'Bitte nur die Telefonnummer mit Vorwahl eingeben, ohne Zusätze wie Zeiten oder eine zweite Nummer.';
     const MSG_BAD_PHONE_INTL = 'Bitte leer lassen oder mit + und Ländervorwahl schreiben, z. B. +49 231 5467686.';
     const MSG_IMAGE_EXTERNAL = 'Bilder von fremden Websites werden hier nicht angezeigt. Bitte das Bild in die Mediathek hochladen und von dort einsetzen.';
     const MSG_UNKNOWN_GROUP = 'unbekannte Gruppe';
@@ -123,6 +123,13 @@ final class Rules
     }
 
     /** True when a plain text value could open a tag: `</script a` needs no `>` in the same field. */
+    // Every digit goes into the call link, so text beside the number would dial the wrong one.
+    private static function phoneOk(string $s, string $form): bool
+    {
+        $digits = strlen((string) preg_replace('/\D/', '', $s));
+        return $digits >= 6 && $digits <= 15 && preg_match($form, $s) === 1;
+    }
+
     public static function looksLikeHtml(string $s): bool
     {
         return preg_match('/<[a-zA-Z\/!?{]/', $s) === 1;
@@ -580,8 +587,8 @@ final class Rules
         if ($isPlain && !empty($f['max']) && $n > $f['max']) $err(self::msgTooLong((int) $f['max'], $n));
         if ($isPlain) {
             if ($contact && strpbrk($value, '<>') !== false) $err(self::MSG_NO_ANGLE);
-            elseif ($contact && $f['id'] === 'phone' && $plain !== '' && strlen((string) preg_replace('/\D/', '', $plain)) < 6) $err(self::MSG_BAD_PHONE);
-            elseif ($contact && $f['id'] === 'phoneIntl' && $plain !== '' && !preg_match('/^\+[0-9 ()\/-]{6,}$/D', $plain)) $err(self::MSG_BAD_PHONE_INTL);
+            elseif ($contact && $f['id'] === 'phone' && $plain !== '' && !self::phoneOk($plain, '/^\+?[0-9\p{Zs}\p{Pd}()\/.]+$/Du')) $err(self::MSG_BAD_PHONE);
+            elseif ($contact && $f['id'] === 'phoneIntl' && $plain !== '' && !self::phoneOk($plain, '/^\+[0-9 ()\/-]+$/D')) $err(self::MSG_BAD_PHONE_INTL);
             elseif (self::looksLikeHtml($value)) $err(self::MSG_NO_HTML);
         }
         if ($f['type'] === 'text' && strpos($value, "\n") !== false) $err(self::MSG_ONE_LINE);

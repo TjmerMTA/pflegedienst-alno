@@ -79,7 +79,7 @@ The site should also filter rendered Markdown at build time: this rule protects 
 ## Pages (`src/content/pages/*.json`)
 
 - `image` fields may carry `minWidth`, `minHeight` and `square`. Checked only when the image changed, so an old one never blocks a save.
-- Group `contact`: `phone` needs at least six digits; `phoneIntl` is empty or starts with `+`.
+- Group `contact`: `phone` is one number, 6 to 15 digits, with spaces and `+ ( ) / . -` at most, because every digit goes into the call link; `phoneIntl` is empty or the same with a leading `+`.
 
 - A file with a changed structure is refused for editing: label, `groups`, unique ids, known field types (`text textarea richtext image list`), `list` with `fields` and no list
   inside a list.

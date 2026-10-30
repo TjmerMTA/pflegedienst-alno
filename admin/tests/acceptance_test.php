@@ -18,11 +18,17 @@ test('Telefon must hold a number: the call links are made from it', function () 
     eq($contact('phone', 'auf Anfrage')[0]['msg'] ?? '', Rules::MSG_BAD_PHONE);
     eq($contact('phone', '123')[0]['msg'] ?? '', Rules::MSG_BAD_PHONE);
 });
+test('Telefon holds one number and nothing beside it: every digit goes into the call link', function () use ($contact) {
+    foreach (['0231 / 54 67 686', '0231-5467686', "0231\u{A0}5467686", '0231–5467686', '+49 (0) 231 5467686', '0049 231 5467686', '0231.5467686', '123456', '123456789012345'] as $ok) eq($contact('phone', $ok), [], $ok);
+    foreach (['0231 5467686 (Mo-Fr 8-16)', '24h: 0231 5467686', '0231 5467686 oder 0231 999', '0231 5467686 / 0231 999', '1234567890123456', '12345'] as $bad) eq($contact('phone', $bad)[0]['msg'] ?? '', Rules::MSG_BAD_PHONE, $bad);
+});
 test('Telefon international is optional, and if set it is international', function () use ($contact) {
     eq($contact('phoneIntl', ''), []);
     eq($contact('phoneIntl', '+49 231 5467686'), []);
     eq($contact('phoneIntl', '0231 5467686')[0]['msg'] ?? '', Rules::MSG_BAD_PHONE_INTL);
     eq($contact('phoneIntl', '+49 ruft zurück')[0]['msg'] ?? '', Rules::MSG_BAD_PHONE_INTL);
+    foreach (['+ - - -', '+ 123 45', '+1234567890123456'] as $bad) eq($contact('phoneIntl', $bad)[0]['msg'] ?? '', Rules::MSG_BAD_PHONE_INTL, $bad);
+    eq($contact('phoneIntl', '+123456789012345'), []);
 });
 test('the same field names outside the contact group are plain text', function () {
     eq(Rules::validatePageValues(['groups' => [['id' => 'kontakt', 'fields' => [['id' => 'phone', 'label' => 'x', 'type' => 'text', 'value' => 'Rufen Sie uns an']]]]]), []);
