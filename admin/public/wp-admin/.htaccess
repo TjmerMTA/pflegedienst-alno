@@ -1,0 +1,8 @@
+# ALNO Admin. api.php and cron.php are the only PHP entry points. Headers: ../.htaccess.
+DirectoryIndex index.html
+<IfModule mod_headers.c>
+  # Asked again each time, answered by ETag: after a deploy nobody runs yesterday's scripts.
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

@@ -1,0 +1,40 @@
+{
+  "blog": {
+    "key": "blog", "dir": "blog", "postType": "post", "canCreate": true, "canDelete": true, "body": true, "urlPrefix": "/blog/",
+    "fields": [
+      { "id": "title", "type": "text", "label": "Titel (H1 und Meta Title)", "required": true, "box": "title" },
+      { "id": "description", "type": "textarea", "label": "Meta Description", "required": true, "max": 170, "box": "main", "group": "seo" },
+      { "id": "date", "type": "date", "label": "Veröffentlicht am", "required": true, "box": "side", "group": "publish" },
+      { "id": "updated", "type": "date", "label": "Aktualisiert am", "box": "side", "group": "publish" },
+      { "id": "draft", "type": "boolean", "label": "Entwurf – nicht auf der Website zeigen", "box": "side", "group": "publish" },
+      { "id": "author", "type": "text", "label": "Autor", "placeholder": "Team Pflegedienst ALNO", "box": "main", "group": "more" },
+      { "id": "tags", "type": "tags", "label": "Schlagwörter", "help": "Durch Kommas trennen", "box": "side", "group": "tags" },
+      { "id": "image", "type": "image", "label": "Beitragsbild", "altKey": "imageAlt", "box": "side", "group": "image" }
+    ]
+  },
+  "leistungen": {
+    "key": "leistungen", "dir": "leistungen", "postType": "leistung", "canCreate": false, "canDelete": false, "body": true, "urlPrefix": "/leistungen/",
+    "fields": [
+      { "id": "title", "type": "text", "label": "Name der Leistung", "required": true, "box": "title" },
+      { "id": "metaTitle", "type": "text", "label": "Meta Title", "required": true, "max": 70, "box": "main", "group": "seo" },
+      { "id": "description", "type": "textarea", "label": "Meta Description", "required": true, "max": 170, "box": "main", "group": "seo" },
+      { "id": "teaser", "type": "textarea", "label": "Kurztext (Karte auf der Startseite)", "required": true, "box": "main", "group": "card" },
+      { "id": "icon", "type": "select", "label": "Symbol", "required": true, "box": "side", "group": "attrs",
+        "options": ["heart", "shield", "hands", "cross", "home", "calendar", "users", "euro", "check", "arrow", "chat", "award", "clipboard", "star", "car", "info", "phone", "mail", "pin", "clock"] },
+      { "id": "order", "type": "number", "label": "Reihenfolge", "required": true, "box": "side", "group": "attrs" },
+      { "id": "payer", "type": "text", "label": "Wer bezahlt?", "required": true, "box": "main", "group": "card" },
+      { "id": "highlights", "type": "strings", "label": "Leistungspunkte", "itemLabel": "Punkt", "required": true, "box": "main", "group": "card" }
+    ]
+  },
+  "team": {
+    "key": "team", "dir": "team", "postType": "team", "canCreate": true, "canDelete": true, "body": false, "url": "/ueber-uns/",
+    "fields": [
+      { "id": "name", "type": "text", "label": "Name", "required": true, "box": "title" },
+      { "id": "role", "type": "text", "label": "Funktion", "required": true, "box": "main", "group": "person" },
+      { "id": "description", "type": "textarea", "label": "Beschreibung", "box": "main", "group": "person" },
+      { "id": "order", "type": "number", "label": "Reihenfolge", "placeholder": "100", "box": "side", "group": "attrs" },
+      { "id": "hidden", "type": "boolean", "label": "Auf der Website ausblenden", "box": "side", "group": "attrs" },
+      { "id": "photo", "type": "image", "label": "Foto", "box": "side", "group": "image" }
+    ]
+  }
+}

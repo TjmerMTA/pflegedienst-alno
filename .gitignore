@@ -7,3 +7,6 @@ dist/
 
 # Правки и переписка с клиентом — вне публичного репо (~/клиенты/alno/правки/)
 docs/правки/
+
+# Data folder of the local admin: users, token, sessions
+alno-data/

@@ -1,0 +1,99 @@
+# Builds the site and puts it on the Hetzner hosting. Deploy runs only after a green build, so a
+# failed build never touches the live site. The admin reads this run's state through the Actions
+# API: the jobs must stay named `build` and `deploy`.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Upload every file, not only the changed ones
+        type: boolean
+        default: false
+      allow_shrink:
+        description: Allow an upload with less than half the files of the last one
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One at a time, and a running deploy is never cut off; a newer push replaces one that is waiting.
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: false
+
+env:
+  SFTP_HOST: www810.your-server.de
+  SFTP_USER: ftdq3y
+  SFTP_PORT: '22'
+  SITE_ROOT: public_html
+  ADMIN_ROOT: admin_html
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          SITE_URL: https://pflegedienst-alno.de
+          PUBLIC_FORM_ENDPOINT: /api/anfrage.php
+          PUBLIC_GA_ID: ${{ vars.PUBLIC_GA_ID }}
+      - name: Assemble the two docroots
+        run: scripts/assemble-upload.sh upload
+      # As one tar: an artifact of the folder itself would lose .htaccess.
+      - run: tar -czf upload.tgz -C upload .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upload
+          path: upload.tgz
+          retention-days: 3
+          if-no-files-found: error
+
+  deploy:
+    name: deploy
+    needs: build
+    # By hand the workflow can be started on any branch; only main goes live.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: upload
+      - run: mkdir upload && tar -xzf upload.tgz -C upload
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Prepare the SSH key
+        env:
+          SFTP_KEY: ${{ secrets.SFTP_KEY }}
+          SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SFTP_KEY" > ~/.ssh/alno_sftp
+          chmod 600 ~/.ssh/alno_sftp
+          if [ -n "$SFTP_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SFTP_KNOWN_HOSTS" > ~/.ssh/alno_known_hosts
+          else
+            echo "::warning::Secret SFTP_KNOWN_HOSTS is not set: trusting whatever host key answers today. See admin/README.md."
+            ssh-keyscan -p "$SFTP_PORT" "$SFTP_HOST" > ~/.ssh/alno_known_hosts
+          fi
+      - name: Upload
+        env:
+          FULL: ${{ inputs.full }}
+          ALLOW_SHRINK: ${{ inputs.allow_shrink }}
+          SFTP_KEY_FILE: ~/.ssh/alno_sftp
+          SFTP_KNOWN_HOSTS_FILE: ~/.ssh/alno_known_hosts
+        run: |
+          scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest
+          scripts/deploy-sftp.sh upload/admin "$ADMIN_ROOT" .alno-deploy-manifest-admin
+      - if: always()
+        run: rm -f ~/.ssh/alno_sftp
