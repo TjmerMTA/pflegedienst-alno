@@ -11,7 +11,9 @@ done
 rm -rf "$out"
 mkdir -p "$out/site" "$out/admin"
 cp -R dist/. "$out/site/"
-if [ -e "$out/site/wp-admin" ]; then echo "dist must not contain wp-admin/" >&2; exit 1; fi
+for d in wp-admin admin-alno; do
+  if [ -e "$out/site/$d" ]; then echo "dist must not contain $d/" >&2; exit 1; fi
+done
 cp -R admin/public/. "$out/admin/"
 # GitHub Pages' own files, for the preview only.
 rm -f "$out/site/CNAME" "$out/site/.nojekyll"

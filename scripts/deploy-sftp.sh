@@ -11,7 +11,10 @@
 # A folder that is not a whole site stops the run before anything moves: a build gone wrong must
 # never look like «all those files are stale». ALLOW_SHRINK=true lets a real clean-up through.
 #
-# Usage: scripts/deploy-sftp.sh <folder> <docroot on the host> <manifest file name>
+# The admin's docroot lies inside the site's: the optional fourth argument names that subfolder, which
+# this run neither uploads to nor deletes from, whatever its folder or the manifest say.
+#
+# Usage: scripts/deploy-sftp.sh <folder> <docroot on the host> <manifest file name> [foreign subfolder]
 # Env: SFTP_HOST SFTP_USER SFTP_PORT SFTP_KEY_FILE SFTP_KNOWN_HOSTS_FILE, FULL=true uploads everything.
 set -euo pipefail
 
@@ -24,6 +27,11 @@ key=${SFTP_KEY_FILE/#\~/$HOME}
 known=${SFTP_KNOWN_HOSTS_FILE/#\~/$HOME}
 root=$2
 manifest=$3
+foreign=${4:-}
+if [ -n "$foreign" ] && [ -e "$src/$foreign" ]; then
+  echo "$foreign belongs to another docroot and must not be in $src: refusing to deploy." >&2
+  exit 1
+fi
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
@@ -67,6 +75,10 @@ LC_ALL=C sort -u "$work/files" > "$work/new.paths"
 # What this script could not have uploaded is not its own: never deleted, never counted, and gone from
 # the manifest after this run. Only the number is printed: the text comes from the host, the log is public.
 grep -E '^[A-Za-z0-9._@+/-]+$' "$work/old.paths" | grep -v '^/' | grep -v '\.\.' > "$work/old.safe" || true
+if [ -n "$foreign" ]; then
+  grep -v -e "^$foreign/" -e "^$foreign\$" "$work/old.safe" > "$work/old.own" || true
+  mv "$work/old.own" "$work/old.safe"
+fi
 ignored=$(($(wc -l < "$work/old.paths") - $(wc -l < "$work/old.safe")))
 if [ "$ignored" -gt 0 ]; then echo "$ignored unsafe paths in the manifest ignored." >&2; fi
 
