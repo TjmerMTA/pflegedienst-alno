@@ -1,17 +1,17 @@
 # Заголовки безопасности публичного сайта (Apache, Hetzner Webhosting).
 # Значение CSP подставляет при сборке src/lib/hardening.mjs: хеши инлайновых скриптов и стилей берутся из готовых страниц.
-# Поддомен admin живёт в public_html/admin-alno и наследует этот файл, поэтому редирект и заголовки ниже — только для
-# адресов самого сайта. У админки свой .htaccess со своими заголовками и своим редиректом.
+# Поддомен admin живёт в public_html/admin-alno и наследует этот файл, поэтому редирект и заголовки ниже — для всех
+# адресов, кроме наших поддоменов и локальных. У админки свой .htaccess со своими заголовками и своим редиректом.
+# Не наоборот, не «только apex и www»: чужой адрес, по которому хостинг отдаёт сайт, не должен остаться без CSP.
 
 # На хостинге лежит index.htm по умолчанию: главная страница — наша
 DirectoryIndex index.html
 
 # Только HTTPS: и формы, и cookie согласия не ездят открытым текстом. Адрес зашит, а не взят из Host: заголовок задаёт
-# клиент. .well-known открыт для проверки сертификата. Точка в конце имени — тот же сайт, но для браузера другой адрес:
-# без неё в условиях такой адрес обошёл бы и редирект, и CSP
+# клиент. .well-known открыт для проверки сертификата. Точка в конце имени: иначе admin.…de. считался бы чужим адресом
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteCond %{HTTP_HOST} ^(www\.)?pflegedienst-alno\.de\.?(:[0-9]+)?$ [NC]
+  RewriteCond %{HTTP_HOST} !^((?!www\.)[^.]+\.pflegedienst-alno\.de\.?|127\.0\.0\.1|localhost)(:[0-9]+)?$ [NC]
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
   RewriteCond %{REQUEST_URI} !^/\.well-known/
@@ -24,7 +24,7 @@ DirectoryIndex index.html
 </If>
 
 <IfModule mod_headers.c>
-  <If "%{HTTP_HOST} =~ /^(www\.)?pflegedienst-alno\.de\.?(:[0-9]+)?$/i">
+  <If "%{HTTP_HOST} !~ /^((?!www\.)[^.]+\.pflegedienst-alno\.de\.?|127\.0\.0\.1|localhost)(:[0-9]+)?$/i">
     Header always set Content-Security-Policy "__CSP__"
     Header always set X-Content-Type-Options "nosniff"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"

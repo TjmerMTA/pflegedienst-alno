@@ -215,13 +215,16 @@ test('a site that holds the admin folder stops before the docroots are made', fu
     unlink("$d/admin");
     rmTree($d);
 });
-test('the site\'s rules stay on its own hosts: the admin folder inherits this file', function () use ($root) {
+test('the site\'s rules stay off the admin: it inherits this file. Any other host gets them', function () use ($root) {
     $h = (string) file_get_contents("$root/public/.htaccess");
-    has($h, "<If \"%{HTTP_HOST} =~ /^(www\\.)?pflegedienst-alno\\.de\\.?(:[0-9]+)?\$/i\">\n    Header always set Content-Security-Policy");
-    has($h, "RewriteCond %{HTTP_HOST} ^(www\\.)?pflegedienst-alno\\.de\\.?(:[0-9]+)?\$ [NC]\n");
+    $mine = '((?!www\.)[^.]+\.pflegedienst-alno\.de\.?|127\.0\.0\.1|localhost)(:[0-9]+)?$';
+    has($h, "<If \"%{HTTP_HOST} !~ /^$mine/i\">\n    Header always set Content-Security-Policy");
+    has($h, "RewriteCond %{HTTP_HOST} !^$mine [NC]\n");
+    foreach (['admin.pflegedienst-alno.de', 'ADMIN.pflegedienst-alno.de:443', 'admin.pflegedienst-alno.de.', 'localhost:4321', '127.0.0.1'] as $host) ok(preg_match("/^$mine/i", $host) === 1, $host);
+    foreach (['pflegedienst-alno.de', 'www.pflegedienst-alno.de', 'WWW.pflegedienst-alno.de.', 'pflegedienst-alno.de:443', 'pflegedienst-alno.de.', 'www810.your-server.de', '1.2.3.4', 'evil.example', 'admin.pflegedienst-alno.de.evil.example'] as $host) ok(preg_match("/^$mine/i", $host) === 0, $host);
     has($h, 'm#^/admin-alno(/|$)#i');
     has($h, "DirectoryIndex index.html\n");
-    eq(preg_match('/^\s*Header\b/m', (string) preg_replace('/<If "%\{HTTP_HOST\} =~.*?<\/If>/s', '', $h)), 0);
+    eq(preg_match('/^\s*Header\b/m', (string) preg_replace('/<If "%\{HTTP_HOST\} !~.*?<\/If>/s', '', $h)), 0);
 });
 test('the admin folder answers its own host only, and sends one CSP', function () use ($root) {
     $h = (string) file_get_contents("$root/admin/public/.htaccess");
