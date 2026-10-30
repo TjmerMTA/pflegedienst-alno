@@ -265,13 +265,37 @@ export function pageImageRefs(page) {
           if (sub.type !== 'image') continue;
           f.value.forEach((item, i) => {
             const im = itemImage(item, sub);
-            if (im.value) refs.push({ path: im.value, alt: im.alt, where: `${g.label} › ${f.label} ${i + 1}` });
+            if (im.value) refs.push({ path: im.value, alt: im.alt, where: `${g.label} › ${f.itemLabel || f.label} ${i + 1}` });
           });
         }
       }
     }
   }
   return refs;
+}
+
+// A page as readable lines («Gruppe › Feld: Wert») for the revision comparison: what changed for
+// the editor, without the JSON around it.
+export function pageLines(page) {
+  const lines = [];
+  const show = (s) => String(s ?? '').replace(/\n/g, ' ⏎ ');
+  const img = (v, alt) => (v ? `${v} (Alt: ${alt ?? ''})` : '—');
+  for (const g of page.groups || []) {
+    for (const f of g.fields || []) {
+      const p = `${g.label} › ${f.label}`;
+      if (f.type === 'image') lines.push(`${p}: ${img(f.value, f.alt)}`);
+      else if (f.type === 'list') {
+        (Array.isArray(f.value) ? f.value : []).forEach((item, i) => {
+          for (const sub of f.fields || []) {
+            const q = `${g.label} › ${f.itemLabel || f.label} ${i + 1} › ${sub.label}`;
+            if (sub.type === 'image') { const im = itemImage(item, sub); lines.push(`${q}: ${img(im.value, im.alt)}`); }
+            else lines.push(`${q}: ${show(item?.[sub.id])}`);
+          }
+        });
+      } else lines.push(`${p}: ${show(f.value)}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 // Token keys available as {{key}}: fields of group `contact` in _global.json.

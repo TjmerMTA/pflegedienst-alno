@@ -185,6 +185,7 @@ input.big { font-size: 1.6em; line-height: 1.4; padding: 3px 8px; }
 .image-file { color: #646970; font-size: 12px; word-break: break-all; }
 .postbox-container .image-picker { flex-direction: column; }
 .postbox-container .image-preview { width: 100%; height: 160px; }
+.postbox-container .regular-text { width: 100%; }
 
 /* ---------- lists ---------- */
 .list-items { list-style: none; margin: 0 0 8px; padding: 0; }

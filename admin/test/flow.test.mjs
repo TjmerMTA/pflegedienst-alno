@@ -202,7 +202,7 @@ test('image and alt per list item through the form', async () => {
   assert.equal((await save(fields)).status, 303);
   assert.deepEqual(JSON.parse(read(site, INDEX)).groups[2].fields[0].value[0].photo, { value: 'hero/start.jpg', alt: 'Anderes Bild' });
   const media = await c.get('/wp-admin/upload.php?item=hero%2Fstart.jpg');
-  assert.match(media.text_, /Karten › Karten 1/);
+  assert.match(media.text_, /Karten › Karte 1/);
   assert.match(media.text_, /Anderes Bild/);
 });
 
@@ -325,7 +325,8 @@ test('revisions: list, compare, restore makes a new commit', async () => {
   assert.equal(list.status, 200);
   assert.match(list.text_, /tester/);
   const cmp = await c.get(`/wp-admin/revision.php?file=${encodeURIComponent(INDEX)}&rev=${prev}`);
-  assert.match(cmp.text_, /Revision B/);
+  assert.match(cmp.text_, /Erster Bildschirm › Überschrift \(H1\): Revision B/, 'readable, by field');
+  assert.doesNotMatch(cmp.text_, /&quot;id&quot;|&quot;fields&quot;/, 'no JSON in the comparison');
   const count = log.length;
   const r = await c.post('/wp-admin/revision.php', { _wpnonce: await c.nonce(), action: 'restore', file: INDEX, rev: prev });
   assert.equal(r.status, 303);
@@ -334,6 +335,17 @@ test('revisions: list, compare, restore makes a new commit', async () => {
   assert.match(site.git('log', '-1', '--format=%an|%s'), /^tester\|Admin: Revision [0-9a-f]{7} wiederhergestellt/);
   await srv.app.publisher.idle();
   assert.equal((await srv.app.publisher.snapshot()).lastBuild.ok, true);
+});
+
+test('revisions: only the formatting of a page file differing is not a change', async () => {
+  const f = 'src/content/pages/ueber-uns.json';
+  const prevText = read(site, f);
+  fs.writeFileSync(path.join(site.siteDir, f), JSON.stringify(JSON.parse(prevText)));
+  site.git('-c', 'user.name=x', '-c', 'user.email=x@example.org', 'commit', '-qam', 'Nur Formatierung');
+  const rev = site.git('log', '--format=%H', '--', f).trim().split('\n')[1];
+  const r = await c.get(`/wp-admin/revision.php?file=${encodeURIComponent(f)}&rev=${rev}`);
+  assert.match(r.text_, /entspricht dem aktuellen Stand/);
+  assert.doesNotMatch(r.text_, /Diese Revision wiederherstellen/);
 });
 
 test('revisions: a Markdown file can be restored', async () => {

@@ -11,7 +11,7 @@ import { createGit, REV_RE } from './git.js';
 import { createPublisher } from './publish.js';
 import { HttpError, readForm, readMultipart, parseCookies, cookie, send, redirect, json, SECURITY_HEADERS } from './http.js';
 import { safeJoin, PathError, writeAtomic, sha, createMutex, SLUG_RE, slugify, readJsonFile, writeJsonPrivate } from './fsutil.js';
-import { listPageFiles, checkStructure, applyValues, serializePage, mergeOldValues, validateValues, pageImageRefs, tokenKeys, isImagePath, PAGE_ID_RE, IMAGE_RE } from './pages.js';
+import { listPageFiles, checkStructure, applyValues, serializePage, mergeOldValues, validateValues, pageImageRefs, pageLines, tokenKeys, isImagePath, PAGE_ID_RE } from './pages.js';
 import { COLLECTIONS, POST_TYPES, listEntries, readEntry, formValues, applyForm, serializeEntry, entryImageRefs } from './collections.js';
 import { splitFrontmatter, parseFrontmatter } from './frontmatter.js';
 import { unsupportedMarkdown } from './markdown.js';
@@ -628,8 +628,12 @@ export function createApp(cfg, { now } = {}) {
       try { oldText = (await git.show(selected.hash, file)).toString('utf8'); } catch {}
       let cur = '';
       try { cur = await fsp.readFile(path.join(cfg.siteDir, file), 'utf8'); } catch {}
+      // Page files are compared field by field; formatting of the JSON is not a change.
+      if (file.endsWith('.json')) {
+        try { oldText = pageLines(JSON.parse(oldText)); cur = pageLines(JSON.parse(cur)); } catch {}
+      }
       same = oldText === cur;
-      diff = compact(lineDiff(cur, oldText));
+      diff = compact(lineDiff(cur, oldText), file.endsWith('.json') ? 1 : 3);
     }
     const editUrl = fs.existsSync(path.join(cfg.siteDir, file)) ? editUrlFor(file) : null;
     page(res, ctx, ctx.t('rev.title'), V.revisionFile(ctx, { file, title: await fileTitle(file), editUrl, revs, selected, diff, same, isRepo: repo }), await messageNotices(ctx, url));

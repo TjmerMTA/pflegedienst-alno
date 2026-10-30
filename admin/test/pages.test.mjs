@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { applyValues, checkStructure, validateValues, mergeOldValues, structureOf, pageImageRefs, tokenKeys, ALT_REQUIRED } from '../lib/pages.js';
+import { applyValues, checkStructure, validateValues, mergeOldValues, structureOf, pageImageRefs, pageLines, tokenKeys, ALT_REQUIRED } from '../lib/pages.js';
 import { applyForm } from '../lib/collections.js';
 import { FIXTURE } from './helpers.mjs';
 
@@ -180,6 +180,14 @@ test('old values are poured into the current structure', () => {
   assert.equal(m.groups[1].fields[1].value, 'Alt');
   assert.equal(m.groups[1].fields[0].label, 'Neue Beschriftung');
   assert.equal(m.groups[1].fields.some((f) => f.id === 'weg'), false);
+});
+
+test('pages read as lines by field', () => {
+  const lines = pageLines(load('index')).split('\n');
+  assert.ok(lines.includes('Erster Bildschirm › Überschrift (H1): Gut versorgt zu Hause –'));
+  assert.ok(lines.includes('Erster Bildschirm › Bild: hero/start.jpg (Alt: Testbild Startseite)'));
+  assert.ok(lines.includes('Erster Bildschirm › Punkt 2 › Text: Telefon {{hours}}'));
+  assert.ok(lines.includes('Karten › Karte 1 › Bild: team.jpg (Alt: Team auf einem Bild)'));
 });
 
 test('image references and tokens are found', () => {
