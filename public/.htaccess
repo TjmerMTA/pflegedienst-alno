@@ -1,21 +1,35 @@
 # Заголовки безопасности публичного сайта (Apache, Hetzner Webhosting).
 # Значение CSP подставляет при сборке src/lib/hardening.mjs: хеши инлайновых скриптов и стилей берутся из готовых страниц.
+# Поддомен admin живёт в public_html/admin-alno и наследует этот файл, поэтому редирект и заголовки ниже — только для
+# адресов самого сайта. У админки свой .htaccess со своими заголовками и своим редиректом.
+
+# На хостинге лежит index.htm по умолчанию: главная страница — наша
+DirectoryIndex index.html
+
 # Только HTTPS: и формы, и cookie согласия не ездят открытым текстом. Адрес зашит, а не взят из Host: заголовок задаёт
-# клиент. .well-known открыт для проверки сертификата, локальные адреса — для проверки на своей машине
+# клиент. .well-known открыт для проверки сертификата. Точка в конце имени — тот же сайт, но для браузера другой адрес:
+# без неё в условиях такой адрес обошёл бы и редирект, и CSP
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^(www\.)?pflegedienst-alno\.de\.?(:[0-9]+)?$ [NC]
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
-  RewriteCond %{HTTP_HOST} !^(127\.0\.0\.1|localhost)(:[0-9]+)?$
   RewriteCond %{REQUEST_URI} !^/\.well-known/
   RewriteRule ^ https://pflegedienst-alno.de%{REQUEST_URI} [R=301,L]
 </IfModule>
 
+# Админка открывается только со своего адреса, даже если её .htaccess ещё не загрузился
+<If "%{REQUEST_URI} =~ m#^/admin-alno(/|$)#i && %{HTTP_HOST} !~ /^admin\.pflegedienst-alno\.de(:[0-9]+)?$/i">
+  Require all denied
+</If>
+
 <IfModule mod_headers.c>
-  Header always set Content-Security-Policy "__CSP__"
-  Header always set X-Content-Type-Options "nosniff"
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Permissions-Policy "accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
-  # Браузер учитывает HSTS только по HTTPS. Без includeSubDomains и preload: поддомены могут жить без HTTPS, а preload не отменить быстро
-  Header always set Strict-Transport-Security "max-age=31536000"
+  <If "%{HTTP_HOST} =~ /^(www\.)?pflegedienst-alno\.de\.?(:[0-9]+)?$/i">
+    Header always set Content-Security-Policy "__CSP__"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+    # Браузер учитывает HSTS только по HTTPS. Без includeSubDomains и preload: поддомены могут жить без HTTPS, а preload не отменить быстро
+    Header always set Strict-Transport-Security "max-age=31536000"
+  </If>
 </IfModule>

@@ -204,6 +204,32 @@ test('a build without pages stops before the docroots are made', function () use
         rmTree($d);
     }
 });
+test('a site that holds the admin folder stops before the docroots are made', function () use ($root) {
+    $d = tmpDir('alno-assemble-admin');
+    mkdir("$d/dist/admin-alno", 0755, true);
+    file_put_contents("$d/dist/index.html", 'x');
+    symlink("$root/admin", "$d/admin");
+    exec('cd ' . escapeshellarg($d) . ' && bash ' . escapeshellarg("$root/scripts/assemble-upload.sh") . ' upload 2>&1', $o, $code);
+    ok($code !== 0, 'must fail');
+    has(implode("\n", $o), 'admin-alno');
+    unlink("$d/admin");
+    rmTree($d);
+});
+test('the site\'s rules stay on its own hosts: the admin folder inherits this file', function () use ($root) {
+    $h = (string) file_get_contents("$root/public/.htaccess");
+    has($h, "<If \"%{HTTP_HOST} =~ /^(www\\.)?pflegedienst-alno\\.de\\.?(:[0-9]+)?\$/i\">\n    Header always set Content-Security-Policy");
+    has($h, "RewriteCond %{HTTP_HOST} ^(www\\.)?pflegedienst-alno\\.de\\.?(:[0-9]+)?\$ [NC]\n");
+    has($h, 'm#^/admin-alno(/|$)#i');
+    has($h, "DirectoryIndex index.html\n");
+    eq(preg_match('/^\s*Header\b/m', (string) preg_replace('/<If "%\{HTTP_HOST\} =~.*?<\/If>/s', '', $h)), 0);
+});
+test('the admin folder answers its own host only, and sends one CSP', function () use ($root) {
+    $h = (string) file_get_contents("$root/admin/public/.htaccess");
+    ok(strpos($h, '<If "%{HTTP_HOST} !~ /^(admin\.pflegedienst-alno\.de|') < strpos($h, 'RewriteEngine'), 'the refusal comes first');
+    has($h, "  Require all denied\n</If>");
+    has($h, "Header unset Content-Security-Policy\n  Header always set Content-Security-Policy");
+    has($h, 'RewriteRule ^ https://admin.pflegedienst-alno.de%{REQUEST_URI} [R=301,L]');
+});
 test('the public site: plain HTTP goes to a fixed HTTPS address, and the CSP block stays', function () use ($root) {
     $h = (string) file_get_contents("$root/public/.htaccess");
     has($h, 'RewriteRule ^ https://pflegedienst-alno.de%{REQUEST_URI} [R=301,L]');
@@ -213,9 +239,10 @@ test('the public site: plain HTTP goes to a fixed HTTPS address, and the CSP blo
 });
 test('the workflow deploys to two docroots; the data folder appears nowhere', function () use ($root) {
     $w = (string) file_get_contents("$root/.github/workflows/deploy.yml");
-    has($w, 'scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest');
-    has($w, 'scripts/deploy-sftp.sh upload/admin "$ADMIN_ROOT" .alno-deploy-manifest-admin');
-    has($w, 'ADMIN_ROOT: admin_html');
+    has($w, 'scripts/deploy-sftp.sh upload/site "$SITE_ROOT" .alno-deploy-manifest "$ADMIN_DIR"');
+    has($w, 'scripts/deploy-sftp.sh upload/admin "$ADMIN_ROOT" .alno-deploy-manifest-admin-alno');
+    has($w, 'ADMIN_ROOT: public_html/admin-alno');
+    has($w, 'ADMIN_DIR: admin-alno');
     hasNot($w, 'alno-data');
 });
 test('the admin\'s headers: strict CSP, HSTS, no framing, same on the page itself', function () use ($root) {

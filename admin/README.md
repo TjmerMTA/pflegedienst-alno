@@ -124,9 +124,9 @@ GitHub repo TjmerMTA/pflegedienst-alno, branch main   source of truth
   ↑ commits (GitHub REST API, fine-grained token)
   │                       ↓ push → .github/workflows/deploy.yml: build, then SFTP
 public_html/              https://pflegedienst-alno.de: the site and api/
-admin_html/               https://admin.pflegedienst-alno.de: wp-admin/, wp-login.php, .htaccess
+public_html/admin-alno/   https://admin.pflegedienst-alno.de: wp-admin/, wp-login.php, .htaccess
 ~/alno-data/              config.json (token), users.json, sessions, logs, trash, anfragen/
-~/.alno-deploy-manifest, ~/.alno-deploy-manifest-admin   what the last deploy uploaded, with hashes
+~/.alno-deploy-manifest, ~/.alno-deploy-manifest-admin-alno   what the last deploy uploaded, with hashes
 ```
 
 ### Setup, once
@@ -148,7 +148,9 @@ rm alno_sftp known_hosts
 
 Without `SFTP_KNOWN_HOSTS` the workflow warns and trusts whatever key answers that day. Pushing `deploy.yml` itself needs a token with the `workflow` right. The admin's token never touches it.
 
-**2. Subdomain.** In konsoleH point `admin.pflegedienst-alno.de` at `~/admin_html` and give it a TLS certificate. If the folder has another name, change `ADMIN_ROOT` in `deploy.yml`. The first deploy creates it, if konsoleH needs it earlier create it empty.
+**2. Subdomain.** In konsoleH point `admin.pflegedienst-alno.de` at `public_html/admin-alno` and give it a TLS certificate: konsoleH allows a subdomain only inside `public_html`, so the admin's docroot lies inside the site's. If the folder has another name, change `ADMIN_ROOT` and `ADMIN_DIR` in `deploy.yml` and the name in both `.htaccess` files. The first deploy creates it, if konsoleH needs it earlier create it empty.
+
+The nesting has three consequences, all handled: `public_html/.htaccess` is inherited by the admin folder, so its redirect and headers apply only to `pflegedienst-alno.de` and `www.`; `pflegedienst-alno.de/admin-alno/…` is refused in both `.htaccess` files, on top of the admin's own host check; and the site's deploy neither uploads to nor deletes from that folder. A data folder inside `public_html` is refused by the setup screen. The `index.htm` Hetzner puts in `public_html` does not get in the way, because the site's `.htaccess` sets `DirectoryIndex index.html`, but it stays reachable under its own name: delete it by hand.
 
 **3. PHP.** In konsoleH, for the subdomain too: PHP 8.2 or newer, `upload_max_filesize` at least 12M (konsoleH sets `post_max_size` with it). The setup screen shows what the host really has: GD or Imagick, WebP, limits.
 
@@ -174,7 +176,7 @@ Nothing else. Choose an expiry and put it in the calendar.
 https://admin.pflegedienst-alno.de/wp-admin/cron.php?key=…
 ```
 
-or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. Deletion also runs on every visit to Anfragen, so the job is what keeps retention when nobody logs in.
+or, where cron runs PHP scripts directly, `php ~/public_html/admin-alno/wp-admin/cron.php`. Deletion also runs on every visit to Anfragen, so the job is what keeps retention when nobody logs in.
 
 **8. Check a form.** Send one test enquiry from the site and find it under Anfragen. Details: `docs/anfragen-format.md`, section 6.
 
@@ -182,7 +184,7 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 
 - `deploy.yml` has jobs `build` and `deploy`. Keep these names: the admin reads them through the Actions API to tell a failed build from a failed upload.
 - `scripts/assemble-upload.sh` prepares the two docroots, `scripts/deploy-sftp.sh` uploads each of them with its own manifest.
-- Only changed files go up, assets before pages. The only files ever deleted are ones an earlier deploy uploaded, listed in the manifest of that docroot. Anything else in `public_html` or `admin_html` stays, and `~/alno-data` is never touched.
+- Only changed files go up, assets before pages. The only files ever deleted are ones an earlier deploy uploaded, listed in the manifest of that docroot. Anything else in `public_html` stays, and `~/alno-data` is never touched.
 - The first deploy therefore leaves old files of a previous site in place. Remove them by hand.
 - Start the workflow by hand with `full` to upload everything again.
 - A deploy stops before it touches the host when the folder has no `index.html` (site) or `wp-admin/index.html` (admin), or holds less than half the files of the last upload. A real clean-up of that size: start the workflow by hand with `allow_shrink`.
@@ -192,8 +194,8 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 
 - **Cookies** are `__Host-`: the browser refuses them with a `Domain`, without `Secure` or with a path other than `/`, so the public site can neither read nor plant one. Over plain local HTTP they use the plain name.
 - `SameSite` does not separate a subdomain from its parent, so the API refuses `Sec-Fetch-Site: same-site` and `cross-site`, on GET too. No CORS header is ever sent.
-- **Host check:** only `admin.pflegedienst-alno.de` and what `hosts` in `config.json` lists; the public domain gets 421.
-- **Headers** in `admin_html/.htaccess`: CSP with `default-src 'none'` and nothing but this origin's scripts, styles and images, HSTS, `frame-ancestors 'none'`, COOP, CORP, COEP, Permissions-Policy, `noindex`. `index.html` carries the CSP as a meta tag too, in case `mod_headers` is off. The `Referrer-Policy` stays `same-origin`: with `no-referrer` the browser would send `Origin: null` on the admin's own POSTs.
+- **Host check:** only `admin.pflegedienst-alno.de` and what `hosts` in `config.json` lists; the public domain gets 421. Apache refuses it first, with 403 at `/admin-alno/`. A further host in `hosts` must also go into the `<If>` line of `admin/public/.htaccess`.
+- **Headers** in `public_html/admin-alno/.htaccess`: CSP with `default-src 'none'` and nothing but this origin's scripts, styles and images, HSTS, `frame-ancestors 'none'`, COOP, CORP, COEP, Permissions-Policy, `noindex`. `index.html` carries the CSP as a meta tag too, in case `mod_headers` is off. The `Referrer-Policy` stays `same-origin`: with `no-referrer` the browser would send `Origin: null` on the admin's own POSTs.
 
 ### Login limits
 
@@ -203,7 +205,7 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 
 ### Good to know
 
-- **HTTPS:** `admin_html/.htaccess` redirects HTTP and sets HSTS.
+- **HTTPS:** `public_html/admin-alno/.htaccess` redirects HTTP and sets HSTS.
 - **Logs:** `~/alno-data/logs/admin.log` for events, `access.log` for who read which submission (ids only).
 - **Data folder:** `~/alno-data`, found exactly as `public/api/anfrage.php` finds it (`ALNO_DATA_DIR`, the user's home from `posix_getpwuid`, `$HOME`, the parent of the web root). Both must agree; if the home is detected wrongly, set `ALNO_DATA_DIR` with `SetEnv` in `.htaccess`. Setup refuses a folder inside the web root.
 - **Token expired:** the admin says so. Create a new one and replace `token` in `~/alno-data/config.json` by SFTP.
