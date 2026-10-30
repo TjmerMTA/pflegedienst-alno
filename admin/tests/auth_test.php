@@ -92,6 +92,9 @@ test('strange session cookies count as not logged in, and leave nothing behind',
         $c->cookies['alno_session'] = $bad;
         eq($c->get('dashboard')['status'], 401, $bad);
     }
+    $c = $e->client();
+    $c->cookies['alno_session[x]'] = '1';
+    eq($c->get('dashboard')['status'], 401, 'an array');
     eq(count(glob("$e->data/sessions/sess_*") ?: []), $before, 'no session file per stranger');
 });
 
@@ -136,6 +139,9 @@ test('a new password ends the other sessions; the one that changed it goes on', 
     eq($mine->post('profile/password', ['current' => $e->password, 'password' => 'neues-passwort-1'])['status'], 200);
     eq($other->get('dashboard')['status'], 401, 'other session ended');
     eq($mine->get('dashboard')['status'], 200, 'stays logged in');
+    eq($mine->post('profile/lang', ['lang' => 'de'])['status'], 403, 'the new session has a new nonce');
+    $mine->nonce = $mine->get('session')['json']['nonce'];
+    eq($mine->post('profile/lang', ['lang' => 'de'])['status'], 200);
     eq($e->client()->login('pia', $e->password)['status'], 401, 'old password');
     eq($e->client()->login('pia', 'neues-passwort-1')['status'], 200, 'new password');
     hasNot($e->log(), 'neues-passwort-1');
@@ -417,6 +423,19 @@ test('security headers are set', function () use ($e) {
         eq($r['headers']['cache-control'][0], 'no-store');
         has($r['headers']['content-type'][0], 'application/json');
     }
+});
+
+test('an unexpected failure says nothing about the server', function () {
+    $x = new Env();
+    $c = $x->as('redakteurin');
+    chmod($x->data, 0500); // users.json cannot be replaced now
+    $r = $c->post('profile/lang', ['lang' => 'ru']);
+    chmod($x->data, 0700);
+    eq($r['status'], 500);
+    eq($r['body'], '{"error":"server","message":"server"}');
+    has($x->log(), '"event":"error","route":"profile/lang"');
+    has($x->log(), 'Store.php');
+    $x->stop();
 });
 
 test('unknown routes and methods', function () use ($e) {

@@ -233,34 +233,16 @@ test('concurrent saves of different files all land in git', function () {
     $vb = pageValues($b['page']);
     $va['seo']['title'] = 'Parallel A';
     $vb['contact']['phone'] = '0231 111111';
-    $h = ['Content-Type: application/json', 'X-WP-Nonce: ' . $c->nonce];
-    $ra = $c->burst('page', ['id' => 'ueber-uns', 'hash' => $a['hash'], 'values' => $va], 1);
-    $rb = $c->burst('page', ['id' => '_global', 'hash' => $b['hash'], 'values' => $vb], 1);
-    eq($ra[0]['status'], 200, $ra[0]['body']);
-    eq($rb[0]['status'], 200, $rb[0]['body']);
-    // Now really together: the second file twice more, through one lock.
-    $rs = [];
-    $multi = [];
-    foreach (['ueber-uns' => 'seo', '_global' => 'contact'] as $id => $g) {
-        $p = $c->get('page', ['id' => $id])['json'];
-        $v = pageValues($p['page']);
-        if ($id === '_global') $v['contact']['phone'] = '0231 222222'; else $v['seo']['title'] = 'Parallel B';
-        $multi[] = ['id' => $id, 'hash' => $p['hash'], 'values' => $v];
-    }
-    $handles = array_map(static function ($body) use ($c, $h) {
-        $ch = curl_init($c->base . '/wp-admin/api.php?r=page');
-        curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode($body), CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => array_merge($h, ['Cookie: alno_session=' . $c->cookies['alno_session']])]);
-        return $ch;
-    }, $multi);
-    $m = curl_multi_init();
-    foreach ($handles as $ch) curl_multi_add_handle($m, $ch);
-    do { curl_multi_exec($m, $running); if ($running) curl_multi_select($m, 0.05); } while ($running);
-    foreach ($handles as $ch) eq(curl_getinfo($ch, CURLINFO_RESPONSE_CODE), 200, (string) curl_multi_getcontent($ch));
-    has((string) $x->git->read('src/content/pages/ueber-uns.json'), 'Parallel B');
-    has((string) $x->git->read('src/content/pages/_global.json'), '0231 222222');
-    $subjects = array_map(static fn ($s) => $x->git->commit($s)['message'], array_slice($x->git->history(), 0, 2));
-    ok(in_array('Admin: Über uns aktualisiert', $subjects, true), show($subjects));
-    ok(in_array('Admin: Einstellungen aktualisiert', $subjects, true), show($subjects));
+    $head = $x->git->head();
+    $rs = $c->together([['page', ['id' => 'ueber-uns', 'hash' => $a['hash'], 'values' => $va]], ['page', ['id' => '_global', 'hash' => $b['hash'], 'values' => $vb]]]);
+    eq(array_column($rs, 'status'), [200, 200], show(array_column($rs, 'body')));
+    has((string) $x->git->read('src/content/pages/ueber-uns.json'), 'Parallel A');
+    has((string) $x->git->read('src/content/pages/_global.json'), '0231 111111');
+    $history = array_slice($x->git->history(), 0, 3);
+    eq($history[2], $head, 'one commit after the other');
+    $subjects = array_map(static fn ($s) => $x->git->commit($s)['message'], array_slice($history, 0, 2));
+    sort($subjects);
+    eq($subjects, ['Admin: Einstellungen aktualisiert', 'Admin: Über uns aktualisiert']);
     $x->stop();
 });
 

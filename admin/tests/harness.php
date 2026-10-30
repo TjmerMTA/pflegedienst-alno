@@ -153,17 +153,22 @@ final class Client
         return $this->raw('POST', '/wp-admin/api.php?r=' . rawurlencode($route), $body, $h);
     }
 
-    /** The same POST $n times at once, for races: the responses, as far as a test needs them. */
+    /** The same POST $n times at once, for races. */
     public function burst(string $route, array $data, int $n, array $headers = []): array
     {
-        $body = json_encode($data, JSON_UNESCAPED_UNICODE);
+        return $this->together(array_fill(0, $n, [$route, $data]), $headers);
+    }
+
+    /** Several POSTs at the same moment. $posts: [route, data] each. Returns status, body, json each. */
+    public function together(array $posts, array $headers = []): array
+    {
         $h = array_merge(['Content-Type: application/json'], $this->nonce ? ['X-WP-Nonce: ' . $this->nonce] : [], $headers);
         if ($this->cookies) $h[] = 'Cookie: ' . implode('; ', array_map(static fn ($k, $v) => "$k=$v", array_keys($this->cookies), $this->cookies));
         $multi = curl_multi_init();
         $handles = [];
-        for ($i = 0; $i < $n; $i++) {
+        foreach ($posts as [$route, $data]) {
             $c = curl_init($this->base . '/wp-admin/api.php?r=' . rawurlencode($route));
-            curl_setopt_array($c, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $h, CURLOPT_TIMEOUT => 120]);
+            curl_setopt_array($c, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode($data, JSON_UNESCAPED_UNICODE), CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $h, CURLOPT_TIMEOUT => 120]);
             curl_multi_add_handle($multi, $c);
             $handles[] = $c;
         }
