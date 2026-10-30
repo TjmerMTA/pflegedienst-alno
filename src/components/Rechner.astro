@@ -4,64 +4,67 @@
 // variant="rechner") oder Beratungstermin (variant="rechnertermin") – danach wird das Ergebnis gezeigt und das Gerät freigeschaltet.
 import ContactForm from './ContactForm.astro';
 import Icon from './Icon.astro';
+// Тексты — в src/content/pages/pflege-rechner.json. Разметка читает их здесь, скрипт ниже получает при сборке:
+// __T/__H/__N — макросы из src/lib/client-texts.mjs. Импорт динамический: новый статический сдвинул бы порядок <style>
+const { getPage } = await import('../lib/content');
+const p = getPage('pflege-rechner');
 ---
 <div class="rc" id="rc">
   <div class="tabs" role="tablist" aria-label="Rechner wählen">
-    <button class="tab" role="tab" id="tab-btn-plan" aria-controls="tab-plan" aria-selected="true" data-tab="plan"><span data-i="heart"></span>Pflegeleistungen</button>
-    <button class="tab" role="tab" id="tab-btn-ent" aria-controls="tab-ent" aria-selected="false" data-tab="ent" tabindex="-1"><span data-i="shield"></span>Entlastungsbetrag</button>
+    <button class="tab" role="tab" id="tab-btn-plan" aria-controls="tab-plan" aria-selected="true" data-tab="plan"><span data-i="heart"></span>{p.text('tabs.plan')}</button>
+    <button class="tab" role="tab" id="tab-btn-ent" aria-controls="tab-ent" aria-selected="false" data-tab="ent" tabindex="-1"><span data-i="shield"></span>{p.text('tabs.ent')}</button>
   </div>
 
   <!-- ================= TAB 1 ================= -->
   <section id="tab-plan" role="tabpanel" aria-labelledby="tab-btn-plan">
     <div class="stepper" aria-hidden="true">
       <div class="track"></div><div class="fill" id="fill"></div>
-      <div class="sd on" data-sd="1"><div class="b" data-i="user"></div>Pflegegrad</div>
-      <div class="sd" data-sd="2"><div class="b" data-i="calendar"></div>Pflegeplan</div>
-      <div class="sd" data-sd="3"><div class="b" data-i="chart"></div>Ergebnis</div>
+      <div class="sd on" data-sd="1"><div class="b" data-i="user"></div>{p.text('stepper.grad')}</div>
+      <div class="sd" data-sd="2"><div class="b" data-i="calendar"></div>{p.text('stepper.plan')}</div>
+      <div class="sd" data-sd="3"><div class="b" data-i="chart"></div>{p.text('stepper.ergebnis')}</div>
     </div>
 
     <!-- Schritt 1 -->
     <div id="step1" class="step">
       <div class="card panel">
-        <h2>Wie möchten Sie die Leistungen nutzen?</h2>
-        <p class="muted">Keine Sorge – Sie können das jederzeit ändern und vergleichen.</p>
+        <h2>{p.text('modus.title')}</h2>
+        <p class="muted">{p.text('modus.sub')}</p>
         <div class="modes" id="modes"></div>
         <div class="rnote" id="mode-info"></div>
       </div>
 
       <div class="card panel">
-        <h2>Welcher Pflegegrad liegt vor?</h2>
-        <p class="muted">Steht im Bescheid der Pflegekasse.</p>
+        <h2>{p.text('grad.title')}</h2>
+        <p class="muted">{p.text('grad.sub')}</p>
         <div class="pgs" id="pgs"></div>
 
         <div class="rnote warn hidden" id="pg1-alert">
           <span data-i="info"></span>
-          <div>Bei <b>Pflegegrad 1</b> gibt es kein Pflegegeld und keine Sachleistungen – aber den
-          <b>Entlastungsbetrag von <span data-eb></span> pro Monat</b>, bei Pflegegrad 1 auch für Körperpflege nutzbar.
-          <div class="rnote-act"><button class="btn btn--primary btn--sm" type="button" data-goto-ent><span data-i="shield"></span>Zum Entlastungs-Rechner</button></div></div>
+          <div><Fragment set:html={p.html('grad.pg1Alert').replace('{betrag}', '<span data-eb></span>')} />
+          <div class="rnote-act"><button class="btn btn--primary btn--sm" type="button" data-goto-ent><span data-i="shield"></span>{p.text('grad.pg1Button')}</button></div></div>
         </div>
 
         <div id="budget-box" class="hidden">
-          <h3><span data-i="wallet"></span>Ihr monatliches Budget</h3>
+          <h3><span data-i="wallet"></span>{p.text('grad.budgetTitle')}</h3>
           <div class="kpis">
-            <div class="kpi"><div class="ki" data-i="home"></div><div><div class="l">Pflegesachleistung</div><div class="v" id="b-sach">–</div></div></div>
-            <div class="kpi good"><div class="ki" data-i="euro"></div><div><div class="l">Pflegegeld</div><div class="v" id="b-geld">–</div></div></div>
-            <div class="kpi"><div class="ki" data-i="shield"></div><div><div class="l">Entlastungsbetrag</div><div class="v" id="b-ent">–</div></div></div>
+            <div class="kpi"><div class="ki" data-i="home"></div><div><div class="l">{p.text('grad.kpiSach')}</div><div class="v" id="b-sach">–</div></div></div>
+            <div class="kpi good"><div class="ki" data-i="euro"></div><div><div class="l">{p.text('grad.kpiGeld')}</div><div class="v" id="b-geld">–</div></div></div>
+            <div class="kpi"><div class="ki" data-i="shield"></div><div><div class="l">{p.text('grad.kpiEnt')}</div><div class="v" id="b-ent">–</div></div></div>
           </div>
         </div>
       </div>
 
-      <div class="navrow"><span></span><button class="btn btn--primary" type="button" id="to2" disabled>Weiter zum Pflegeplan<span data-i="arrowR"></span></button></div>
+      <div class="navrow"><span></span><button class="btn btn--primary" type="button" id="to2" disabled>{p.text('grad.next')}<span data-i="arrowR"></span></button></div>
     </div>
 
     <!-- Schritt 2 -->
     <div id="step2" class="step hidden">
-      <div class="rnote warn hidden" id="geld-hint"><span data-i="info"></span><div>Im Modell <b>Pflegegeld</b> übernimmt die Pflegekasse keine Einsätze des Pflegedienstes – geplante Leistungen zahlen Sie selbst. Tipp: Vergleichen Sie mit der Kombinationsleistung.</div></div>
+      <div class="rnote warn hidden" id="geld-hint"><span data-i="info"></span><div set:html={p.html('plan.geldHint')} /></div>
 
       <div class="card panel">
-        <h2>Welche Hilfe wird gebraucht?</h2>
-        <p class="muted">Leistung antippen, Zeiten wählen, hinzufügen – so oft Sie möchten.</p>
-        <div class="search"><span data-i="search"></span><input id="q" type="search" placeholder="Leistung suchen, z. B. „Waschen“ oder „Einkaufen“" autocomplete="off" aria-label="Leistung suchen" /></div>
+        <h2>{p.text('plan.title')}</h2>
+        <p class="muted">{p.text('plan.sub')}</p>
+        <div class="search"><span data-i="search"></span><input id="q" type="search" placeholder={p.text('plan.search')} autocomplete="off" aria-label="Leistung suchen" /></div>
         <div class="chips" id="chips"></div>
         <div class="svc-list" id="svc-list"></div>
 
@@ -69,7 +72,7 @@ import Icon from './Icon.astro';
       </div>
 
       <div class="card panel">
-        <h3 class="h3-first"><span data-i="list"></span>Ihr Pflegeplan</h3>
+        <h3 class="h3-first"><span data-i="list"></span>{p.text('planliste.title')}</h3>
         <div class="plan" id="plan"></div>
       </div>
 
@@ -78,37 +81,37 @@ import Icon from './Icon.astro';
         <div class="bar"><i id="bb-fill"></i></div>
       </div>
 
-      <div class="navrow"><button class="btn btn--ghost" type="button" id="back1"><span data-i="arrowL"></span>Zurück</button><button class="btn btn--primary" type="button" id="to3">Ergebnis anzeigen<span data-i="arrowR"></span></button></div>
+      <div class="navrow"><button class="btn btn--ghost" type="button" id="back1"><span data-i="arrowL"></span>{p.text('planliste.back')}</button><button class="btn btn--primary" type="button" id="to3">{p.text('planliste.next')}<span data-i="arrowR"></span></button></div>
     </div>
 
     <!-- Schritt 3 -->
     <div id="step3" class="step hidden">
       <div class="card panel">
-        <h2 tabindex="-1" id="res-h">Ihr Ergebnis</h2>
+        <h2 tabindex="-1" id="res-h">{p.text('ergebnis.title')}</h2>
         <p class="muted" id="res-sub"></p>
         <div class="res-top">
           <div class="ring-wrap">
             <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="c-bg" cx="60" cy="60" r="50" fill="none" stroke-width="12"/><circle class="c-fg" id="ring" cx="60" cy="60" r="50" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg>
-            <div class="ring-center"><b id="ring-pct">0 %</b><small id="ring-lbl">des Sachleistungs&shy;budgets genutzt</small></div>
+            <div class="ring-center"><b id="ring-pct">0 %</b><small id="ring-lbl" set:html={p.text('ergebnis.ringUsed').replace('\u00AD', '&shy;')} /></div>
           </div>
           <div>
-            <div class="big good" id="big-pay"><div class="ki" data-i="euro"></div><div><div class="l" id="pay-l">Auszahlung an Sie</div><div class="v" id="r-payout">0 €</div></div></div>
-            <div class="big" id="big-own"><div class="ki" id="own-ic"></div><div><div class="l">Ihr Eigenanteil pro Monat</div><div class="v" id="r-own">0 €</div></div></div>
+            <div class="big good" id="big-pay"><div class="ki" data-i="euro"></div><div><div class="l" id="pay-l">{p.text('ergebnis.payPlain')}</div><div class="v" id="r-payout">0 €</div></div></div>
+            <div class="big" id="big-own"><div class="ki" id="own-ic"></div><div><div class="l">{p.text('ergebnis.own')}</div><div class="v" id="r-own">0 €</div></div></div>
           </div>
         </div>
         <table class="breakdown" id="breakdown"></table>
         <div class="rnote" id="r-explain"><span data-i="sparkle"></span><div></div></div>
         <div class="cta-box">
-          <div><b>Fragen zum Ergebnis?</b><div class="muted">Wir beraten Sie kostenlos und unverbindlich.</div></div>
-          <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> Termin vereinbaren</a>
+          <div><b>{p.text('ergebnis.ctaTitle')}</b><div class="muted">{p.text('ergebnis.ctaText')}</div></div>
+          <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> {p.text('ergebnis.ctaButton')}</a>
         </div>
         <p class="muted free-left" id="free-left" hidden></p>
       </div>
       <div class="navrow">
-        <button class="btn btn--ghost" type="button" id="back2"><span data-i="arrowL"></span>Plan anpassen</button>
+        <button class="btn btn--ghost" type="button" id="back2"><span data-i="arrowL"></span>{p.text('ergebnis.back')}</button>
         <span class="navrow-r">
-          <button class="btn btn--ghost" type="button" id="print"><span data-i="print"></span>Drucken</button>
-          <button class="btn btn--ghost" type="button" id="restart"><span data-i="refresh"></span>Neu starten</button>
+          <button class="btn btn--ghost" type="button" id="print"><span data-i="print"></span>{p.text('ergebnis.print')}</button>
+          <button class="btn btn--ghost" type="button" id="restart"><span data-i="refresh"></span>{p.text('ergebnis.restart')}</button>
         </span>
       </div>
     </div>
@@ -117,37 +120,35 @@ import Icon from './Icon.astro';
   <!-- ================= TAB 2 ================= -->
   <section id="tab-ent" class="hidden step" role="tabpanel" aria-labelledby="tab-btn-ent">
     <div class="card panel">
-      <h2>Entlastungsbetrag (§ 45b SGB XI)</h2>
-      <p class="muted">Jede pflegebedürftige Person (Pflegegrad 1–5) erhält zusätzlich <b data-eb></b> im Monat – für Hilfe im Haushalt, Betreuung oder Alltagsbegleitung.</p>
+      <h2>{p.text('ent.title')}</h2>
+      <p class="muted">{p.text('ent.textBefore')} <b data-eb></b> {p.text('ent.textAfter')}</p>
 
-      <label class="flabel" for="e-budget"><span data-i="wallet"></span>Verfügbares Budget</label>
+      <label class="flabel" for="e-budget"><span data-i="wallet"></span>{p.text('ent.budgetLabel')}</label>
       <input class="num-in" type="number" id="e-budget" min="0" step="1" inputmode="decimal" />
-      <p class="muted hint">Angespartes Guthaben? Bei der Pflegekasse erfragen und hier eintragen. Leer = 1 Monat.</p>
+      <p class="muted hint">{p.text('ent.budgetHint')}</p>
 
-      <label class="flabel" for="e-hours"><span data-i="clock"></span>Gewünschte Stunden pro Monat</label>
+      <label class="flabel" for="e-hours"><span data-i="clock"></span>{p.text('ent.hoursLabel')}</label>
       <div class="slider-row">
         <input type="range" id="e-hours" min="0" max="20" step="0.5" value="2" />
-        <div class="hours-out" id="e-hours-out" aria-live="polite">2 Std.</div>
+        <div class="hours-out" id="e-hours-out" aria-live="polite">2 {p.text('ent.hoursUnit')}</div>
       </div>
-      <p class="muted hint">Stundensatz: <b id="e-rate"></b></p>
+      <p class="muted hint">{p.text('ent.rateLabel')} <b id="e-rate"></b></p>
 
       <div class="kpis kpis--top">
-        <div class="kpi"><div class="ki" data-i="receipt"></div><div><div class="l">Kosten</div><div class="v" id="e-cost">–</div></div></div>
-        <div class="kpi good"><div class="ki" data-i="check"></div><div><div class="l">Übernimmt die Pflegekasse</div><div class="v" id="e-cov">–</div></div></div>
-        <div class="kpi" id="e-own-k"><div class="ki" data-i="euro"></div><div><div class="l">Eigenanteil</div><div class="v" id="e-own">–</div></div></div>
+        <div class="kpi"><div class="ki" data-i="receipt"></div><div><div class="l">{p.text('ent.kpiCost')}</div><div class="v" id="e-cost">–</div></div></div>
+        <div class="kpi good"><div class="ki" data-i="check"></div><div><div class="l">{p.text('ent.kpiCovered')}</div><div class="v" id="e-cov">–</div></div></div>
+        <div class="kpi" id="e-own-k"><div class="ki" data-i="euro"></div><div><div class="l">{p.text('ent.kpiOwn')}</div><div class="v" id="e-own">–</div></div></div>
       </div>
       <div class="bar bar--top"><i id="e-bar"></i></div>
       <div class="rnote good" id="e-max"><span data-i="sparkle"></span><div></div></div>
     </div>
 
     <div class="facts">
-      <div class="fact"><div class="ki" data-i="piggy"></div><div><b>Ansparen erlaubt</b><span>Nicht genutzte Beträge wandern in die Folgemonate.</span></div></div>
-      <div class="fact"><div class="ki" data-i="calendar"></div><div><b>Frist beachten</b><span>Reste eines Jahres können bis 30.06. des Folgejahres genutzt werden.</span></div></div>
-      <div class="fact"><div class="ki" data-i="receipt"></div><div><b>Einfache Abrechnung</b><span>Direkt mit der Kasse oder per Erstattung unserer Rechnung.</span></div></div>
+      {p.list<{ icon: string; title: string; text: string }>('ent.facts').map((f) => <div class="fact"><div class="ki" data-i={f.icon}></div><div><b>{f.title}</b><span>{f.text}</span></div></div>)}
     </div>
     <div class="cta-box cta-box--solo">
-      <div><b>Fragen zum Entlastungsbetrag?</b><div class="muted">Wir beraten Sie kostenlos und unverbindlich.</div></div>
-      <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> Termin vereinbaren</a>
+      <div><b>{p.text('ent.ctaTitle')}</b><div class="muted">{p.text('ent.ctaText')}</div></div>
+      <a class="btn btn--green" href="/erstbegutachtung/"><Icon name="calendar" size={20} /> {p.text('ent.ctaButton')}</a>
     </div>
   </section>
 
@@ -160,28 +161,31 @@ import Icon from './Icon.astro';
 <dialog class="rdlg" id="gate" aria-labelledby="gate-h">
   <button class="rdlg-x" type="button" id="gate-x" aria-label="Schließen"><span data-i="close"></span></button>
   <div class="rdlg-in">
-    <span class="eyebrow">Pflege-Rechner</span>
-    <h2 id="gate-h" tabindex="-1">Ihr Ergebnis ist fertig</h2>
-    <p class="lead">Ihre 2 kostenlosen Berechnungen sind aufgebraucht. Wählen Sie, wie Sie Ihr Ergebnis jetzt sehen und weitere Berechnungen auf diesem Gerät freischalten möchten – beides kostet nichts.</p>
+    <span class="eyebrow">{p.text('gate.eyebrow')}</span>
+    <h2 id="gate-h" tabindex="-1">{p.text('gate.title')}</h2>
+    <p class="lead">{p.text('gate.lead')}</p>
 
     <div class="rdlg-opts" role="group" aria-label="Zwei Möglichkeiten">
-      <button class="opt" type="button" data-opt="kontakt" aria-pressed="true" aria-controls="opt-kontakt"><span data-i="user"></span><b>Kontaktdaten hinterlassen</b><small>Wir melden uns bei Fragen</small></button>
-      <button class="opt" type="button" data-opt="termin" aria-pressed="false" aria-controls="opt-termin"><span data-i="calendar"></span><b>Beratungstermin buchen</b><small>Kostenlos und unverbindlich</small></button>
+      <button class="opt" type="button" data-opt="kontakt" aria-pressed="true" aria-controls="opt-kontakt"><span data-i="user"></span><b>{p.text('gate.kontaktTitle')}</b><small>{p.text('gate.kontaktSub')}</small></button>
+      <button class="opt" type="button" data-opt="termin" aria-pressed="false" aria-controls="opt-termin"><span data-i="calendar"></span><b>{p.text('gate.terminTitle')}</b><small>{p.text('gate.terminSub')}</small></button>
     </div>
 
     <div id="opt-kontakt" class="opt-panel">
       <ContactForm variant="rechner" id="rc-kontakt" />
     </div>
     <div id="opt-termin" class="opt-panel" hidden>
-      <p class="muted opt-intro">Nennen Sie uns Ihren Wunschtermin – wir bestätigen ihn telefonisch. Ihr Ergebnis sehen Sie direkt nach dem Absenden.</p>
+      <p class="muted opt-intro">{p.text('gate.terminIntro')}</p>
       <ContactForm variant="rechnertermin" id="rc-termin" />
-      <p class="muted opt-alt">Lieber ausführlich? <a href="/erstbegutachtung/" target="_blank" rel="noopener">Zur Erstbegutachtung zu Hause</a></p>
+      <p class="muted opt-alt">{p.text('gate.altBefore')} <a href="/erstbegutachtung/" target="_blank" rel="noopener">{p.text('gate.altLink')}</a></p>
     </div>
   </div>
 </dialog>
 
 <script>
   import { RECHNER as CONFIG, LEISTUNGEN, calc as calcPlan, monthly, oneoffSum, unitPrice as unitOf, type PlanItem, type Mode } from '../config/rechner';
+  // Макросы сборки (src/lib/client-texts.mjs): __T — для textContent, __H — для innerHTML
+  declare function __T(path: string, parts?: Record<string, unknown>): string;
+  declare function __H(path: string, parts?: Record<string, unknown>): string;
 
   /* ---------- Icons (schlichte Linien-Icons) ---------- */
   const ICONS: Record<string, string> = {
@@ -228,23 +232,23 @@ import Icon from './Icon.astro';
   document.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => el.insertAdjacentHTML('afterbegin', ic(el.dataset.i!)));
 
   const CATS: Record<string, { label: string; icon: string; fg: string; bg: string }> = {
-    alle:      { label: 'Alle',               icon: 'sparkle', fg: '#047d8c', bg: '#e9f7f9' },
-    pakete:    { label: 'Grundpflege-Pakete', icon: 'heart',   fg: '#c2416b', bg: '#fce8ef' },
-    koerper:   { label: 'Körperpflege',       icon: 'drop',    fg: '#0e8fb3', bg: '#e2f4fa' },
-    essen:     { label: 'Ernährung',          icon: 'food',    fg: '#b05f0e', bg: '#fdf0e1' },
-    mobil:     { label: 'Mobilität',          icon: 'move',    fg: '#6d4fc2', bg: '#efeafb' },
-    hilfe:     { label: 'Kleine Hilfen',      icon: 'hand',    fg: '#2e7d1a', bg: '#eefae8' },
-    haus:      { label: 'Haushalt',           icon: 'broom',   fg: '#8a5f10', bg: '#f8f0dc' },
-    betreuung: { label: 'Betreuung',          icon: 'users',   fg: '#2f7d8c', bg: '#e2f2f4' },
-    beratung:  { label: 'Beratung',           icon: 'chat',    fg: '#4c5f6b', bg: '#edf1f5' },
+    alle:      { label: __H('kategorien.alle'), icon: 'sparkle', fg: '#047d8c', bg: '#e9f7f9' },
+    pakete:    { label: __H('kategorien.pakete'), icon: 'heart',   fg: '#c2416b', bg: '#fce8ef' },
+    koerper:   { label: __H('kategorien.koerper'), icon: 'drop',    fg: '#0e8fb3', bg: '#e2f4fa' },
+    essen:     { label: __H('kategorien.essen'), icon: 'food',    fg: '#b05f0e', bg: '#fdf0e1' },
+    mobil:     { label: __H('kategorien.mobil'), icon: 'move',    fg: '#6d4fc2', bg: '#efeafb' },
+    hilfe:     { label: __H('kategorien.hilfe'), icon: 'hand',    fg: '#2e7d1a', bg: '#eefae8' },
+    haus:      { label: __H('kategorien.haus'), icon: 'broom',   fg: '#8a5f10', bg: '#f8f0dc' },
+    betreuung: { label: __H('kategorien.betreuung'), icon: 'users',   fg: '#2f7d8c', bg: '#e2f2f4' },
+    beratung:  { label: __H('kategorien.beratung'), icon: 'chat',    fg: '#4c5f6b', bg: '#edf1f5' },
   };
   const catIcon = (c: string) => { const k = CATS[c] || CATS.alle; return `<div class="ci" style="background:${k.bg};color:${k.fg}">${ic(k.icon)}</div>`; };
 
   /* ---------- Helpers ---------- */
   const WPM = CONFIG.wochenProMonat;
-  const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-  const SLOTS = [{ n: 'Morgens', i: 'sunrise' }, { n: 'Mittags', i: 'sun' }, { n: 'Nachmittags', i: 'sunset' }, { n: 'Abends', i: 'moon' }];
-  const PG_LABEL: Record<number, string> = { 1: 'gering', 2: 'erheblich', 3: 'schwer', 4: 'schwerst', 5: 'besonders' };
+  const DAYS = [__H('zeitplan.mo'), __H('zeitplan.di'), __H('zeitplan.mi'), __H('zeitplan.do'), __H('zeitplan.fr'), __H('zeitplan.sa'), __H('zeitplan.so')];
+  const SLOTS = [{ n: __H('zeitplan.morgens'), i: 'sunrise' }, { n: __H('zeitplan.mittags'), i: 'sun' }, { n: __H('zeitplan.nachmittags'), i: 'sunset' }, { n: __H('zeitplan.abends'), i: 'moon' }];
+  const PG_LABEL: Record<number, string> = { 1: __H('grad.label1'), 2: __H('grad.label2'), 3: __H('grad.label3'), 4: __H('grad.label4'), 5: __H('grad.label5') };
   const $ = (s: string) => document.querySelector<any>(s)!;
   const $$ = (s: string) => [...document.querySelectorAll<any>(s)];
   const eur = (v: number) => (Math.round(v * 100) / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
@@ -280,12 +284,12 @@ import Icon from './Icon.astro';
 
   /* ---------- Schritt 1 ---------- */
   const MODES = [
-    { id: 'geld', icon: 'wallet', t: 'Pflegegeld', s: 'Angehörige pflegen, Geld geht an Sie',
-      info: '<b>Pflegegeld (§ 37 SGB XI):</b> Die Pflegekasse überweist monatlich einen festen Betrag. Die Pflege übernehmen Angehörige oder Bekannte. Regelmäßige Beratungsbesuche sind Pflicht.' },
-    { id: 'kombi', icon: 'combo', t: 'Kombinationsleistung', s: 'Pflegedienst + restliches Pflegegeld', badge: 'Am häufigsten',
-      info: '<b>Kombinationsleistung (§ 38 SGB XI):</b> Der Pflegedienst nutzt einen Teil des Budgets – den Rest bekommen Sie anteilig als Pflegegeld. Nutzt der Dienst z. B. 60 %, erhalten Sie 40 % des Pflegegeldes.' },
-    { id: 'sach', icon: 'home', t: 'Pflegesachleistung', s: 'Ganzes Budget für den Pflegedienst',
-      info: '<b>Pflegesachleistung (§ 36 SGB XI):</b> Das komplette Budget steht dem Pflegedienst zur Verfügung, abgerechnet wird direkt mit der Kasse. Kosten darüber hinaus zahlen Sie selbst.' },
+    { id: 'geld', icon: 'wallet', t: __H('modus.geldTitle'), s: __H('modus.geldSub'),
+      info: `<b>${__H('modus.geldInfoTitle')}</b> ${__H('modus.geldInfo')}` },
+    { id: 'kombi', icon: 'combo', t: __H('modus.kombiTitle'), s: __H('modus.kombiSub'), badge: __H('modus.kombiBadge'),
+      info: `<b>${__H('modus.kombiInfoTitle')}</b> ${__H('modus.kombiInfo')}` },
+    { id: 'sach', icon: 'home', t: __H('modus.sachTitle'), s: __H('modus.sachSub'),
+      info: `<b>${__H('modus.sachInfoTitle')}</b> ${__H('modus.sachInfo')}` },
   ];
   $('#modes').innerHTML = MODES.map((m) => `<button class="mode" type="button" data-mode="${m.id}" aria-pressed="false">
     <span class="tick">${ic('check')}</span><div class="mi">${ic(m.icon)}</div><b>${m.t}</b><small>${m.s}</small>${m.badge ? `<div><span class="badge">${m.badge}</span></div>` : ''}</button>`).join('');
@@ -326,7 +330,7 @@ import Icon from './Icon.astro';
     if (unlocked()) { el.hidden = true; return; }
     const n = Math.min(FREE, +(lsGet(K_COUNT) || 0));
     el.hidden = false;
-    el.textContent = n >= FREE ? 'Sie haben Ihre 2 kostenlosen Berechnungen genutzt. Für weitere Berechnungen hinterlassen Sie uns kurz Ihre Kontaktdaten.' : `Kostenlose Berechnungen: ${n} von ${FREE} genutzt.`;
+    el.textContent = n >= FREE ? __T('ergebnis.freeUsed') : __T('ergebnis.freeCount', { n, max: FREE });
   }
 
   /* ---------- Navigation ---------- */
@@ -351,24 +355,24 @@ import Icon from './Icon.astro';
   $$('#chips .chip').forEach((b) => (b.onclick = () => { state.cat = b.dataset.cat; $$('#chips .chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); renderList(); }));
   $('#q').oninput = (e: any) => { state.q = e.target.value.trim().toLowerCase(); renderList(); };
 
-  const priceLabel = (l: any) => l.type === 'minute' ? `${eur(l.price)}<small class="per"> / Min.</small>` : eur(l.price);
+  const priceLabel = (l: any) => l.type === 'minute' ? `${eur(l.price)}<small class="per"> / ${__H('plan.minutes')}</small>` : eur(l.price);
   function renderList() {
     const items = LEISTUNGEN.filter((l) => (state.cat === 'alle' || l.cat === state.cat) && (!state.q || l.name.toLowerCase().includes(state.q)));
     $('#svc-list').innerHTML = items.length ? items.map((l) => { const s = splitName(l.name);
       return `<button class="svc" type="button" data-id="${esc(l.id)}" aria-pressed="${state.sel === l.id}">${catIcon(l.cat)}
-        <span class="nm">${esc(s.text)}<small>${esc(s.code)}${l.once ? ' · einmalig' : ''}${l.type === 'minute' ? ' · nach Zeit' : ''}</small></span>
+        <span class="nm">${esc(s.text)}<small>${esc(s.code)}${l.once ? ` · ${__H('plan.once')}` : ''}${l.type === 'minute' ? ` · ${__H('plan.byTime')}` : ''}</small></span>
         <span class="pr-tag">${priceLabel(l)}</span></button>`; }).join('')
-      : `<div class="empty-list">${ic('search')} Keine Leistung gefunden.</div>`;
+      : `<div class="empty-list">${ic('search')} ${__H('plan.noResult')}</div>`;
     $$('.svc').forEach((b) => (b.onclick = () => { state.sel = state.sel === b.dataset.id ? null : b.dataset.id; state.slots.clear(); renderList(); renderSched(); if (state.sel) setTimeout(() => $('#sched').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' }), 60); }));
   }
   const svcById = (id: string | null) => LEISTUNGEN.find((l) => l.id === id);
 
   /* Zeitplan */
   const PRESETS = [
-    { t: 'Täglich morgens', f: () => DAYS.map((_, d) => d + '-0') },
-    { t: 'Mo–Fr morgens', f: () => [0, 1, 2, 3, 4].map((d) => d + '-0') },
-    { t: 'Morgens + abends', f: () => DAYS.flatMap((_, d) => [d + '-0', d + '-3']) },
-    { t: '1× pro Woche', f: () => ['0-1'] },
+    { t: __H('zeitplan.presetDaily'), f: () => DAYS.map((_, d) => d + '-0') },
+    { t: __H('zeitplan.presetWeekdays'), f: () => [0, 1, 2, 3, 4].map((d) => d + '-0') },
+    { t: __H('zeitplan.presetMornEve'), f: () => DAYS.flatMap((_, d) => [d + '-0', d + '-3']) },
+    { t: __H('zeitplan.presetWeekly'), f: () => ['0-1'] },
   ];
   const unitPrice = (l: any) => unitOf(l, state.dur);
   function renderSched() {
@@ -376,20 +380,20 @@ import Icon from './Icon.astro';
     if (!l) { box.classList.add('hidden'); box.innerHTML = ''; return; }
     box.classList.remove('hidden');
     const s = splitName(l.name);
-    let h = `<div class="sched-head">${catIcon(l.cat)}<div><b>${esc(s.text)}</b><div class="muted">${esc(s.code)} · ${l.type === 'minute' ? eur(l.price) + ' pro Minute' : eur(l.price) + ' pro Einsatz'}</div></div></div>`;
+    let h = `<div class="sched-head">${catIcon(l.cat)}<div><b>${esc(s.text)}</b><div class="muted">${esc(s.code)} · ${l.type === 'minute' ? eur(l.price) + ` ${__H('plan.perMinute')}` : eur(l.price) + ` ${__H('plan.perVisit')}`}</div></div></div>`;
     if (l.type === 'minute') {
-      h += `<div class="flabel">${ic('clock')}Dauer pro Einsatz</div><div class="durs">${[15, 30, 45, 60, 90].map((m) => `<button class="chip" type="button" data-dur="${m}" aria-pressed="${state.dur === m}">${m} Min.</button>`).join('')}
+      h += `<div class="flabel">${ic('clock')}${__H('zeitplan.duration')}</div><div class="durs">${[15, 30, 45, 60, 90].map((m) => `<button class="chip" type="button" data-dur="${m}" aria-pressed="${state.dur === m}">${m} ${__H('plan.minutes')}</button>`).join('')}
         <input type="number" id="dur" min="5" step="5" value="${state.dur}" aria-label="Minuten" inputmode="numeric" /></div>`;
     }
     if (l.once) {
-      h += `<div class="rnote">${ic('once')}<div>Das ist eine <b>einmalige Leistung</b>. Sie wird separat ausgewiesen und nicht zu den monatlichen Kosten gezählt.</div></div>`;
+      h += `<div class="rnote">${ic('once')}<div>${__H('zeitplan.onceNote', { fett: `<b>${__H('zeitplan.onceBold')}</b>` })}</div></div>`;
     } else {
-      h += `<div class="flabel">${ic('calendar')}Wann soll der Pflegedienst kommen?</div>
-        <div class="presets">${PRESETS.map((p, i) => `<button class="chip" type="button" data-preset="${i}">${p.t}</button>`).join('')}<button class="chip" type="button" data-preset="clear">${ic('trash')}Leeren</button></div>
+      h += `<div class="flabel">${ic('calendar')}${__H('zeitplan.when')}</div>
+        <div class="presets">${PRESETS.map((p, i) => `<button class="chip" type="button" data-preset="${i}">${p.t}</button>`).join('')}<button class="chip" type="button" data-preset="clear">${ic('trash')}${__H('zeitplan.clear')}</button></div>
         <div class="sgrid" id="grid"><div></div>${DAYS.map((d, i) => `<div class="h ${i > 4 ? 'we' : ''}">${d}</div>`).join('')}
         ${SLOTS.map((sl, si) => `<div class="rl">${ic(sl.i)}<span>${sl.n}</span></div>` + DAYS.map((_, di) => { const k = di + '-' + si; return `<button class="cell" type="button" data-k="${k}" aria-label="${DAYS[di]} ${sl.n}" aria-pressed="${state.slots.has(k)}">${ic('check')}</button>`; }).join('')).join('')}</div>`;
     }
-    h += `<div class="add-row"><span class="sum" id="add-sum" aria-live="polite"></span><button class="btn btn--green" type="button" id="add">${ic('plus')}Zum Plan hinzufügen</button></div>`;
+    h += `<div class="add-row"><span class="sum" id="add-sum" aria-live="polite"></span><button class="btn btn--green" type="button" id="add">${ic('plus')}${__H('zeitplan.add')}</button></div>`;
     box.innerHTML = h;
 
     box.querySelectorAll('[data-dur]').forEach((b: any) => (b.onclick = () => { state.dur = +b.dataset.dur; renderSched(); }));
@@ -403,25 +407,25 @@ import Icon from './Icon.astro';
   function updateAddSum() {
     const l = svcById(state.sel); if (!l) return;
     const btn = $('#add'), sum = $('#add-sum');
-    if (l.once) { sum.innerHTML = `Einmalig: <b>${eur(unitPrice(l))}</b>`; btn.disabled = false; return; }
+    if (l.once) { sum.innerHTML = __H('zeitplan.sumOnce', { betrag: `<b>${eur(unitPrice(l))}</b>` }); btn.disabled = false; return; }
     const n = state.slots.size;
     btn.disabled = n === 0;
-    sum.innerHTML = n ? `${n}× pro Woche ≈ <b>${eur(unitPrice(l) * n * WPM)}</b> / Monat` : 'Bitte mindestens ein Feld wählen';
+    sum.innerHTML = n ? __H('zeitplan.sumWeekly', { n, betrag: `<b>${eur(unitPrice(l) * n * WPM)}</b>` }) : __H('zeitplan.sumEmpty');
   }
   function addToPlan() {
     const l = svcById(state.sel); if (!l) return;
     const s = splitName(l.name), mins = l.type === 'minute' ? state.dur : null;
     const unit = unitPrice(l);
     if (l.once) {
-      state.plan.push({ uid: Date.now() + Math.random(), cat: l.cat, code: s.code, name: s.text, unit, once: true, perWeek: 0, perMonth: 1, when: 'einmalig' });
+      state.plan.push({ uid: Date.now() + Math.random(), cat: l.cat, code: s.code, name: s.text, unit, once: true, perWeek: 0, perMonth: 1, when: __T('plan.once') });
     } else {
       const perWeek = state.slots.size;
       const when = SLOTS.map((sl, si) => { const ds = DAYS.map((_, di) => di).filter((di) => state.slots.has(di + '-' + si)); if (!ds.length) return null;
-        const k = ds.join(''), lbl = k === '0123456' ? 'täglich' : k === '01234' ? 'Mo–Fr' : k === '56' ? 'Sa+So' : ds.map((d) => DAYS[d]).join(', ');
+        const k = ds.join(''), lbl = k === '0123456' ? __H('zeitplan.whenDaily') : k === '01234' ? __H('zeitplan.whenWeekdays') : k === '56' ? __H('zeitplan.whenWeekend') : ds.map((d) => DAYS[d]).join(', ');
         return `${sl.n.toLowerCase()} ${lbl}`; }).filter(Boolean).join(' · ');
-      state.plan.push({ uid: Date.now() + Math.random(), cat: l.cat, code: s.code, name: s.text + (mins ? ` (${mins} Min.)` : ''), unit, perWeek, perMonth: perWeek * WPM, when });
+      state.plan.push({ uid: Date.now() + Math.random(), cat: l.cat, code: s.code, name: s.text + (mins ? ` (${mins} ${__T('plan.minutes')})` : ''), unit, perWeek, perMonth: perWeek * WPM, when });
     }
-    toast(`${s.text} hinzugefügt`);
+    toast(__T('zeitplan.added', { name: s.text }));
     state.sel = null; state.slots.clear(); renderList(); renderSched(); renderPlan();
   }
 
@@ -429,11 +433,11 @@ import Icon from './Icon.astro';
   function renderPlan() {
     const el = $('#plan');
     if (!state.plan.length) {
-      el.innerHTML = `<div class="plan-empty">${ic('calendar')}<div><b>Noch leer</b></div><div class="muted">Wählen Sie oben eine Leistung aus.</div></div>`;
+      el.innerHTML = `<div class="plan-empty">${ic('calendar')}<div><b>${__H('planliste.emptyTitle')}</b></div><div class="muted">${__H('planliste.emptyText')}</div></div>`;
     } else {
       el.innerHTML = state.plan.map((p) => `<div class="pitem" data-uid="${p.uid}">${catIcon(p.cat)}
-        <div class="info"><b>${esc(p.name)}</b><small>${esc(p.code)} · ${p.once ? 'einmalig' : `${p.perWeek}× pro Woche · ${esc(p.when)}`}</small></div>
-        <div class="amt"><b>${eur(p.once ? p.unit : p.unit * p.perMonth)}</b><small>${p.once ? 'einmalig' : 'pro Monat'}</small></div>
+        <div class="info"><b>${esc(p.name)}</b><small>${esc(p.code)} · ${p.once ? __H('plan.once') : __H('planliste.perWeek', { n: p.perWeek, wann: esc(p.when) })}</small></div>
+        <div class="amt"><b>${eur(p.once ? p.unit : p.unit * p.perMonth)}</b><small>${p.once ? __H('plan.once') : __H('planliste.perMonth')}</small></div>
         <button class="del" type="button" aria-label="${esc(p.name)} entfernen">${ic('trash')}</button></div>`).join('');
       el.querySelectorAll('.pitem').forEach((row: any) => (row.querySelector('.del').onclick = () => {
         row.classList.add('out');
@@ -449,16 +453,16 @@ import Icon from './Icon.astro';
     const fill = $('#bb-fill');
     fill.style.width = Math.min(100, pct * 100) + '%';
     fill.style.background = state.mode === 'geld' ? 'var(--rc-warn)' : pct > 1 ? 'var(--rc-bad)' : pct > .85 ? 'var(--rc-warn)' : 'var(--green-700)';
-    $('#bb-l').innerHTML = `${ic('list')} Geplant: <b>${eur(cost)}</b> / Monat`;
-    $('#bb-r').innerHTML = state.mode === 'geld' ? '<span class="muted">vollständig privat</span>'
-      : pct > 1 ? `<b class="neg">${eur(cost - budget)} über Budget</b>`
-      : `noch <b class="pos">${eur(budget - cost)}</b> frei von ${eur(budget)}`;
+    $('#bb-l').innerHTML = `${ic('list')} ${__H('planliste.barPlanned', { betrag: `<b>${eur(cost)}</b>` })}`;
+    $('#bb-r').innerHTML = state.mode === 'geld' ? `<span class="muted">${__H('planliste.barPrivate')}</span>`
+      : pct > 1 ? `<b class="neg">${__H('planliste.barOver', { betrag: eur(cost - budget) })}</b>`
+      : __H('planliste.barFree', { betrag: `<b class="pos">${eur(budget - cost)}</b>`, budget: eur(budget) });
   }
 
   /* ---------- Schritt 3 ---------- */
   function renderResult() {
     const pg = state.pg!, r = calcPlan(state.mode, pg, state.plan), modeName = MODES.find((m) => m.id === state.mode)!.t;
-    $('#res-sub').textContent = `Pflegegrad ${pg} · ${modeName} · Stand ${CONFIG.stand}`;
+    $('#res-sub').textContent = __T('ergebnis.sub', { pg, modus: modeName, stand: CONFIG.stand });
 
     const ring = $('#ring'), C = 314.16;
     const pct = state.mode === 'geld' ? 0 : (r.budget ? Math.min(1, r.cost / r.budget) : 0);
@@ -466,52 +470,52 @@ import Icon from './Icon.astro';
     ring.style.strokeDashoffset = C;
     requestAnimationFrame(() => requestAnimationFrame(() => (ring.style.strokeDashoffset = C * (1 - pct))));
     const pctEl = $('#ring-pct');
-    if (state.mode === 'geld') { pctEl.textContent = '100 %'; $('#ring-lbl').textContent = 'Pflegegeld wird voll ausgezahlt'; ring.style.stroke = 'var(--green-700)'; requestAnimationFrame(() => requestAnimationFrame(() => (ring.style.strokeDashoffset = 0))); }
-    else { pctEl._v = 0; countTo(pctEl, Math.round(r.share * 100), (v) => Math.round(v) + ' %'); $('#ring-lbl').textContent = 'des Sachleistungs\u00ADbudgets genutzt'; }
+    if (state.mode === 'geld') { pctEl.textContent = '100 %'; $('#ring-lbl').textContent = __T('ergebnis.ringGeld'); ring.style.stroke = 'var(--green-700)'; requestAnimationFrame(() => requestAnimationFrame(() => (ring.style.strokeDashoffset = 0))); }
+    else { pctEl._v = 0; countTo(pctEl, Math.round(r.share * 100), (v) => Math.round(v) + ' %'); $('#ring-lbl').textContent = __T('ergebnis.ringUsed'); }
 
     $('#big-pay').classList.toggle('hidden', state.mode === 'sach');
-    $('#pay-l').textContent = state.mode === 'kombi' ? `Anteiliges Pflegegeld (${Math.round((1 - r.share) * 100)} %)` : 'Pflegegeld-Auszahlung an Sie';
+    $('#pay-l').textContent = state.mode === 'kombi' ? __T('ergebnis.payKombi', { n: Math.round((1 - r.share) * 100) }) : __T('ergebnis.payGeld');
     $('#r-payout')._v = 0; countTo($('#r-payout'), r.payout);
     const big = $('#big-own'); big.className = 'big ' + (r.own > 0 ? 'bad' : 'zero');
     $('#own-ic').innerHTML = ic(r.own > 0 ? 'alert' : 'smile');
     $('#r-own')._v = 0; countTo($('#r-own'), r.own);
 
     const rows: [string, string][] = [];
-    if (state.mode !== 'geld') rows.push(['Budget Pflegesachleistung', eur(r.budget)]);
-    rows.push(['Kosten Pflegeplan pro Monat', eur(r.cost)]);
-    if (state.mode !== 'geld') rows.push(['Davon übernimmt die Pflegekasse', eur(r.used)]);
-    if (state.mode !== 'geld') rows.push(['Ungenutztes Budget', eur(r.rest)]);
-    if (r.invest > 0) rows.push(['Investitionskosten (privat)', eur(r.invest)]);
-    if (state.plan.some((p) => p.once)) rows.push(['Einmalige Leistungen (zusätzlich)', eur(oneoffSum(state.plan))]);
-    rows.push(['Zusätzlich verfügbar: Entlastungsbetrag', eur(CONFIG.entlastung)]);
+    if (state.mode !== 'geld') rows.push([__H('ergebnis.rowBudget'), eur(r.budget)]);
+    rows.push([__H('ergebnis.rowCost'), eur(r.cost)]);
+    if (state.mode !== 'geld') rows.push([__H('ergebnis.rowUsed'), eur(r.used)]);
+    if (state.mode !== 'geld') rows.push([__H('ergebnis.rowRest'), eur(r.rest)]);
+    if (r.invest > 0) rows.push([__H('ergebnis.rowInvest'), eur(r.invest)]);
+    if (state.plan.some((p) => p.once)) rows.push([__H('ergebnis.rowOnce'), eur(oneoffSum(state.plan))]);
+    rows.push([__H('ergebnis.rowEnt'), eur(CONFIG.entlastung)]);
     $('#breakdown').innerHTML = rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
 
     let t: string;
-    if (!state.plan.length) t = 'Sie haben noch keine Leistungen geplant. Gehen Sie zurück und stellen Sie Ihren Pflegeplan zusammen.';
-    else if (state.mode === 'geld') t = `Sie erhalten ${eur(r.geld)} Pflegegeld. ${r.cost ? 'Mit der Kombinationsleistung würde die Pflegekasse einen Teil der Einsätze übernehmen – ein Vergleich lohnt sich.' : ''}`;
-    else if (state.mode === 'kombi') t = r.own > 0 ? `Der Plan übersteigt das Budget um ${eur(r.own)}. Weniger Einsätze oder kleinere Leistungspakete senken den Eigenanteil.` : `Der Pflegedienst nutzt ${Math.round(r.share * 100)} % des Budgets – die übrigen ${Math.round((1 - r.share) * 100)} % bekommen Sie als Pflegegeld.`;
-    else t = r.rest > 0 ? `${eur(r.rest)} Budget bleiben ungenutzt. Mit der Kombinationsleistung würde dieser Anteil als Pflegegeld ausgezahlt.` : r.own > 0 ? `Der Plan übersteigt das Budget um ${eur(r.own)}.` : 'Das Budget wird optimal genutzt.';
+    if (!state.plan.length) t = __T('ergebnis.explainEmpty');
+    else if (state.mode === 'geld') t = __T('ergebnis.explainGeld', { betrag: eur(r.geld), tipp: r.cost ? __T('ergebnis.explainGeldTip') : '' });
+    else if (state.mode === 'kombi') t = r.own > 0 ? __T('ergebnis.explainKombiOver', { betrag: eur(r.own) }) : __T('ergebnis.explainKombi', { genutzt: Math.round(r.share * 100), rest: Math.round((1 - r.share) * 100) });
+    else t = r.rest > 0 ? __T('ergebnis.explainSachRest', { betrag: eur(r.rest) }) : r.own > 0 ? __T('ergebnis.explainSachOver', { betrag: eur(r.own) }) : __T('ergebnis.explainSachFull');
     $('#r-explain div').textContent = t;
   }
 
   /* ---------- Entlastungsbetrag ---------- */
-  $('#e-rate').textContent = eur(CONFIG.entlastungStundensatz) + ' / Std.';
+  $('#e-rate').textContent = eur(CONFIG.entlastungStundensatz) + ` / ${__T('ent.hoursUnit')}`;
   $('#e-budget').placeholder = CONFIG.entlastung + ' €';
   function renderEnt() {
     const b = $('#e-budget').value === '' ? CONFIG.entlastung : Math.max(0, +$('#e-budget').value);
     const h = +$('#e-hours').value, rate = CONFIG.entlastungStundensatz, cost = h * rate;
     $('#e-hours').max = Math.max(20, Math.ceil(b / rate) + 4);
-    $('#e-hours-out').textContent = h.toLocaleString('de-DE') + ' Std.';
+    $('#e-hours-out').textContent = h.toLocaleString('de-DE') + ` ${__T('ent.hoursUnit')}`;
     countTo($('#e-cost'), cost); countTo($('#e-cov'), Math.min(cost, b)); countTo($('#e-own'), Math.max(0, cost - b));
     $('#e-own-k').className = 'kpi ' + (cost > b ? 'bad' : '');
     const pct = b ? cost / b : 1, bar = $('#e-bar');
     bar.style.width = Math.min(100, pct * 100) + '%'; bar.style.background = pct > 1 ? 'var(--rc-bad)' : pct > .85 ? 'var(--rc-warn)' : 'var(--green-700)';
     const max = Math.floor((b / rate) * 4) / 4;
-    $('#e-max div').innerHTML = `Mit ${eur(b)} sind bis zu <b>${max.toLocaleString('de-DE')} Stunden</b> komplett von der Pflegekasse bezahlt.`;
+    $('#e-max div').innerHTML = __H('ent.maxText', { betrag: eur(b), stunden: `<b>${__H('ent.maxHours', { n: max.toLocaleString('de-DE') })}</b>` });
   }
   $('#e-budget').oninput = renderEnt; $('#e-hours').oninput = renderEnt;
 
-  $('#foot').textContent = `Unverbindliche Beispielrechnung, Stand ${CONFIG.stand}. Leistungsbeträge nach SGB XI; maßgeblich ist Ihr Pflegevertrag. Einsätze pro Monat = pro Woche × 4,33.`;
+  $('#foot').textContent = __T('hinweis.foot', { stand: CONFIG.stand });
 
   /* ---------- Dialog ab der 3. Berechnung ---------- */
   const gate: HTMLDialogElement = $('#gate');
@@ -540,7 +544,7 @@ import Icon from './Icon.astro';
   // Formular im Dialog abgeschickt (Kontaktdaten oder Termin; im Vorschau-Modus ohne Endpoint ebenso) → freischalten und Ergebnis zeigen
   gate.addEventListener('lead-sent', (e) => {
     lsSet(K_OK, '1');
-    const msg = ((e.target as HTMLElement).querySelector('.form-status')?.textContent) || 'Vielen Dank!';
+    const msg = ((e.target as HTMLElement).querySelector('.form-status')?.textContent) || __T('gate.thanks');
     closeGate();
     goStep(3);
     toast(msg);

@@ -1,0 +1,1512 @@
+{
+  "label": "Pflege-Rechner",
+  "url": "/pflege-rechner/",
+  "order": 5,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Pflege-Rechner: Was zahlt die Pflegekasse?"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Kostenloser Pflege-Rechner 2026: Pflegegrad wählen, Pflegeplan zusammenstellen und sehen, was die Pflegekasse zahlt – und was Sie selbst zahlen. Mit Entlastungsbetrag-Rechner."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Seitenkopf",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Pflege-Rechner"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "In 3 Schritten herausfinden, was die Pflegekasse zahlt – und was Sie selbst zahlen. Unverbindlich und kostenlos."
+        },
+        {
+          "id": "crumbParent",
+          "label": "Brotkrumen: übergeordnete Seite",
+          "type": "text",
+          "value": "Kosten & Finanzierung"
+        },
+        {
+          "id": "crumb",
+          "label": "Brotkrumen: diese Seite",
+          "type": "text",
+          "value": "Pflege-Rechner"
+        }
+      ]
+    },
+    {
+      "id": "betraege",
+      "label": "Beträge (Grundlage der Berechnung)",
+      "fields": [
+        {
+          "id": "stand",
+          "label": "Stand",
+          "type": "text",
+          "help": "Erscheint im Ergebnis und im Hinweis unter dem Rechner",
+          "value": "2026"
+        },
+        {
+          "id": "geld2",
+          "label": "Pflegegeld Pflegegrad 2 (€)",
+          "type": "text",
+          "help": "Nur die Zahl, z. B. 1497 oder 7,08. Beträge jährlich prüfen.",
+          "required": true,
+          "value": "347"
+        },
+        {
+          "id": "geld3",
+          "label": "Pflegegeld Pflegegrad 3 (€)",
+          "type": "text",
+          "required": true,
+          "value": "599"
+        },
+        {
+          "id": "geld4",
+          "label": "Pflegegeld Pflegegrad 4 (€)",
+          "type": "text",
+          "required": true,
+          "value": "800"
+        },
+        {
+          "id": "geld5",
+          "label": "Pflegegeld Pflegegrad 5 (€)",
+          "type": "text",
+          "required": true,
+          "value": "990"
+        },
+        {
+          "id": "sach2",
+          "label": "Pflegesachleistung Pflegegrad 2 (€)",
+          "type": "text",
+          "required": true,
+          "value": "796"
+        },
+        {
+          "id": "sach3",
+          "label": "Pflegesachleistung Pflegegrad 3 (€)",
+          "type": "text",
+          "required": true,
+          "value": "1497"
+        },
+        {
+          "id": "sach4",
+          "label": "Pflegesachleistung Pflegegrad 4 (€)",
+          "type": "text",
+          "required": true,
+          "value": "1859"
+        },
+        {
+          "id": "sach5",
+          "label": "Pflegesachleistung Pflegegrad 5 (€)",
+          "type": "text",
+          "required": true,
+          "value": "2299"
+        },
+        {
+          "id": "entlastung",
+          "label": "Entlastungsbetrag pro Monat (€)",
+          "type": "text",
+          "required": true,
+          "value": "131"
+        },
+        {
+          "id": "stundensatz",
+          "label": "Stundensatz Entlastungsbetrag (€)",
+          "type": "text",
+          "help": "L33: 0,68 € pro Minute",
+          "required": true,
+          "value": "40,80"
+        }
+      ]
+    },
+    {
+      "id": "tabs",
+      "label": "Reiter",
+      "fields": [
+        {
+          "id": "plan",
+          "label": "Reiter 1",
+          "type": "text",
+          "value": "Pflegeleistungen"
+        },
+        {
+          "id": "ent",
+          "label": "Reiter 2",
+          "type": "text",
+          "value": "Entlastungsbetrag"
+        }
+      ]
+    },
+    {
+      "id": "stepper",
+      "label": "Schritte",
+      "fields": [
+        {
+          "id": "grad",
+          "label": "Schritt 1",
+          "type": "text",
+          "value": "Pflegegrad"
+        },
+        {
+          "id": "plan",
+          "label": "Schritt 2",
+          "type": "text",
+          "value": "Pflegeplan"
+        },
+        {
+          "id": "ergebnis",
+          "label": "Schritt 3",
+          "type": "text",
+          "value": "Ergebnis"
+        }
+      ]
+    },
+    {
+      "id": "modus",
+      "label": "Schritt 1: Art der Leistung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Wie möchten Sie die Leistungen nutzen?"
+        },
+        {
+          "id": "sub",
+          "label": "Text unter der Überschrift",
+          "type": "text",
+          "value": "Keine Sorge – Sie können das jederzeit ändern und vergleichen."
+        },
+        {
+          "id": "geldTitle",
+          "label": "Pflegegeld: Name",
+          "type": "text",
+          "value": "Pflegegeld"
+        },
+        {
+          "id": "geldSub",
+          "label": "Pflegegeld: Kurztext",
+          "type": "text",
+          "value": "Angehörige pflegen, Geld geht an Sie"
+        },
+        {
+          "id": "geldInfoTitle",
+          "label": "Pflegegeld: Erklärung, fetter Anfang",
+          "type": "text",
+          "value": "Pflegegeld (§ 37 SGB XI):"
+        },
+        {
+          "id": "geldInfo",
+          "label": "Pflegegeld: Erklärung",
+          "type": "textarea",
+          "value": "Die Pflegekasse überweist monatlich einen festen Betrag. Die Pflege übernehmen Angehörige oder Bekannte. Regelmäßige Beratungsbesuche sind Pflicht."
+        },
+        {
+          "id": "kombiTitle",
+          "label": "Kombinationsleistung: Name",
+          "type": "text",
+          "value": "Kombinationsleistung"
+        },
+        {
+          "id": "kombiSub",
+          "label": "Kombinationsleistung: Kurztext",
+          "type": "text",
+          "value": "Pflegedienst + restliches Pflegegeld"
+        },
+        {
+          "id": "kombiBadge",
+          "label": "Kombinationsleistung: Hinweis-Etikett",
+          "type": "text",
+          "value": "Am häufigsten"
+        },
+        {
+          "id": "kombiInfoTitle",
+          "label": "Kombinationsleistung: Erklärung, fetter Anfang",
+          "type": "text",
+          "value": "Kombinationsleistung (§ 38 SGB XI):"
+        },
+        {
+          "id": "kombiInfo",
+          "label": "Kombinationsleistung: Erklärung",
+          "type": "textarea",
+          "value": "Der Pflegedienst nutzt einen Teil des Budgets – den Rest bekommen Sie anteilig als Pflegegeld. Nutzt der Dienst z. B. 60 %, erhalten Sie 40 % des Pflegegeldes."
+        },
+        {
+          "id": "sachTitle",
+          "label": "Pflegesachleistung: Name",
+          "type": "text",
+          "value": "Pflegesachleistung"
+        },
+        {
+          "id": "sachSub",
+          "label": "Pflegesachleistung: Kurztext",
+          "type": "text",
+          "value": "Ganzes Budget für den Pflegedienst"
+        },
+        {
+          "id": "sachInfoTitle",
+          "label": "Pflegesachleistung: Erklärung, fetter Anfang",
+          "type": "text",
+          "value": "Pflegesachleistung (§ 36 SGB XI):"
+        },
+        {
+          "id": "sachInfo",
+          "label": "Pflegesachleistung: Erklärung",
+          "type": "textarea",
+          "value": "Das komplette Budget steht dem Pflegedienst zur Verfügung, abgerechnet wird direkt mit der Kasse. Kosten darüber hinaus zahlen Sie selbst."
+        }
+      ]
+    },
+    {
+      "id": "grad",
+      "label": "Schritt 1: Pflegegrad",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Welcher Pflegegrad liegt vor?"
+        },
+        {
+          "id": "sub",
+          "label": "Text unter der Überschrift",
+          "type": "text",
+          "value": "Steht im Bescheid der Pflegekasse."
+        },
+        {
+          "id": "label1",
+          "label": "Bezeichnung Pflegegrad 1",
+          "type": "text",
+          "value": "gering"
+        },
+        {
+          "id": "label2",
+          "label": "Bezeichnung Pflegegrad 2",
+          "type": "text",
+          "value": "erheblich"
+        },
+        {
+          "id": "label3",
+          "label": "Bezeichnung Pflegegrad 3",
+          "type": "text",
+          "value": "schwer"
+        },
+        {
+          "id": "label4",
+          "label": "Bezeichnung Pflegegrad 4",
+          "type": "text",
+          "value": "schwerst"
+        },
+        {
+          "id": "label5",
+          "label": "Bezeichnung Pflegegrad 5",
+          "type": "text",
+          "value": "besonders"
+        },
+        {
+          "id": "pg1Alert",
+          "label": "Hinweis bei Pflegegrad 1",
+          "type": "richtext",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Bei <b>Pflegegrad 1</b> gibt es kein Pflegegeld und keine Sachleistungen – aber den<b>Entlastungsbetrag von {betrag} pro Monat</b>, bei Pflegegrad 1 auch für Körperpflege nutzbar."
+        },
+        {
+          "id": "pg1Button",
+          "label": "Button im Hinweis",
+          "type": "text",
+          "value": "Zum Entlastungs-Rechner"
+        },
+        {
+          "id": "budgetTitle",
+          "label": "Budget: Überschrift",
+          "type": "text",
+          "value": "Ihr monatliches Budget"
+        },
+        {
+          "id": "kpiSach",
+          "label": "Budget: Pflegesachleistung",
+          "type": "text",
+          "value": "Pflegesachleistung"
+        },
+        {
+          "id": "kpiGeld",
+          "label": "Budget: Pflegegeld",
+          "type": "text",
+          "value": "Pflegegeld"
+        },
+        {
+          "id": "kpiEnt",
+          "label": "Budget: Entlastungsbetrag",
+          "type": "text",
+          "value": "Entlastungsbetrag"
+        },
+        {
+          "id": "next",
+          "label": "Button weiter",
+          "type": "text",
+          "value": "Weiter zum Pflegeplan"
+        }
+      ]
+    },
+    {
+      "id": "plan",
+      "label": "Schritt 2: Leistungen auswählen",
+      "fields": [
+        {
+          "id": "geldHint",
+          "label": "Hinweis im Modell Pflegegeld",
+          "type": "richtext",
+          "value": "Im Modell <b>Pflegegeld</b> übernimmt die Pflegekasse keine Einsätze des Pflegedienstes – geplante Leistungen zahlen Sie selbst. Tipp: Vergleichen Sie mit der Kombinationsleistung."
+        },
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Welche Hilfe wird gebraucht?"
+        },
+        {
+          "id": "sub",
+          "label": "Text unter der Überschrift",
+          "type": "text",
+          "value": "Leistung antippen, Zeiten wählen, hinzufügen – so oft Sie möchten."
+        },
+        {
+          "id": "search",
+          "label": "Suchfeld: Platzhalter",
+          "type": "text",
+          "value": "Leistung suchen, z. B. „Waschen“ oder „Einkaufen“"
+        },
+        {
+          "id": "noResult",
+          "label": "Keine Treffer",
+          "type": "text",
+          "value": "Keine Leistung gefunden."
+        },
+        {
+          "id": "once",
+          "label": "Bezeichnung einmalig",
+          "type": "text",
+          "help": "In der Liste, im Plan und im Ergebnis",
+          "value": "einmalig"
+        },
+        {
+          "id": "byTime",
+          "label": "Bezeichnung nach Zeit",
+          "type": "text",
+          "value": "nach Zeit"
+        },
+        {
+          "id": "minutes",
+          "label": "Abkürzung Minuten",
+          "type": "text",
+          "value": "Min."
+        },
+        {
+          "id": "perMinute",
+          "label": "Preis: pro Minute",
+          "type": "text",
+          "value": "pro Minute"
+        },
+        {
+          "id": "perVisit",
+          "label": "Preis: pro Einsatz",
+          "type": "text",
+          "value": "pro Einsatz"
+        }
+      ]
+    },
+    {
+      "id": "kategorien",
+      "label": "Schritt 2: Kategorien",
+      "fields": [
+        {
+          "id": "alle",
+          "label": "Alle",
+          "type": "text",
+          "value": "Alle"
+        },
+        {
+          "id": "pakete",
+          "label": "Grundpflege-Pakete",
+          "type": "text",
+          "value": "Grundpflege-Pakete"
+        },
+        {
+          "id": "koerper",
+          "label": "Körperpflege",
+          "type": "text",
+          "value": "Körperpflege"
+        },
+        {
+          "id": "essen",
+          "label": "Ernährung",
+          "type": "text",
+          "value": "Ernährung"
+        },
+        {
+          "id": "mobil",
+          "label": "Mobilität",
+          "type": "text",
+          "value": "Mobilität"
+        },
+        {
+          "id": "hilfe",
+          "label": "Kleine Hilfen",
+          "type": "text",
+          "value": "Kleine Hilfen"
+        },
+        {
+          "id": "haus",
+          "label": "Haushalt",
+          "type": "text",
+          "value": "Haushalt"
+        },
+        {
+          "id": "betreuung",
+          "label": "Betreuung",
+          "type": "text",
+          "value": "Betreuung"
+        },
+        {
+          "id": "beratung",
+          "label": "Beratung",
+          "type": "text",
+          "value": "Beratung"
+        }
+      ]
+    },
+    {
+      "id": "preise",
+      "label": "Schritt 2: Leistungen und Preise",
+      "fields": [
+        {
+          "id": "items",
+          "label": "Leistungen",
+          "type": "list",
+          "itemLabel": "Leistung",
+          "min": 1,
+          "max": 60,
+          "fields": [
+            {
+              "id": "code",
+              "label": "Code",
+              "type": "text",
+              "help": "Eindeutig, z. B. L01 oder L16a",
+              "required": true
+            },
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text"
+            },
+            {
+              "id": "cat",
+              "label": "Kategorie",
+              "type": "text",
+              "help": "koerper, pakete, essen, mobil, hilfe, haus, betreuung oder beratung"
+            },
+            {
+              "id": "type",
+              "label": "Abrechnung",
+              "type": "text",
+              "help": "fix = pro Einsatz, minute = pro Minute"
+            },
+            {
+              "id": "price",
+              "label": "Preis (€)",
+              "type": "text",
+              "help": "Nur die Zahl, z. B. 7,08",
+              "required": true
+            },
+            {
+              "id": "once",
+              "label": "Einmalig",
+              "type": "text",
+              "help": "ja = einmalige Leistung, leer = regelmäßige Leistung"
+            }
+          ],
+          "value": [
+            {
+              "code": "L01",
+              "name": "Ganzwaschung",
+              "cat": "koerper",
+              "type": "fix",
+              "price": "29,00",
+              "once": ""
+            },
+            {
+              "code": "L02",
+              "name": "Teilwaschung",
+              "cat": "koerper",
+              "type": "fix",
+              "price": "15,52",
+              "once": ""
+            },
+            {
+              "code": "L03",
+              "name": "Ausscheidungen",
+              "cat": "koerper",
+              "type": "fix",
+              "price": "7,08",
+              "once": ""
+            },
+            {
+              "code": "L04",
+              "name": "Selbständige Nahrungsaufnahme",
+              "cat": "essen",
+              "type": "fix",
+              "price": "7,08",
+              "once": ""
+            },
+            {
+              "code": "L05",
+              "name": "Hilfe bei der Nahrungsaufnahme",
+              "cat": "essen",
+              "type": "fix",
+              "price": "17,70",
+              "once": ""
+            },
+            {
+              "code": "L06",
+              "name": "Sondenernährung bei implantierter Magensonde (PEG)",
+              "cat": "essen",
+              "type": "fix",
+              "price": "7,08",
+              "once": ""
+            },
+            {
+              "code": "L07",
+              "name": "Lagern/Betten",
+              "cat": "mobil",
+              "type": "fix",
+              "price": "7,08",
+              "once": ""
+            },
+            {
+              "code": "L08",
+              "name": "Mobilisation",
+              "cat": "mobil",
+              "type": "fix",
+              "price": "12,73",
+              "once": ""
+            },
+            {
+              "code": "L09",
+              "name": "Arztbesuche",
+              "cat": "betreuung",
+              "type": "fix",
+              "price": "24,51",
+              "once": ""
+            },
+            {
+              "code": "L10",
+              "name": "Beheizen des Wohnbereiches",
+              "cat": "haus",
+              "type": "fix",
+              "price": "4,08",
+              "once": ""
+            },
+            {
+              "code": "L11",
+              "name": "Einkaufen",
+              "cat": "haus",
+              "type": "fix",
+              "price": "10,21",
+              "once": ""
+            },
+            {
+              "code": "L12",
+              "name": "Zubereiten von warmen Speisen",
+              "cat": "essen",
+              "type": "fix",
+              "price": "10,21",
+              "once": ""
+            },
+            {
+              "code": "L13",
+              "name": "Aufräumen und/oder Reinigen der Wohnung",
+              "cat": "haus",
+              "type": "fix",
+              "price": "36,76",
+              "once": ""
+            },
+            {
+              "code": "L14",
+              "name": "Waschen und Pflegen der Wäsche und Kleidung",
+              "cat": "haus",
+              "type": "fix",
+              "price": "24,51",
+              "once": ""
+            },
+            {
+              "code": "L16",
+              "name": "Erstgespräch",
+              "cat": "beratung",
+              "type": "fix",
+              "price": "108,93",
+              "once": "ja"
+            },
+            {
+              "code": "L16a",
+              "name": "Folgebesuch",
+              "cat": "beratung",
+              "type": "fix",
+              "price": "61,27",
+              "once": "ja"
+            },
+            {
+              "code": "L17",
+              "name": "Beratungsbesuch nach § 37.3 Satz 5 SGB XI nach Grad 1-5",
+              "cat": "beratung",
+              "type": "fix",
+              "price": "91,91",
+              "once": "ja"
+            },
+            {
+              "code": "L18",
+              "name": "Große Grundpflege mit Lagern/Betten und selbständiger Nahrungsaufnahme",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "43,09",
+              "once": ""
+            },
+            {
+              "code": "L19",
+              "name": "Große Grundpflege",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "31,79",
+              "once": ""
+            },
+            {
+              "code": "L20",
+              "name": "Kleine Grundpflege mit Lagern/Betten und selbständiger Nahrungsaufnahme",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "31,79",
+              "once": ""
+            },
+            {
+              "code": "L21",
+              "name": "Kleine Grundpflege",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "20,49",
+              "once": ""
+            },
+            {
+              "code": "L22",
+              "name": "Große hauswirtschaftliche Versorgung",
+              "cat": "haus",
+              "type": "fix",
+              "price": "51,74",
+              "once": ""
+            },
+            {
+              "code": "L23",
+              "name": "Große Grundpflege mit Lagern/Betten",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "36,76",
+              "once": ""
+            },
+            {
+              "code": "L24",
+              "name": "Große Grundpflege mit Lagern/Betten und Hilfe bei der Nahrungsaufnahme",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "52,29",
+              "once": ""
+            },
+            {
+              "code": "L25",
+              "name": "Kleine Grundpflege mit Lagern/Betten",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "24,71",
+              "once": ""
+            },
+            {
+              "code": "L26",
+              "name": "Kleine Grundpflege mit Lagern/Betten und Hilfe bei der Nahrungsaufnahme",
+              "cat": "pakete",
+              "type": "fix",
+              "price": "40,98",
+              "once": ""
+            },
+            {
+              "code": "L27",
+              "name": "Kleine pflegerische Hilfestellung 1",
+              "cat": "hilfe",
+              "type": "fix",
+              "price": "7,08",
+              "once": ""
+            },
+            {
+              "code": "L28",
+              "name": "Kleine pflegerische Hilfestellung 2",
+              "cat": "hilfe",
+              "type": "fix",
+              "price": "7,08",
+              "once": ""
+            },
+            {
+              "code": "L29",
+              "name": "Kleine pflegerische Hilfestellung 3",
+              "cat": "hilfe",
+              "type": "fix",
+              "price": "11,98",
+              "once": ""
+            },
+            {
+              "code": "L30",
+              "name": "Kleine pflegerische Hilfestellung 4",
+              "cat": "hilfe",
+              "type": "fix",
+              "price": "5,45",
+              "once": ""
+            },
+            {
+              "code": "L31",
+              "name": "Pflegerische Betreuung",
+              "cat": "betreuung",
+              "type": "minute",
+              "price": "0,68",
+              "once": ""
+            },
+            {
+              "code": "L32",
+              "name": "Hilfe bei der Sicherstellung der selbstverantwortlichen Haushaltsführung",
+              "cat": "haus",
+              "type": "minute",
+              "price": "0,68",
+              "once": ""
+            },
+            {
+              "code": "L33",
+              "name": "Hauswirtschaftliche Versorgung",
+              "cat": "haus",
+              "type": "minute",
+              "price": "0,68",
+              "once": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zeitplan",
+      "label": "Schritt 2: Zeitplan",
+      "fields": [
+        {
+          "id": "duration",
+          "label": "Dauer: Überschrift",
+          "type": "text",
+          "value": "Dauer pro Einsatz"
+        },
+        {
+          "id": "onceNote",
+          "label": "Hinweis bei einmaligen Leistungen",
+          "type": "textarea",
+          "help": "{fett} = fett gedruckter Teil aus dem nächsten Feld. Bitte stehen lassen.",
+          "value": "Das ist eine {fett}. Sie wird separat ausgewiesen und nicht zu den monatlichen Kosten gezählt."
+        },
+        {
+          "id": "onceBold",
+          "label": "Hinweis: fett gedruckter Teil",
+          "type": "text",
+          "value": "einmalige Leistung"
+        },
+        {
+          "id": "when",
+          "label": "Zeiten: Überschrift",
+          "type": "text",
+          "value": "Wann soll der Pflegedienst kommen?"
+        },
+        {
+          "id": "presetDaily",
+          "label": "Schnellwahl 1",
+          "type": "text",
+          "value": "Täglich morgens"
+        },
+        {
+          "id": "presetWeekdays",
+          "label": "Schnellwahl 2",
+          "type": "text",
+          "value": "Mo–Fr morgens"
+        },
+        {
+          "id": "presetMornEve",
+          "label": "Schnellwahl 3",
+          "type": "text",
+          "value": "Morgens + abends"
+        },
+        {
+          "id": "presetWeekly",
+          "label": "Schnellwahl 4",
+          "type": "text",
+          "value": "1× pro Woche"
+        },
+        {
+          "id": "clear",
+          "label": "Auswahl leeren",
+          "type": "text",
+          "value": "Leeren"
+        },
+        {
+          "id": "mo",
+          "label": "Montag",
+          "type": "text",
+          "value": "Mo"
+        },
+        {
+          "id": "di",
+          "label": "Dienstag",
+          "type": "text",
+          "value": "Di"
+        },
+        {
+          "id": "mi",
+          "label": "Mittwoch",
+          "type": "text",
+          "value": "Mi"
+        },
+        {
+          "id": "do",
+          "label": "Donnerstag",
+          "type": "text",
+          "value": "Do"
+        },
+        {
+          "id": "fr",
+          "label": "Freitag",
+          "type": "text",
+          "value": "Fr"
+        },
+        {
+          "id": "sa",
+          "label": "Samstag",
+          "type": "text",
+          "value": "Sa"
+        },
+        {
+          "id": "so",
+          "label": "Sonntag",
+          "type": "text",
+          "value": "So"
+        },
+        {
+          "id": "morgens",
+          "label": "Tageszeit 1",
+          "type": "text",
+          "value": "Morgens"
+        },
+        {
+          "id": "mittags",
+          "label": "Tageszeit 2",
+          "type": "text",
+          "value": "Mittags"
+        },
+        {
+          "id": "nachmittags",
+          "label": "Tageszeit 3",
+          "type": "text",
+          "value": "Nachmittags"
+        },
+        {
+          "id": "abends",
+          "label": "Tageszeit 4",
+          "type": "text",
+          "value": "Abends"
+        },
+        {
+          "id": "whenDaily",
+          "label": "Im Plan: jeden Tag",
+          "type": "text",
+          "value": "täglich"
+        },
+        {
+          "id": "whenWeekdays",
+          "label": "Im Plan: Montag bis Freitag",
+          "type": "text",
+          "value": "Mo–Fr"
+        },
+        {
+          "id": "whenWeekend",
+          "label": "Im Plan: Wochenende",
+          "type": "text",
+          "value": "Sa+So"
+        },
+        {
+          "id": "sumOnce",
+          "label": "Summe bei einmaliger Leistung",
+          "type": "text",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Einmalig: {betrag}"
+        },
+        {
+          "id": "sumWeekly",
+          "label": "Summe bei regelmäßiger Leistung",
+          "type": "text",
+          "help": "{n} und {betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "{n}× pro Woche ≈ {betrag} / Monat"
+        },
+        {
+          "id": "sumEmpty",
+          "label": "Noch nichts gewählt",
+          "type": "text",
+          "value": "Bitte mindestens ein Feld wählen"
+        },
+        {
+          "id": "add",
+          "label": "Button hinzufügen",
+          "type": "text",
+          "value": "Zum Plan hinzufügen"
+        },
+        {
+          "id": "added",
+          "label": "Meldung nach dem Hinzufügen",
+          "type": "text",
+          "help": "{name} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "{name} hinzugefügt"
+        }
+      ]
+    },
+    {
+      "id": "planliste",
+      "label": "Schritt 2: Ihr Pflegeplan",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Ihr Pflegeplan"
+        },
+        {
+          "id": "emptyTitle",
+          "label": "Leerer Plan: Überschrift",
+          "type": "text",
+          "value": "Noch leer"
+        },
+        {
+          "id": "emptyText",
+          "label": "Leerer Plan: Text",
+          "type": "text",
+          "value": "Wählen Sie oben eine Leistung aus."
+        },
+        {
+          "id": "perWeek",
+          "label": "Häufigkeit",
+          "type": "text",
+          "help": "{n} und {wann} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "{n}× pro Woche · {wann}"
+        },
+        {
+          "id": "perMonth",
+          "label": "Betrag: pro Monat",
+          "type": "text",
+          "value": "pro Monat"
+        },
+        {
+          "id": "barPlanned",
+          "label": "Budgetbalken: geplant",
+          "type": "text",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Geplant: {betrag} / Monat"
+        },
+        {
+          "id": "barPrivate",
+          "label": "Budgetbalken: Modell Pflegegeld",
+          "type": "text",
+          "value": "vollständig privat"
+        },
+        {
+          "id": "barOver",
+          "label": "Budgetbalken: über Budget",
+          "type": "text",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "{betrag} über Budget"
+        },
+        {
+          "id": "barFree",
+          "label": "Budgetbalken: noch frei",
+          "type": "text",
+          "help": "{betrag} und {budget} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "noch {betrag} frei von {budget}"
+        },
+        {
+          "id": "back",
+          "label": "Button zurück",
+          "type": "text",
+          "value": "Zurück"
+        },
+        {
+          "id": "next",
+          "label": "Button weiter",
+          "type": "text",
+          "value": "Ergebnis anzeigen"
+        }
+      ]
+    },
+    {
+      "id": "ergebnis",
+      "label": "Schritt 3: Ergebnis",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Ihr Ergebnis"
+        },
+        {
+          "id": "sub",
+          "label": "Text unter der Überschrift",
+          "type": "text",
+          "help": "{pg}, {modus} und {stand} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Pflegegrad {pg} · {modus} · Stand {stand}"
+        },
+        {
+          "id": "ringUsed",
+          "label": "Ring: Budget genutzt",
+          "type": "text",
+          "help": "Enthält einen unsichtbaren Trennstrich nach „Sachleistungs“",
+          "value": "des Sachleistungs­budgets genutzt"
+        },
+        {
+          "id": "ringGeld",
+          "label": "Ring: Modell Pflegegeld",
+          "type": "text",
+          "value": "Pflegegeld wird voll ausgezahlt"
+        },
+        {
+          "id": "payPlain",
+          "label": "Auszahlung: Bezeichnung",
+          "type": "text",
+          "help": "Wird beim Berechnen durch die beiden nächsten Felder ersetzt",
+          "value": "Auszahlung an Sie"
+        },
+        {
+          "id": "payKombi",
+          "label": "Auszahlung: Kombinationsleistung",
+          "type": "text",
+          "help": "{n} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Anteiliges Pflegegeld ({n} %)"
+        },
+        {
+          "id": "payGeld",
+          "label": "Auszahlung: Pflegegeld",
+          "type": "text",
+          "value": "Pflegegeld-Auszahlung an Sie"
+        },
+        {
+          "id": "own",
+          "label": "Eigenanteil: Bezeichnung",
+          "type": "text",
+          "value": "Ihr Eigenanteil pro Monat"
+        },
+        {
+          "id": "rowBudget",
+          "label": "Aufstellung: Budget",
+          "type": "text",
+          "value": "Budget Pflegesachleistung"
+        },
+        {
+          "id": "rowCost",
+          "label": "Aufstellung: Kosten",
+          "type": "text",
+          "value": "Kosten Pflegeplan pro Monat"
+        },
+        {
+          "id": "rowUsed",
+          "label": "Aufstellung: Kasse übernimmt",
+          "type": "text",
+          "value": "Davon übernimmt die Pflegekasse"
+        },
+        {
+          "id": "rowRest",
+          "label": "Aufstellung: ungenutzt",
+          "type": "text",
+          "value": "Ungenutztes Budget"
+        },
+        {
+          "id": "rowInvest",
+          "label": "Aufstellung: Investitionskosten",
+          "type": "text",
+          "value": "Investitionskosten (privat)"
+        },
+        {
+          "id": "rowOnce",
+          "label": "Aufstellung: einmalige Leistungen",
+          "type": "text",
+          "value": "Einmalige Leistungen (zusätzlich)"
+        },
+        {
+          "id": "rowEnt",
+          "label": "Aufstellung: Entlastungsbetrag",
+          "type": "text",
+          "value": "Zusätzlich verfügbar: Entlastungsbetrag"
+        },
+        {
+          "id": "explainEmpty",
+          "label": "Erklärung: kein Plan",
+          "type": "textarea",
+          "value": "Sie haben noch keine Leistungen geplant. Gehen Sie zurück und stellen Sie Ihren Pflegeplan zusammen."
+        },
+        {
+          "id": "explainGeld",
+          "label": "Erklärung: Modell Pflegegeld",
+          "type": "textarea",
+          "help": "{betrag} und {tipp} bitte stehen lassen. {tipp} ist das nächste Feld und erscheint nur, wenn Leistungen geplant sind.",
+          "value": "Sie erhalten {betrag} Pflegegeld. {tipp}"
+        },
+        {
+          "id": "explainGeldTip",
+          "label": "Erklärung: Tipp zum Modell Pflegegeld",
+          "type": "textarea",
+          "value": "Mit der Kombinationsleistung würde die Pflegekasse einen Teil der Einsätze übernehmen – ein Vergleich lohnt sich."
+        },
+        {
+          "id": "explainKombiOver",
+          "label": "Erklärung: Kombination über Budget",
+          "type": "textarea",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Der Plan übersteigt das Budget um {betrag}. Weniger Einsätze oder kleinere Leistungspakete senken den Eigenanteil."
+        },
+        {
+          "id": "explainKombi",
+          "label": "Erklärung: Kombination im Budget",
+          "type": "textarea",
+          "help": "{genutzt} und {rest} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Der Pflegedienst nutzt {genutzt} % des Budgets – die übrigen {rest} % bekommen Sie als Pflegegeld."
+        },
+        {
+          "id": "explainSachRest",
+          "label": "Erklärung: Sachleistung, Budget übrig",
+          "type": "textarea",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "{betrag} Budget bleiben ungenutzt. Mit der Kombinationsleistung würde dieser Anteil als Pflegegeld ausgezahlt."
+        },
+        {
+          "id": "explainSachOver",
+          "label": "Erklärung: Sachleistung über Budget",
+          "type": "text",
+          "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Der Plan übersteigt das Budget um {betrag}."
+        },
+        {
+          "id": "explainSachFull",
+          "label": "Erklärung: Sachleistung genau im Budget",
+          "type": "text",
+          "value": "Das Budget wird optimal genutzt."
+        },
+        {
+          "id": "ctaTitle",
+          "label": "Beratung: Überschrift",
+          "type": "text",
+          "value": "Fragen zum Ergebnis?"
+        },
+        {
+          "id": "ctaText",
+          "label": "Beratung: Text",
+          "type": "text",
+          "value": "Wir beraten Sie kostenlos und unverbindlich."
+        },
+        {
+          "id": "ctaButton",
+          "label": "Beratung: Button",
+          "type": "text",
+          "value": "Termin vereinbaren"
+        },
+        {
+          "id": "freeUsed",
+          "label": "Kostenlose Berechnungen aufgebraucht",
+          "type": "textarea",
+          "value": "Sie haben Ihre 2 kostenlosen Berechnungen genutzt. Für weitere Berechnungen hinterlassen Sie uns kurz Ihre Kontaktdaten."
+        },
+        {
+          "id": "freeCount",
+          "label": "Kostenlose Berechnungen: Zähler",
+          "type": "text",
+          "help": "{n} und {max} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Kostenlose Berechnungen: {n} von {max} genutzt."
+        },
+        {
+          "id": "back",
+          "label": "Button zurück",
+          "type": "text",
+          "value": "Plan anpassen"
+        },
+        {
+          "id": "print",
+          "label": "Button drucken",
+          "type": "text",
+          "value": "Drucken"
+        },
+        {
+          "id": "restart",
+          "label": "Button neu starten",
+          "type": "text",
+          "value": "Neu starten"
+        }
+      ]
+    },
+    {
+      "id": "ent",
+      "label": "Reiter Entlastungsbetrag",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Entlastungsbetrag (§ 45b SGB XI)"
+        },
+        {
+          "id": "textBefore",
+          "label": "Text vor dem Betrag",
+          "type": "text",
+          "value": "Jede pflegebedürftige Person (Pflegegrad 1–5) erhält zusätzlich"
+        },
+        {
+          "id": "textAfter",
+          "label": "Text nach dem Betrag",
+          "type": "text",
+          "help": "Der Betrag kommt aus der Gruppe „Beträge“",
+          "value": "im Monat – für Hilfe im Haushalt, Betreuung oder Alltagsbegleitung."
+        },
+        {
+          "id": "budgetLabel",
+          "label": "Budget: Bezeichnung",
+          "type": "text",
+          "value": "Verfügbares Budget"
+        },
+        {
+          "id": "budgetHint",
+          "label": "Budget: Hinweis",
+          "type": "text",
+          "value": "Angespartes Guthaben? Bei der Pflegekasse erfragen und hier eintragen. Leer = 1 Monat."
+        },
+        {
+          "id": "hoursLabel",
+          "label": "Stunden: Bezeichnung",
+          "type": "text",
+          "value": "Gewünschte Stunden pro Monat"
+        },
+        {
+          "id": "hoursUnit",
+          "label": "Abkürzung Stunden",
+          "type": "text",
+          "value": "Std."
+        },
+        {
+          "id": "rateLabel",
+          "label": "Stundensatz: Bezeichnung",
+          "type": "text",
+          "value": "Stundensatz:"
+        },
+        {
+          "id": "kpiCost",
+          "label": "Ergebnis: Kosten",
+          "type": "text",
+          "value": "Kosten"
+        },
+        {
+          "id": "kpiCovered",
+          "label": "Ergebnis: Kasse übernimmt",
+          "type": "text",
+          "value": "Übernimmt die Pflegekasse"
+        },
+        {
+          "id": "kpiOwn",
+          "label": "Ergebnis: Eigenanteil",
+          "type": "text",
+          "value": "Eigenanteil"
+        },
+        {
+          "id": "maxText",
+          "label": "Ergebnis: höchstmögliche Stunden",
+          "type": "text",
+          "help": "{betrag} und {stunden} bitte stehen lassen. {stunden} ist der fett gedruckte Teil aus dem nächsten Feld.",
+          "value": "Mit {betrag} sind bis zu {stunden} komplett von der Pflegekasse bezahlt."
+        },
+        {
+          "id": "maxHours",
+          "label": "Ergebnis: fett gedruckter Teil",
+          "type": "text",
+          "help": "{n} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "{n} Stunden"
+        },
+        {
+          "id": "facts",
+          "label": "Fakten",
+          "type": "list",
+          "itemLabel": "Fakt",
+          "min": 0,
+          "max": 6,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "piggy, calendar, receipt, wallet, clock, check, info oder heart"
+            },
+            {
+              "id": "title",
+              "label": "Überschrift",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "icon": "piggy",
+              "title": "Ansparen erlaubt",
+              "text": "Nicht genutzte Beträge wandern in die Folgemonate."
+            },
+            {
+              "icon": "calendar",
+              "title": "Frist beachten",
+              "text": "Reste eines Jahres können bis 30.06. des Folgejahres genutzt werden."
+            },
+            {
+              "icon": "receipt",
+              "title": "Einfache Abrechnung",
+              "text": "Direkt mit der Kasse oder per Erstattung unserer Rechnung."
+            }
+          ]
+        },
+        {
+          "id": "ctaTitle",
+          "label": "Beratung: Überschrift",
+          "type": "text",
+          "value": "Fragen zum Entlastungsbetrag?"
+        },
+        {
+          "id": "ctaText",
+          "label": "Beratung: Text",
+          "type": "text",
+          "value": "Wir beraten Sie kostenlos und unverbindlich."
+        },
+        {
+          "id": "ctaButton",
+          "label": "Beratung: Button",
+          "type": "text",
+          "value": "Termin vereinbaren"
+        }
+      ]
+    },
+    {
+      "id": "hinweis",
+      "label": "Hinweis unter dem Rechner",
+      "fields": [
+        {
+          "id": "foot",
+          "label": "Text",
+          "type": "textarea",
+          "help": "{stand} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
+          "value": "Unverbindliche Beispielrechnung, Stand {stand}. Leistungsbeträge nach SGB XI; maßgeblich ist Ihr Pflegevertrag. Einsätze pro Monat = pro Woche × 4,33."
+        }
+      ]
+    },
+    {
+      "id": "gate",
+      "label": "Dialog ab der 3. Berechnung",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Pflege-Rechner"
+        },
+        {
+          "id": "title",
+          "label": "Überschrift",
+          "type": "text",
+          "value": "Ihr Ergebnis ist fertig"
+        },
+        {
+          "id": "lead",
+          "label": "Text",
+          "type": "textarea",
+          "value": "Ihre 2 kostenlosen Berechnungen sind aufgebraucht. Wählen Sie, wie Sie Ihr Ergebnis jetzt sehen und weitere Berechnungen auf diesem Gerät freischalten möchten – beides kostet nichts."
+        },
+        {
+          "id": "kontaktTitle",
+          "label": "Möglichkeit 1: Name",
+          "type": "text",
+          "help": "Die Felder der Formulare stehen unter „Allgemein → Kontaktformular“",
+          "value": "Kontaktdaten hinterlassen"
+        },
+        {
+          "id": "kontaktSub",
+          "label": "Möglichkeit 1: Kurztext",
+          "type": "text",
+          "value": "Wir melden uns bei Fragen"
+        },
+        {
+          "id": "terminTitle",
+          "label": "Möglichkeit 2: Name",
+          "type": "text",
+          "value": "Beratungstermin buchen"
+        },
+        {
+          "id": "terminSub",
+          "label": "Möglichkeit 2: Kurztext",
+          "type": "text",
+          "value": "Kostenlos und unverbindlich"
+        },
+        {
+          "id": "terminIntro",
+          "label": "Möglichkeit 2: Text über dem Formular",
+          "type": "textarea",
+          "value": "Nennen Sie uns Ihren Wunschtermin – wir bestätigen ihn telefonisch. Ihr Ergebnis sehen Sie direkt nach dem Absenden."
+        },
+        {
+          "id": "altBefore",
+          "label": "Möglichkeit 2: Text vor dem Link",
+          "type": "text",
+          "value": "Lieber ausführlich?"
+        },
+        {
+          "id": "altLink",
+          "label": "Möglichkeit 2: Linktext",
+          "type": "text",
+          "value": "Zur Erstbegutachtung zu Hause"
+        },
+        {
+          "id": "thanks",
+          "label": "Meldung nach dem Absenden",
+          "type": "text",
+          "help": "Nur falls das Formular keine eigene Meldung liefert",
+          "value": "Vielen Dank!"
+        }
+      ]
+    }
+  ]
+}
