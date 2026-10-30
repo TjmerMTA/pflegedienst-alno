@@ -8,11 +8,18 @@
 # file that is not there yet. The manifest comes at the very end, so a run that dies is repaired by
 # the next one.
 #
+# A folder that is not a whole site stops the run before anything moves: a build gone wrong must
+# never look like «all those files are stale». ALLOW_SHRINK=true lets a real clean-up through.
+#
 # Usage: scripts/deploy-sftp.sh <folder> <docroot on the host> <manifest file name>
 # Env: SFTP_HOST SFTP_USER SFTP_PORT SFTP_KEY_FILE SFTP_KNOWN_HOSTS_FILE, FULL=true uploads everything.
 set -euo pipefail
 
 src=$(cd "$1" && pwd)
+if [ ! -s "$src/index.html" ] && [ ! -s "$src/wp-admin/index.html" ]; then
+  echo "No index.html in $src: refusing to deploy." >&2
+  exit 1
+fi
 key=${SFTP_KEY_FILE/#\~/$HOME}
 known=${SFTP_KNOWN_HOSTS_FILE/#\~/$HOME}
 root=$2
@@ -45,6 +52,13 @@ if ! out=$(sftp "get $manifest -o $work/old" 2>&1); then
   fi
   echo 'No manifest on the host: first upload.'
   : > "$work/old"
+fi
+
+old_count=$(wc -l < "$work/old")
+new_count=$(wc -l < "$work/files")
+if [ "$old_count" -ge 10 ] && [ $((new_count * 2)) -lt "$old_count" ] && [ "${ALLOW_SHRINK:-false}" != true ]; then
+  echo "Only $new_count files against $old_count in the last upload: refusing to deploy." >&2
+  exit 1
 fi
 
 LC_ALL=C sort "$work/new" > "$work/new.sorted"
@@ -86,8 +100,8 @@ if [ -s "$work/stale" ]; then
 $(sed "s|^\(.*\)$|rm -f $root/\1|" "$work/stale")"
   # Folders left empty; rmdir refuses the others, which is what we want.
   while read -r f; do
-    d=$(dirname "$f")
-    while [ "$d" != . ]; do echo "$d"; d=$(dirname "$d"); done
+    d=$(dirname -- "$f")
+    while [ "$d" != . ]; do echo "$d"; d=$(dirname -- "$d"); done
   done < "$work/stale" | sort -ru | sed "s|^\(.*\)$|rmdir $root/\1|" > "$work/rmdir"
   sftp "$(cat "$work/rmdir")" || true
 fi

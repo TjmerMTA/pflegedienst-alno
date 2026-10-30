@@ -5,6 +5,9 @@
 set -euo pipefail
 
 out=$1
+for f in dist/index.html admin/public/wp-admin/index.html; do
+  if [ ! -s "$f" ]; then echo "$f is missing or empty: nothing to deploy." >&2; exit 1; fi
+done
 rm -rf "$out"
 mkdir -p "$out/site" "$out/admin"
 cp -R dist/. "$out/site/"

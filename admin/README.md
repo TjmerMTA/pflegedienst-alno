@@ -185,6 +185,7 @@ or, where cron runs PHP scripts directly, `php ~/admin_html/wp-admin/cron.php`. 
 - Only changed files go up, assets before pages. The only files ever deleted are ones an earlier deploy uploaded, listed in the manifest of that docroot. Anything else in `public_html` or `admin_html` stays, and `~/alno-data` is never touched.
 - The first deploy therefore leaves old files of a previous site in place. Remove them by hand.
 - Start the workflow by hand with `full` to upload everything again.
+- A deploy stops before it touches the host when the folder has no `index.html` (site) or `wp-admin/index.html` (admin), or holds less than half the files of the last upload. A real clean-up of that size: start the workflow by hand with `allow_shrink`.
 - One deploy at a time; a running deploy is never cut off, and a newer push replaces a waiting one.
 
 ### What separates the two origins

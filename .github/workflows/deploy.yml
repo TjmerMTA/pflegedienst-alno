@@ -12,6 +12,10 @@ on:
         description: Upload every file, not only the changed ones
         type: boolean
         default: false
+      allow_shrink:
+        description: Allow an upload with less than half the files of the last one
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -85,6 +89,7 @@ jobs:
       - name: Upload
         env:
           FULL: ${{ inputs.full }}
+          ALLOW_SHRINK: ${{ inputs.allow_shrink }}
           SFTP_KEY_FILE: ~/.ssh/alno_sftp
           SFTP_KNOWN_HOSTS_FILE: ~/.ssh/alno_known_hosts
         run: |

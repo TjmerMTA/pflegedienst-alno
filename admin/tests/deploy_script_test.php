@@ -78,7 +78,7 @@ function setup(): array
             $p = proc_open(['bash', SCRIPT, $src ?? "$this->d/src", $root, $manifest], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
             return proc_close($p);
         }
-        public function log(): array { return file("$this->d/log", FILE_IGNORE_NEW_LINES) ?: []; }
+        public function log(): array { return @file("$this->d/log", FILE_IGNORE_NEW_LINES) ?: []; }
     }];
 }
 
@@ -173,6 +173,45 @@ test('a delete that fails keeps the file in the manifest, so the next run tries 
     exec('rm -rf ' . escapeshellarg($d));
 });
 
+foreach (['an empty folder' => static function (string $d): void { exec('rm -rf ' . escapeshellarg("$d/src")); mkdir("$d/src"); },
+    'no index.html' => static function (string $d): void { unlink("$d/src/index.html"); },
+    'an empty index.html' => static function (string $d): void { file_put_contents("$d/src/index.html", ''); }] as $name => $break) {
+    test("$name stops the run: nothing uploaded, nothing deleted, the manifest stays", function () use ($break) {
+        [$d, $h] = setup();
+        eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+        $manifest = file_get_contents("$d/host/.alno-deploy-manifest");
+        $break($d);
+        ok($h->run() !== 0, 'must fail');
+        has((string) file_get_contents("$d/err"), 'refusing to deploy');
+        eq($h->log(), []);
+        ok(is_file("$d/host/public_html/kontakt/index.html"), 'site gone');
+        eq(file_get_contents("$d/host/.alno-deploy-manifest"), $manifest);
+        exec('rm -rf ' . escapeshellarg($d));
+    });
+}
+test('a build that lost most of its files stops the run; ALLOW_SHRINK lets a real clean-up through', function () {
+    [$d, $h] = setup();
+    mkdir("$d/src/seiten");
+    for ($i = 0; $i < 20; $i++) file_put_contents("$d/src/seiten/s$i.html", "s$i");
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    exec('rm -rf ' . escapeshellarg("$d/src/seiten"));
+    ok($h->run() !== 0, 'must fail');
+    has((string) file_get_contents("$d/err"), 'refusing to deploy');
+    ok(is_file("$d/host/public_html/seiten/s7.html"), 'files deleted');
+    eq($h->run(['ALLOW_SHRINK' => 'true']), 0, (string) @file_get_contents("$d/err"));
+    ok(!is_file("$d/host/public_html/seiten/s7.html"), 'stale file stayed');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+test('a manifest entry that starts with a dash is a file name, not an option', function () {
+    [$d, $h] = setup();
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    $hash = str_repeat('a', 64);
+    file_put_contents("$d/host/.alno-deploy-manifest", "$hash  -rf\n$hash  -x/y\n", FILE_APPEND);
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    ok(strpos((string) file_get_contents("$d/host/.alno-deploy-manifest"), '-rf') === false, 'manifest not rewritten');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
 test('two docroots with two manifests do not touch each other', function () {
     [$d, $h] = setup();
     mkdir("$d/adm/wp-admin/lib", 0755, true);
@@ -180,6 +219,7 @@ test('two docroots with two manifests do not touch each other', function () {
     file_put_contents("$d/adm/wp-admin/.htaccess", 'x');
     file_put_contents("$d/adm/wp-admin/lib/.htaccess", 'Require all denied');
     file_put_contents("$d/adm/wp-admin/api.php", '<?php');
+    file_put_contents("$d/adm/wp-admin/index.html", 'admin');
     eq($h->run(), 0, (string) @file_get_contents("$d/err"));
     eq($h->run([], "$d/adm", 'admin_html', '.alno-deploy-manifest-admin'), 0, (string) @file_get_contents("$d/err"));
     ok(is_file("$d/host/admin_html/.htaccess"), 'the docroot .htaccess arrived');
