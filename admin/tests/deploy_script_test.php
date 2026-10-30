@@ -75,7 +75,9 @@ function setup(): array
         {
             @unlink("$this->d/log");
             $e = array_merge(getenv(), ['PATH' => "$this->d/bin:" . getenv('PATH'), 'FAKE_HOST' => "$this->d/host", 'FAKE_LOG' => "$this->d/log", 'SFTP_HOST' => 'h', 'SFTP_USER' => 'u', 'SFTP_PORT' => '22', 'SFTP_KEY_FILE' => '~/k', 'SFTP_KNOWN_HOSTS_FILE' => '~/n'], $env);
-            $p = proc_open(['bash', SCRIPT, $src ?? "$this->d/src", $root, $manifest], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
+            // Its own process group: a loop in a subshell would outlive a plain kill and hold the tests up.
+            $guard = '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV } $SIG{ALRM} = sub { kill KILL => -$p; exit 124 }; alarm 30; waitpid($p, 0); exit($? >> 8)';
+            $p = proc_open(['perl', '-e', $guard, 'bash', SCRIPT, $src ?? "$this->d/src", $root, $manifest], [1 => ['file', "$this->d/out", 'w'], 2 => ['file', "$this->d/err", 'w']], $pipes, null, $e);
             return proc_close($p);
         }
         public function log(): array { return @file("$this->d/log", FILE_IGNORE_NEW_LINES) ?: []; }
@@ -141,6 +143,39 @@ test('a manifest holding a path outside public_html cannot make it delete there'
     file_put_contents("$d/host/.alno-deploy-manifest", str_repeat('0', 64) . "  ../alno-data/users.json\n", FILE_APPEND);
     eq($h->run(), 0, (string) @file_get_contents("$d/err"));
     ok(is_file("$d/host/alno-data/users.json"), 'not deleted');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
+test('absolute and ../ paths in the manifest are ignored and the run ends; a real stale file still goes', function () {
+    [$d, $h] = setup();
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    $outside = "$d/host/fremd.txt";
+    file_put_contents($outside, 'bleibt');
+    $poison = [$outside, '/etc/passwd', '//etc/passwd', '/', '../fremd.txt', 'kontakt/../../fremd.txt', 'a/../b', '..'];
+    $hash = str_repeat('0', 64);
+    file_put_contents("$d/host/.alno-deploy-manifest", implode('', array_map(static fn ($p) => "$hash  $p\n", $poison)), FILE_APPEND);
+    unlink("$d/src/kontakt/index.html");
+    $t = microtime(true);
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    ok(microtime(true) - $t < 10, 'took too long');
+    ok(is_file($outside), 'deleted outside the docroot');
+    ok(is_file("$d/host/alno-data/users.json"));
+    ok(!is_file("$d/host/public_html/kontakt/index.html"), 'stale file stayed');
+    $log = implode("\n", $h->log());
+    hasNot($log, 'fremd');
+    hasNot($log, 'passwd');
+    has((string) file_get_contents("$d/err"), '8 unsafe paths');
+    hasNot((string) file_get_contents("$d/err"), 'passwd');
+    hasNot((string) file_get_contents("$d/host/.alno-deploy-manifest"), 'passwd');
+    exec('rm -rf ' . escapeshellarg($d));
+});
+
+test('junk in the manifest does not count as files of the last upload', function () {
+    [$d, $h] = setup();
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
+    $hash = str_repeat('0', 64);
+    for ($i = 0; $i < 30; $i++) file_put_contents("$d/host/.alno-deploy-manifest", "$hash  /x/$i\n", FILE_APPEND);
+    eq($h->run(), 0, (string) @file_get_contents("$d/err"));
     exec('rm -rf ' . escapeshellarg($d));
 });
 

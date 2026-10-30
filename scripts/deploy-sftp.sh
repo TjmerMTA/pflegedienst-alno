@@ -54,13 +54,6 @@ if ! out=$(sftp "get $manifest -o $work/old" 2>&1); then
   : > "$work/old"
 fi
 
-old_count=$(wc -l < "$work/old")
-new_count=$(wc -l < "$work/files")
-if [ "$old_count" -ge 10 ] && [ $((new_count * 2)) -lt "$old_count" ] && [ "${ALLOW_SHRINK:-false}" != true ]; then
-  echo "Only $new_count files against $old_count in the last upload: refusing to deploy." >&2
-  exit 1
-fi
-
 LC_ALL=C sort "$work/new" > "$work/new.sorted"
 LC_ALL=C sort "$work/old" > "$work/old.sorted"
 # FULL uploads everything, but still knows what used to be there.
@@ -71,7 +64,20 @@ else
 fi
 sed 's/^[0-9a-f]*  //' "$work/old.sorted" | LC_ALL=C sort -u > "$work/old.paths"
 LC_ALL=C sort -u "$work/files" > "$work/new.paths"
-LC_ALL=C comm -23 "$work/old.paths" "$work/new.paths" | grep -E '^[A-Za-z0-9._@+/-]+$' | grep -v '\.\.' > "$work/stale" || true
+# What this script could not have uploaded is not its own: never deleted, never counted, and gone from
+# the manifest after this run. Only the number is printed: the text comes from the host, the log is public.
+grep -E '^[A-Za-z0-9._@+/-]+$' "$work/old.paths" | grep -v '^/' | grep -v '\.\.' > "$work/old.safe" || true
+ignored=$(($(wc -l < "$work/old.paths") - $(wc -l < "$work/old.safe")))
+if [ "$ignored" -gt 0 ]; then echo "$ignored unsafe paths in the manifest ignored." >&2; fi
+
+old_count=$(wc -l < "$work/old.safe")
+new_count=$(wc -l < "$work/files")
+if [ "$old_count" -ge 10 ] && [ $((new_count * 2)) -lt "$old_count" ] && [ "${ALLOW_SHRINK:-false}" != true ]; then
+  echo "Only $new_count files against $old_count in the last upload: refusing to deploy." >&2
+  exit 1
+fi
+
+LC_ALL=C comm -23 "$work/old.safe" "$work/new.paths" > "$work/stale"
 echo "$(wc -l < "$work/files") files, $(wc -l < "$work/changed") to upload, $(wc -l < "$work/stale") to delete"
 
 stage="$work/stage"
@@ -101,7 +107,7 @@ $(sed "s|^\(.*\)$|rm -f $root/\1|" "$work/stale")"
   # Folders left empty; rmdir refuses the others, which is what we want.
   while read -r f; do
     d=$(dirname -- "$f")
-    while [ "$d" != . ]; do echo "$d"; d=$(dirname -- "$d"); done
+    while [ "$d" != . ] && [ "$d" != / ]; do echo "$d"; d=$(dirname -- "$d"); done
   done < "$work/stale" | sort -ru | sed "s|^\(.*\)$|rmdir $root/\1|" > "$work/rmdir"
   sftp "$(cat "$work/rmdir")" || true
 fi
