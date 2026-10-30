@@ -91,7 +91,9 @@ field `key` in group `contact` of `_global.json` (e.g. `{{phone}}`, `{{email}}`,
 `src/content/blog/*.md`, `src/content/leistungen/*.md`, `src/content/team/*.md`: frontmatter as in
 `src/content.config.ts`, body in Markdown. The admin edits frontmatter and body; it may create and
 delete blog posts and team members, and edit (not create/delete) Leistungen. Image fields in
-frontmatter use a path relative to the `.md` file (`../../assets/img/…`).
+frontmatter use a path relative to the `.md` file (`../../assets/img/…`). The build shows raw HTML in a body as
+text and drops a link address outside `http https mailto tel`, whatever wrote the file: the same result as the
+admin's `sanitizeMarkdown`.
 
 ## 3. Images
 
@@ -168,10 +170,14 @@ The goal of every migration: **the built HTML stays byte for byte the same**.
   Phone numbers in markup keep using `SITE.phone` / `SITE.phoneHref` (from `src/config/site.ts`).
 - **Sentences with runtime values in a browser `<script>`** (the Pflege-Rechner) cannot be constants. The script uses
   macros that `rechnerTexts()` in `src/lib/client-texts.mjs` expands to plain literals at build time, so the bundle
-  and its hash stay the same: `__T('group.field', { betrag: eur(x) })` for `textContent`, `__H(…)` for `innerHTML`,
-  `__N('group.field')` for an amount. The value keeps the whole sentence with a placeholder, `Der Plan übersteigt das
+  and its hash stay the same: `__T('group.field', { betrag: eur(x) })` is the text as it is, for `textContent` and
+  data, `__H(…)` a piece of ready HTML for `innerHTML`, `__N('group.field')` an amount. The value keeps the whole sentence with a placeholder, `Der Plan übersteigt das
   Budget um {betrag}.`, and the field's `help` says it must stay. An unknown `{name}` is shown as typed, a removed one
   is simply not shown. Amounts are `text` fields (`1497`, `7,08`); a value that is no number warns and becomes 0.
+- **HTML strings in a browser `<script>`**: a value that also reaches `textContent` or a form stays raw (`__T`) and
+  goes through `esc()` where it enters the string, once. `__H` is for what only ever enters HTML; it escapes quotes
+  too, so it is safe in an attribute. A new element with an editable text is better built with `createElement`
+  (`kontakt.astro`, the map). A new inline `<script>` or `<style>` needs nothing: the build hashes them for the CSP.
 - **Anything written into a `<script>`** goes through `jsonForScript(value)`, never `JSON.stringify`: it writes
   `< > &` and U+2028/2029 as `\uXXXX`, so `</script>` in a value cannot end the block (`Base.astro`, `PageHero.astro`).
   Pages that pass `schema` to `Base` are covered. `client-texts.mjs` also splits `<!--` and `<script` inside the

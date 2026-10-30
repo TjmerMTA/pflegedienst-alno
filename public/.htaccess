@@ -1,0 +1,10 @@
+# Заголовки безопасности публичного сайта (Apache, Hetzner Webhosting).
+# Значение CSP подставляет при сборке src/lib/hardening.mjs: хеши инлайновых скриптов и стилей берутся из готовых страниц.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "__CSP__"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+  # Браузер учитывает HSTS только по HTTPS. Без includeSubDomains и preload: поддомены могут жить без HTTPS, а preload не отменить быстро
+  Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>

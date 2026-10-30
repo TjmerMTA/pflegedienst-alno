@@ -183,7 +183,8 @@ const p = getPage('pflege-rechner');
 
 <script>
   import { RECHNER as CONFIG, LEISTUNGEN, calc as calcPlan, monthly, oneoffSum, unitPrice as unitOf, type PlanItem, type Mode } from '../config/rechner';
-  // Макросы сборки (src/lib/client-texts.mjs): __T — для textContent, __H — для innerHTML
+  // Макросы сборки (src/lib/client-texts.mjs): __T — текст как есть, для textContent и данных (в HTML только через esc),
+  // __H — готовый кусок HTML: экранирован и для разметки, и для атрибутов
   declare function __T(path: string, parts?: Record<string, unknown>): string;
   declare function __H(path: string, parts?: Record<string, unknown>): string;
 
@@ -246,8 +247,8 @@ const p = getPage('pflege-rechner');
 
   /* ---------- Helpers ---------- */
   const WPM = CONFIG.wochenProMonat;
-  const DAYS = [__H('zeitplan.mo'), __H('zeitplan.di'), __H('zeitplan.mi'), __H('zeitplan.do'), __H('zeitplan.fr'), __H('zeitplan.sa'), __H('zeitplan.so')];
-  const SLOTS = [{ n: __H('zeitplan.morgens'), i: 'sunrise' }, { n: __H('zeitplan.mittags'), i: 'sun' }, { n: __H('zeitplan.nachmittags'), i: 'sunset' }, { n: __H('zeitplan.abends'), i: 'moon' }];
+  const DAYS = [__T('zeitplan.mo'), __T('zeitplan.di'), __T('zeitplan.mi'), __T('zeitplan.do'), __T('zeitplan.fr'), __T('zeitplan.sa'), __T('zeitplan.so')];
+  const SLOTS = [{ n: __T('zeitplan.morgens'), i: 'sunrise' }, { n: __T('zeitplan.mittags'), i: 'sun' }, { n: __T('zeitplan.nachmittags'), i: 'sunset' }, { n: __T('zeitplan.abends'), i: 'moon' }];
   const PG_LABEL: Record<number, string> = { 1: __H('grad.label1'), 2: __H('grad.label2'), 3: __H('grad.label3'), 4: __H('grad.label4'), 5: __H('grad.label5') };
   const $ = (s: string) => document.querySelector<any>(s)!;
   const $$ = (s: string) => [...document.querySelectorAll<any>(s)];
@@ -284,15 +285,15 @@ const p = getPage('pflege-rechner');
 
   /* ---------- Schritt 1 ---------- */
   const MODES = [
-    { id: 'geld', icon: 'wallet', t: __H('modus.geldTitle'), s: __H('modus.geldSub'),
+    { id: 'geld', icon: 'wallet', t: __T('modus.geldTitle'), s: __H('modus.geldSub'),
       info: `<b>${__H('modus.geldInfoTitle')}</b> ${__H('modus.geldInfo')}` },
-    { id: 'kombi', icon: 'combo', t: __H('modus.kombiTitle'), s: __H('modus.kombiSub'), badge: __H('modus.kombiBadge'),
+    { id: 'kombi', icon: 'combo', t: __T('modus.kombiTitle'), s: __H('modus.kombiSub'), badge: __H('modus.kombiBadge'),
       info: `<b>${__H('modus.kombiInfoTitle')}</b> ${__H('modus.kombiInfo')}` },
-    { id: 'sach', icon: 'home', t: __H('modus.sachTitle'), s: __H('modus.sachSub'),
+    { id: 'sach', icon: 'home', t: __T('modus.sachTitle'), s: __H('modus.sachSub'),
       info: `<b>${__H('modus.sachInfoTitle')}</b> ${__H('modus.sachInfo')}` },
   ];
   $('#modes').innerHTML = MODES.map((m) => `<button class="mode" type="button" data-mode="${m.id}" aria-pressed="false">
-    <span class="tick">${ic('check')}</span><div class="mi">${ic(m.icon)}</div><b>${m.t}</b><small>${m.s}</small>${m.badge ? `<div><span class="badge">${m.badge}</span></div>` : ''}</button>`).join('');
+    <span class="tick">${ic('check')}</span><div class="mi">${ic(m.icon)}</div><b>${esc(m.t)}</b><small>${m.s}</small>${m.badge ? `<div><span class="badge">${m.badge}</span></div>` : ''}</button>`).join('');
   $$('.mode').forEach((b) => (b.onclick = () => { state.mode = b.dataset.mode; renderModes(); }));
   function renderModes() {
     $$('.mode').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
@@ -390,8 +391,8 @@ const p = getPage('pflege-rechner');
     } else {
       h += `<div class="flabel">${ic('calendar')}${__H('zeitplan.when')}</div>
         <div class="presets">${PRESETS.map((p, i) => `<button class="chip" type="button" data-preset="${i}">${p.t}</button>`).join('')}<button class="chip" type="button" data-preset="clear">${ic('trash')}${__H('zeitplan.clear')}</button></div>
-        <div class="sgrid" id="grid"><div></div>${DAYS.map((d, i) => `<div class="h ${i > 4 ? 'we' : ''}">${d}</div>`).join('')}
-        ${SLOTS.map((sl, si) => `<div class="rl">${ic(sl.i)}<span>${sl.n}</span></div>` + DAYS.map((_, di) => { const k = di + '-' + si; return `<button class="cell" type="button" data-k="${k}" aria-label="${DAYS[di]} ${sl.n}" aria-pressed="${state.slots.has(k)}">${ic('check')}</button>`; }).join('')).join('')}</div>`;
+        <div class="sgrid" id="grid"><div></div>${DAYS.map((d, i) => `<div class="h ${i > 4 ? 'we' : ''}">${esc(d)}</div>`).join('')}
+        ${SLOTS.map((sl, si) => `<div class="rl">${ic(sl.i)}<span>${esc(sl.n)}</span></div>` + DAYS.map((_, di) => { const k = di + '-' + si; return `<button class="cell" type="button" data-k="${k}" aria-label="${esc(DAYS[di])} ${esc(sl.n)}" aria-pressed="${state.slots.has(k)}">${ic('check')}</button>`; }).join('')).join('')}</div>`;
     }
     h += `<div class="add-row"><span class="sum" id="add-sum" aria-live="polite"></span><button class="btn btn--green" type="button" id="add">${ic('plus')}${__H('zeitplan.add')}</button></div>`;
     box.innerHTML = h;
@@ -421,7 +422,7 @@ const p = getPage('pflege-rechner');
     } else {
       const perWeek = state.slots.size;
       const when = SLOTS.map((sl, si) => { const ds = DAYS.map((_, di) => di).filter((di) => state.slots.has(di + '-' + si)); if (!ds.length) return null;
-        const k = ds.join(''), lbl = k === '0123456' ? __H('zeitplan.whenDaily') : k === '01234' ? __H('zeitplan.whenWeekdays') : k === '56' ? __H('zeitplan.whenWeekend') : ds.map((d) => DAYS[d]).join(', ');
+        const k = ds.join(''), lbl = k === '0123456' ? __T('zeitplan.whenDaily') : k === '01234' ? __T('zeitplan.whenWeekdays') : k === '56' ? __T('zeitplan.whenWeekend') : ds.map((d) => DAYS[d]).join(', ');
         return `${sl.n.toLowerCase()} ${lbl}`; }).filter(Boolean).join(' · ');
       state.plan.push({ uid: Date.now() + Math.random(), cat: l.cat, code: s.code, name: s.text + (mins ? ` (${mins} ${__T('plan.minutes')})` : ''), unit, perWeek, perMonth: perWeek * WPM, when });
     }
