@@ -1,0 +1,118 @@
+{
+  "label": "Leistungen (Übersicht und Detailseiten)",
+  "url": "/leistungen/",
+  "order": 2,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "required": true,
+          "max": 70,
+          "value": "Leistungen: Grundpflege, Behandlungspflege, Verhinderungspflege"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Alle Leistungen des Pflegedienstes ALNO in Dortmund: Grundpflege, Behandlungspflege, Verhinderungspflege, Betreuung, Hauswirtschaft und Beratungsbesuche nach § 37.3."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Übersichtsseite: Seitenkopf",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Unsere Leistungen in Dortmund"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Wir stellen die Versorgung so zusammen, wie Sie oder Ihr Angehöriger sie brauchen – und rechnen direkt mit Pflege- und Krankenkasse ab."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in der Brotkrumen-Navigation",
+          "type": "text",
+          "help": "Auch auf den Detailseiten",
+          "value": "Leistungen"
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "label": "Übersichtsseite: Karten",
+      "fields": [
+        {
+          "id": "button",
+          "label": "Button an jeder Karte",
+          "type": "text",
+          "help": "Titel, Texte und Punkte der Karten kommen aus den einzelnen Leistungen (Menü „Leistungen“)",
+          "value": "Details"
+        }
+      ]
+    },
+    {
+      "id": "detail",
+      "label": "Detailseiten (für alle Leistungen gleich)",
+      "fields": [
+        {
+          "id": "heroSuffix",
+          "label": "Zusatz hinter dem Namen in der Überschrift",
+          "type": "text",
+          "help": "Name, Texte und Punkte kommen aus der jeweiligen Leistung (Menü „Leistungen“)",
+          "value": "in Dortmund"
+        },
+        {
+          "id": "includedTitle",
+          "label": "Überschrift der Punkte-Liste",
+          "type": "text",
+          "value": "Das gehört dazu"
+        },
+        {
+          "id": "payerLabel",
+          "label": "Bezeichnung des Kostenträgers",
+          "type": "text",
+          "value": "Kostenträger:"
+        },
+        {
+          "id": "asideTitle",
+          "label": "Seitenkasten: Überschrift",
+          "type": "text",
+          "value": "Kostenlos beraten lassen"
+        },
+        {
+          "id": "asideText",
+          "label": "Seitenkasten: Text",
+          "type": "text",
+          "value": "Wir melden uns noch am selben Werktag."
+        },
+        {
+          "id": "asideWhatsapp",
+          "label": "Seitenkasten: WhatsApp-Button",
+          "type": "text",
+          "value": "WhatsApp"
+        },
+        {
+          "id": "moreTitle",
+          "label": "Überschrift „Weitere Leistungen“",
+          "type": "text",
+          "value": "Weitere Leistungen"
+        }
+      ]
+    }
+  ]
+}

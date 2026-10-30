@@ -11,6 +11,10 @@ export async function getStaticPaths() {
   const items = await getCollection('leistungen');
   return items.map((entry) => ({ params: { slug: entry.id }, props: { entry, all: items } }));
 }
+// Тексты шаблона — в src/content/pages/leistungen.json, сама услуга — в коллекции leistungen
+// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
+const { getPage } = await import('../../lib/content');
+const p = getPage('leistungen');
 const { entry, all } = Astro.props;
 const { Content } = await render(entry);
 const others = all.filter((a) => a.id !== entry.id).sort((a, b) => a.data.order - b.data.order);
@@ -22,24 +26,24 @@ const service = {
 };
 ---
 <Base title={entry.data.metaTitle} description={entry.data.description} schema={[service]}>
-  <PageHero title={`${entry.data.title} in Dortmund`} lead={entry.data.teaser} crumbs={[{ href: '/leistungen/', label: 'Leistungen' }, { label: entry.data.title }]} />
+  <PageHero title={`${entry.data.title} ${p.text('detail.heroSuffix')}`} lead={entry.data.teaser} crumbs={[{ href: '/leistungen/', label: p.text('hero.crumb') }, { label: entry.data.title }]} />
   <section class="section">
     <div class="wrap layout">
       <div>
         <div class="card box">
-          <h2>Das gehört dazu</h2>
+          <h2>{p.text('detail.includedTitle')}</h2>
           <ul class="checks">{entry.data.highlights.map((h) => <li>{h}</li>)}</ul>
-          <p class="payer"><Icon name="euro" size={18} /> <span><b>Kostenträger:</b> {entry.data.payer}</span></p>
+          <p class="payer"><Icon name="euro" size={18} /> <span><b>{p.text('detail.payerLabel')}</b> {entry.data.payer}</span></p>
         </div>
         <div class="prose"><Content /></div>
       </div>
       <aside>
         <div class="card sticky">
-          <h2 class="h3">Kostenlos beraten lassen</h2>
-          <p class="muted">Wir melden uns noch am selben Werktag.</p>
+          <h2 class="h3">{p.text('detail.asideTitle')}</h2>
+          <p class="muted">{p.text('detail.asideText')}</p>
           <div class="btn-row col">
             <a class="btn btn--primary" href={SITE.phoneHref}><Icon name="phone" size={20} /> {SITE.phone}</a>
-            <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> WhatsApp</a>
+            <a class="btn btn--wa" href={whatsappUrl} target="_blank" rel="noopener"><Icon name="whatsapp" size={20} /> {p.text('detail.asideWhatsapp')}</a>
           </div>
           <hr />
           <ContactForm variant="rueckruf" id="svc-form" />
@@ -49,7 +53,7 @@ const service = {
   </section>
   <section class="section section--soft">
     <div class="wrap">
-      <h2>Weitere Leistungen</h2>
+      <h2>{p.text('detail.moreTitle')}</h2>
       <div class="grid grid-4">
         {others.map((o) => (
           <a class="card other" href={`/leistungen/${o.id}/`}><span class="ico"><Icon name={o.data.icon} /></span><h3>{o.data.title}</h3><p>{o.data.teaser}</p></a>
