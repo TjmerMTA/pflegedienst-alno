@@ -390,7 +390,7 @@
           "label": "Button zu den Stellen",
           "type": "text",
           "required": true,
-          "max": 32,
+          "max": 26,
           "value": "Zu den offenen Stellen"
         }
       ]
