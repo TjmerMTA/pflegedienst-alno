@@ -341,7 +341,7 @@
           "label": "Hinweis bei Pflegegrad 1",
           "type": "richtext",
           "help": "{betrag} bitte stehen lassen: Dort setzt der Rechner den Wert ein.",
-          "value": "Bei <b>Pflegegrad 1</b> gibt es kein Pflegegeld und keine Sachleistungen – aber den<b>Entlastungsbetrag von {betrag} pro Monat</b>, bei Pflegegrad 1 auch für Körperpflege nutzbar."
+          "value": "Bei <b>Pflegegrad 1</b> gibt es kein Pflegegeld und keine Sachleistungen – aber den <b>Entlastungsbetrag von {betrag} pro Monat</b>, bei Pflegegrad 1 auch für Körperpflege nutzbar."
         },
         {
           "id": "pg1Button",
