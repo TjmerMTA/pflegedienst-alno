@@ -181,4 +181,10 @@ test('a record with no usable date falls back to its file time', function () use
     eq($admin->get('anfragen')['json']['items'], []);
     ok(!is_file("$e->data/anfragen/$id.json"));
 });
+test('an attachment past its date cannot be downloaded, even with the old link', function () use ($e, $admin, $ago) {
+    $old = $e->anfrage(['received' => $ago('7 months')], [STORED => 'x']);
+    eq($admin->get('anfragen/file', ['id' => $old, 'stored' => STORED])['status'], 404);
+    ok(!is_file("$e->data/anfragen/files/" . STORED), 'attachment gone');
+});
+
 finish();

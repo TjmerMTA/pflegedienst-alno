@@ -158,7 +158,7 @@ function errorText(e) {
   const code = e.data?.error;
   const map = {
     network: 'err.network', forbidden: 'err.forbidden', not_found: 'err.notfound', too_large: 'err.toolarge', conflict: 'notice.conflict', exists: 'notice.exists', in_use: 'media.delete.used',
-    too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server',
+    too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server', data_dir: 'err.datadir',
   };
   if (code === 'forbidden' && e.message !== 'csrf') return t('err.denied');
   if (map[code]) return t(map[code], { n: 10 });

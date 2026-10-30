@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "admin": "php admin/tests/dev.php",
-    "test:admin": "php admin/tests/run.php"
+    "test:admin": "php admin/tests/run.php && node --test admin/tests/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

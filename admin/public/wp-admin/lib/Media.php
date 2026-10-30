@@ -59,8 +59,12 @@ final class Media
         $src = @imagecreatefromstring($buf);
         if (!$src) throw new UploadError('Die Datei ist kein lesbares Bild');
         switch (self::orientation($buf, $type)) {
+            case 2: imageflip($src, IMG_FLIP_HORIZONTAL); break;
             case 3: $src = imagerotate($src, 180, 0); break;
+            case 4: imageflip($src, IMG_FLIP_VERTICAL); break;
+            case 5: imageflip($src, IMG_FLIP_HORIZONTAL); $src = imagerotate($src, 90, 0); break;
             case 6: $src = imagerotate($src, -90, 0); break;
+            case 7: imageflip($src, IMG_FLIP_HORIZONTAL); $src = imagerotate($src, -90, 0); break;
             case 8: $src = imagerotate($src, 90, 0); break;
         }
         $w = imagesx($src);

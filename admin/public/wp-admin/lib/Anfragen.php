@@ -135,6 +135,7 @@ final class Anfragen
     public function attachment(string $id, string $stored): ?array
     {
         if (!preg_match(self::STORED_RE, $stored)) return null;
+        $this->purge();
         foreach ([self::LIVE, self::TRASH] as $dir) {
             $rec = $this->load($id, $dir);
             foreach (is_array($rec['files'] ?? null) ? $rec['files'] : [] as $f) {

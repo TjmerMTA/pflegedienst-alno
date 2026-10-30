@@ -314,4 +314,27 @@ test('deleting an unused image commits without a build and keeps a copy in the d
     eq((string) file_get_contents($kept[0]), $bytes);
     eq($c->post('media/delete', ['path' => 'unbenutzt.webp'])['status'], 404, 'gone');
 });
+test('every EXIF orientation is applied, mirrored ones too', function () {
+    // Red top-left on a blue image, as the camera stored it. Where red must end up after turning it upright:
+    $where = [1 => 'tl', 2 => 'tr', 3 => 'br', 4 => 'bl', 5 => 'tl', 6 => 'tr', 7 => 'br', 8 => 'bl'];
+    foreach ($where as $orientation => $corner) {
+        $im = imagecreatetruecolor(80, 40);
+        imagefill($im, 0, 0, imagecolorallocate($im, 0, 0, 255));
+        imagefilledrectangle($im, 0, 0, 19, 19, imagecolorallocate($im, 255, 0, 0));
+        ob_start();
+        imagejpeg($im, null, 95);
+        $jpeg = (string) ob_get_clean();
+        [$out, , $w, $h] = Media::process(withExif($jpeg, tiff($orientation, 'x')));
+        eq([$w, $h], $orientation >= 5 ? [40, 80] : [80, 40], "size of orientation $orientation");
+        $res = imagecreatefromstring($out);
+        $points = ['tl' => [5, 5], 'tr' => [$w - 6, 5], 'bl' => [5, $h - 6], 'br' => [$w - 6, $h - 6]];
+        $red = [];
+        foreach ($points as $name => [$x, $y]) {
+            $c = imagecolorsforindex($res, imagecolorat($res, $x, $y));
+            if ($c['red'] > 180 && $c['blue'] < 90) $red[] = $name;
+        }
+        eq($red, [$corner], "orientation $orientation");
+    }
+});
+
 finish();
