@@ -306,6 +306,7 @@ final class Api
             'fileinfo' => class_exists('finfo'), 'imageEngine' => $engine, 'webp' => Media::supportsWebp(),
             'uploadMax' => ini_get('upload_max_filesize'), 'postMax' => ini_get('post_max_size'), 'memory' => ini_get('memory_limit'),
             'dataOutside' => !$this->exposed,
+            'dataFile' => $this->exposed ? alno_setting_file(Store::siteRoot()) : null,
         ];
     }
 
@@ -362,7 +363,7 @@ final class Api
     private function setup(): void
     {
         $this->checkLoginNonce();
-        if ($this->exposed) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte ALNO_DATA_DIR auf einen Ordner außerhalb von public_html setzen.');
+        if ($this->exposed) throw new HttpError(422, 'data_dir', 'Der Datenordner liegt im Web-Verzeichnis oder ist nicht bestimmbar. Bitte seinen Pfad in die Datei .alno-data-dir neben dem Web-Verzeichnis schreiben.', ['file' => alno_setting_file(Store::siteRoot())]);
         $b = self::readJson(65536);
         $token = trim((string) ($b['token'] ?? ''));
         $name = strtolower(trim((string) ($b['user'] ?? '')));

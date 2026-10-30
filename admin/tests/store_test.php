@@ -84,13 +84,13 @@ test('the setting: written once, read by the same function, and it beats HOME', 
     eq($run("$root/www"), "$root/home/alno-data");
     exec('rm -rf ' . escapeshellarg($root));
 });
-test('ALNO_DATA_DIR wins and writes no setting', function () {
+test('ALNO_DATA_DIR wins, and setup copies it into the setting: a SetEnv does not outlive a deploy', function () {
     $root = layout();
     putenv('ALNO_DATA_DIR=/x/y/');
     ok(alno_fix_data_dir("$root/www/users/x", '/x/y'));
     eq(alno_data_dir("$root/www/users/x"), '/x/y');
     putenv('ALNO_DATA_DIR');
-    ok(!is_file("$root/www/users/.alno-data-dir"));
+    eq(alno_data_dir("$root/www/users/x"), '/x/y');
     exec('rm -rf ' . escapeshellarg($root));
 });
 test('a broken setting is no folder, not a reason to fall back', function () {

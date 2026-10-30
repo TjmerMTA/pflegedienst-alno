@@ -163,10 +163,11 @@ function errorText(e) {
   const code = e.data?.error;
   const map = {
     network: 'err.network', forbidden: 'err.forbidden', not_found: 'err.notfound', too_large: 'err.toolarge', conflict: 'notice.conflict', exists: 'notice.exists', in_use: 'media.delete.used',
-    too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server', data_dir: 'err.datadir',
+    too_short: 'err.pwshort', too_long: 'err.pwlong', bad_name: 'err.badname', wrong_password: 'profile.password.wrong', self: 'err.self', retention: 'err.retention', server: 'err.server',
   };
   if (code === 'forbidden' && e.message !== 'csrf') return t('err.denied');
   if (code === 'locked') return t('err.locked', { n: e.data.retryMinutes });
+  if (code === 'data_dir') return t('err.datadir', { file: e.data.file });
   if (map[code]) return t(map[code], { n: 10 });
   return t.msg(e.message) || t('err.server');
 }

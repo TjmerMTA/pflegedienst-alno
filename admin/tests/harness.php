@@ -213,6 +213,7 @@ final class Env
     public Store $store;
     public Server $gh;
     public Server $admin;
+    public ?string $web = null;
     public string $password = 'richtig-gutes-passwort';
 
     public function __construct(bool $setup = true, int $workers = 1, ?string $seed = null)
@@ -222,7 +223,14 @@ final class Env
         $this->git = new FakeGit($this->repo);
         $this->git->seed($seed ?? __DIR__ . '/fixtures/site');
         $this->gh = new Server([__DIR__ . '/fake-github.php'], ['FAKE_GH_DIR' => $this->repo], 4);
-        $this->admin = new Server(['-t', WP_ROOT], ['ALNO_DATA_DIR' => $this->data, 'ALNO_GITHUB_API' => "http://127.0.0.1:{$this->gh->port}"], $workers);
+        // Setup writes .alno-data-dir beside the site: from a copy that is a temporary folder, not this checkout.
+        $docroot = WP_ROOT;
+        if (!$setup) {
+            $docroot = ($this->web = tmpDir('alno-web')) . '/site/admin';
+            mkdir($docroot, 0755, true);
+            exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$docroot/wp-admin"));
+        }
+        $this->admin = new Server(['-t', $docroot], ['ALNO_DATA_DIR' => $this->data, 'ALNO_GITHUB_API' => "http://127.0.0.1:{$this->gh->port}"], $workers);
         $this->store = new Store($this->data);
         if ($setup) {
             $this->store->writeJson('config.json', ['token' => TEST_TOKEN, 'site_url' => 'https://pflegedienst-alno.de', 'hosts' => ['127.0.0.1'], 'cron_key' => 'test-cron-key', 'created' => gmdate('c')]);
@@ -308,5 +316,6 @@ final class Env
         $this->gh->stop();
         rmTree($this->data);
         rmTree($this->repo);
+        if ($this->web) rmTree($this->web);
     }
 }

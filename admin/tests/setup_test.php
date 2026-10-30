@@ -197,7 +197,7 @@ test('a data folder beside the site is fine', function () use ($post, $form) {
     $gh->stop();
     rmTree($root);
 });
-test('with no home to be found setup asks for ALNO_DATA_DIR, and no folder appears', function () use ($post, $form) {
+test('with no home to be found setup names the file to write, and no folder appears', function () use ($post, $form) {
     $root = tmpDir('alno-root');
     mkdir("$root/www/x/admin-alno", 0755, true);
     exec('cp -R ' . escapeshellarg(WP_ROOT . '/wp-admin') . ' ' . escapeshellarg("$root/www/x/admin-alno/wp-admin"));
@@ -205,13 +205,15 @@ test('with no home to be found setup asks for ALNO_DATA_DIR, and no folder appea
     $gh = new Env(false);
     $admin = new Server(['-d', 'disable_functions=posix_getpwuid', '-d', "auto_prepend_file=$root/prep.php", '-t', "$root/www/x/admin-alno"], ['ALNO_GITHUB_API' => "http://127.0.0.1:{$gh->gh->port}"]);
     $c = new Client("http://127.0.0.1:$admin->port");
-    eq($c->get('session')['json']['checks']['dataOutside'] ?? null, false);
+    $checks = $c->get('session')['json']['checks'];
+    eq($checks['dataOutside'] ?? null, false);
+    eq($checks['dataFile'] ?? '', realpath("$root/www") . '/.alno-data-dir', 'the screen names the file, a linked layout hides where it is');
     $r = $post($c, $form());
     $admin->stop();
     $gh->stop();
     eq($r['status'], 422, $r['body']);
     eq($r['json']['error'], 'data_dir');
-    has($r['body'], 'ALNO_DATA_DIR');
+    eq($r['json']['file'], $checks['dataFile']);
     eq((string) shell_exec('find ' . escapeshellarg($root) . " -name 'alno-data*'"), '');
     rmTree($root);
 });
@@ -274,6 +276,40 @@ test('setup fixes the folder beside the site, and after that HOME no longer matt
     eq($s['json']['error'] ?? '', 'login', $s['body']);
     $admin->stop();
     $gh->stop();
+    rmTree($root);
+});
+test('a SetEnv used for setup can go, as the next deploy makes it: the path stays in the setting', function () use ($linked, $serve, $post, $form) {
+    $root = $linked('');
+    file_put_contents("$root/prep.php", '<?php putenv("HOME"); putenv("ALNO_DATA_DIR=' . "$root/home/daten" . '");');
+    $gh = new Env(false);
+    $admin = $serve($root, $gh);
+    eq($post(new Client("http://127.0.0.1:$admin->port"), $form())['status'], 200);
+    $admin->stop();
+    eq(trim((string) file_get_contents("$root/www/users/.alno-data-dir")), "$root/home/daten");
+    file_put_contents("$root/prep.php", '<?php putenv("ALNO_DATA_DIR"); putenv("HOME");');
+    $admin = $serve($root, $gh);
+    $s = (new Client("http://127.0.0.1:$admin->port"))->get('session');
+    eq($s['json']['error'] ?? '', 'login', $s['body']);
+    $admin->stop();
+    $gh->stop();
+    rmTree($root);
+});
+test('with no home to be found the file the setup screen names is the way out', function () use ($linked, $serve, $post, $form) {
+    $root = $linked('');
+    $gh = new Env(false);
+    $admin = $serve($root, $gh);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    $file = $c->get('session')['json']['checks']['dataFile'];
+    $admin->stop();
+    file_put_contents($file, "$root/home/daten\n");
+    $admin = $serve($root, $gh);
+    $c = new Client("http://127.0.0.1:$admin->port");
+    $checks = $c->get('session')['json']['checks'];
+    eq([$checks['dataOutside'], $checks['dataFile']], [true, null]);
+    eq($post($c, $form())['status'], 200);
+    $admin->stop();
+    $gh->stop();
+    ok(is_file("$root/home/daten/config.json"), 'config not in the named folder');
     rmTree($root);
 });
 test('a setting that leads into the web root locks the admin: it does not read what lies there', function () use ($linked, $serve, $post, $form) {

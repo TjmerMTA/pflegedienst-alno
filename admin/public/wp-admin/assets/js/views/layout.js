@@ -141,6 +141,7 @@ export function setupPage({ t, checks, error }) {
     ${row(t('setup.check.data'), c.dataOutside !== false, c.dataOutside === false ? t('setup.check.datainside') : 'OK')}
     <tr><th scope="row">${t('setup.check.limits')}</th><td>upload_max_filesize ${c.uploadMax} · post_max_size ${c.postMax} · memory_limit ${c.memory}</td></tr>
   </tbody></table>
+  ${c.dataFile ? html`<p class="description">${t('setup.check.datafile', { file: c.dataFile })}</p>` : ''}
   <form id="loginform" data-setup novalidate>
     <p><label for="setup_token">${t('setup.token')}</label>
     <input type="password" name="token" id="setup_token" class="input" autocomplete="off" required></p>

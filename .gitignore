@@ -10,3 +10,4 @@ docs/правки/
 
 # Data folder of the local admin: users, token, sessions
 alno-data/
+.alno-data-dir

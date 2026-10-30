@@ -35,12 +35,14 @@ function alno_data_dir(string $siteRoot): string
     return $home === '' ? '' : "$home/alno-data";
 }
 
-/** Written once, at setup. False if the host does not let us; ~/alno-data is then still what both sides find. */
+/**
+ * Written once, at setup, also when ALNO_DATA_DIR gave the path: a SetEnv in public_html/.htaccess is gone after
+ * the next deploy, this file never is. False if the host does not let us; ~/alno-data is then what both sides find.
+ */
 function alno_fix_data_dir(string $siteRoot, string $dir): bool
 {
-    $env = getenv('ALNO_DATA_DIR');
     $file = alno_setting_file($siteRoot);
-    if ((is_string($env) && $env !== '') || is_file($file)) return true;
+    if (is_file($file)) return true;
     if (@file_put_contents($file, "$dir\n", LOCK_EX) === false) return false;
     return @chmod($file, 0600);
 }
