@@ -1,0 +1,21 @@
+# Заголовки безопасности публичного сайта (Apache, Hetzner Webhosting).
+# Значение CSP подставляет при сборке src/lib/hardening.mjs: хеши инлайновых скриптов и стилей берутся из готовых страниц.
+# Только HTTPS: и формы, и cookie согласия не ездят открытым текстом. Адрес зашит, а не взят из Host: заголовок задаёт
+# клиент. .well-known открыт для проверки сертификата, локальные адреса — для проверки на своей машине
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteCond %{HTTP_HOST} !^(127\.0\.0\.1|localhost)(:[0-9]+)?$
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^ https://pflegedienst-alno.de%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-/m2Jah6p1Tv/jMs7dKfqp79wOUZo8ItK22gYmReli7M=' 'sha256-1vu3v2Xee2gbOWY2qyMAzZw2Qy6r3iqd2xRzTYIXxQk=' 'sha256-2pLBa3430eXmdIgv2Qf5SpfIPnifGKg7jwgxT4I6LHg=' 'sha256-56fF+P68J/XGPUXEWW/vXlU9GEPDYA5aVFi1WfbezlA=' 'sha256-KYgNROuNY8iNCo89VDWtwSvn5798O2reEOAHjEx+yus=' 'sha256-RBio8VNTm27v5a2kjfhdwA8qoTtBu9I4RPgqB4TTiRA=' 'sha256-x852TCC9W+4Cla+2SbLweCRzuKcUTbhYlK3/bHEKMNs='; style-src 'self' 'sha256-+ZJZSMnThmgbdkxeU3QlqBYf/QEZUPpKLlVbyJj0Oa8=' 'sha256-/SHcCzbx36iT0JKzu+5LQSAlKQPHCPgYRZYpzwBOMwI=' 'sha256-/XolBJxkNogG+WH8nUQsjYdgo9CnSBhZYofi58EJrRc=' 'sha256-4KXjNEgDz/ze70xzK7DVSDlZfHSlfNl4tFoRejGltfY=' 'sha256-71SXcrc7Dg41fP/l0EmZazY6ALvFhVGoYer79JbCzls=' 'sha256-BVG87EPakWstoXt5J/SIn5sHDFnB0GSIp8xZ/q4c7yA=' 'sha256-PLSSwCxExfqCUR3521IP1Ct+UDdKvYX+7175EHkTntI=' 'sha256-Qo5WxCtDacos79lERI0OdjVjDgg+EjH3xKda79D4m/s=' 'sha256-T2cYTYNAjlu9SRVPzK1P876ZG9YaeZ3ZOu0NKpJdw9M=' 'sha256-Uhim7wj2GlLcwh/llR20UCoSE/Ba9h31EsS0UxeBC8c=' 'sha256-XYVJJPvxo8f7ONVeZoU2yiNmViCP+BxJaJMKD+JhMdw=' 'sha256-ag0Inj2yAHbnk45Tv5Wc2t1larQ30tGdm4sK+rbipgI=' 'sha256-f78kNwRMvTEdYMzalgOtmKL3JoLBlUIpIJpm9ckiRak=' 'sha256-h57c7m9Rdwt+weGojs3186TanmnQSiRgGUbKhqZkR38=' 'sha256-sfXdVUzgc6v5Fxr2R5BdqCw0b59oQto0C/P5V9jhZ7Y=' 'sha256-wdkQxnt2BmoA70rHUkY2PyNrYuty5P6xlYaQwUtLxMY='; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+  # Браузер учитывает HSTS только по HTTPS. Без includeSubDomains и preload: поддомены могут жить без HTTPS, а preload не отменить быстро
+  Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
