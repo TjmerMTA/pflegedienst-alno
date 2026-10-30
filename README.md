@@ -19,7 +19,7 @@ npm run preview
 ./deploy.sh       # сборка + выкладка в ветку gh-pages
 ```
 
-Автосборку через GitHub Actions можно включить, переложив `docs/deploy-workflow.yml.example` в `.github/workflows/deploy.yml` (нужен токен с правом `workflow`) и переключив Pages на «GitHub Actions».
+Продакшн: `.github/workflows/deploy.yml` собирает сайт и выкладывает его по SFTP на хостинг Hetzner при каждом пуше в `main` (подробности в `admin/README.md`, для пуша самого файла workflow нужен токен с правом `workflow`).
 
 ## Настройки
 
