@@ -5,78 +5,57 @@ import PageHero from '../components/PageHero.astro';
 import Icon from '../components/Icon.astro';
 import ApplicationForm from '../components/ApplicationForm.astro';
 import { SITE, whatsappUrl } from '../config/site';
-import img from '../assets/img/karriere.jpg';
+import { getPage } from '../lib/content';
 
-const why = [
-  { icon: 'users', t: 'Familiäres Team', d: 'Inhabergeführt, kurze Wege, ein offenes Ohr: Bei uns sind Sie kein Mitarbeiter unter vielen.' },
-  { icon: 'calendar', t: 'Feste Touren', d: 'Planbare Dienste und feste Patientinnen und Patienten – Sie kennen die Menschen, die Sie pflegen.' },
-  { icon: 'euro', t: 'Faire Bezahlung', d: 'Pünktliches, leistungsgerechtes Gehalt – Details besprechen wir offen im Gespräch.' },
-  { icon: 'award', t: 'Fortbildung', d: 'Wir unterstützen Fort- und Weiterbildungen, damit Sie fachlich und persönlich wachsen können.' },
-];
-
+// Тексты и картинки — в src/content/pages/karriere.json (правятся в админке)
 // TODO: Beispielstellen — Klient ersetzt sie durch die tatsächlich offenen Stellen (Titel, Text, Eckdaten).
-const jobs = [
-  { t: 'Pflegefachkraft (m/w/d)', pos: 'Pflegefachkraft (m/w/d)', d: 'Grund- und Behandlungspflege bei unseren Patientinnen und Patienten zu Hause, Pflegeplanung und -dokumentation.', tags: ['Vollzeit / Teilzeit', 'Examen als Pflegefachkraft'] },
-  { t: 'Pflegehelfer/in (m/w/d)', pos: 'Pflegehelfer/in (m/w/d)', d: 'Unterstützung bei der Grundpflege, Mobilisation und Alltagshilfe – mit Einarbeitung durch erfahrene Kolleginnen.', tags: ['Vollzeit / Teilzeit', 'Pflegehelfer-Ausbildung oder Erfahrung'] },
-  { t: 'Betreuungskraft / Alltagsbegleiter/in (m/w/d)', pos: 'Betreuungskraft / Alltagsbegleiter/in (m/w/d)', d: 'Zeit schenken: Gespräche, gemeinsame Spaziergänge, Begleitung zu Terminen und Unterstützung im Haushalt.', tags: ['Teilzeit / Minijob', 'Qualifizierung nach § 53b SGB XI von Vorteil'] },
-];
-
 // TODO: Leistungen/Konditionen (Gehalt, Fahrzeug, Urlaub) vom Klienten bestätigen lassen.
-const offers = [
-  'Anstellung in Voll- oder Teilzeit, auch Minijob möglich',
-  'Feste Touren und verlässliche Dienstplanung',
-  'Faire Regelung für Fahrzeug bzw. Fahrtkosten auf der Tour',
-  'Gründliche Einarbeitung mit festen Ansprechpartnern',
-  'Fort- und Weiterbildungen, Praxisanleitung für neue Kolleginnen und Kollegen',
-  'Regelmäßige Teambesprechungen und Raum für Ihre Ideen',
-];
-
-const steps = [
-  { t: 'Bewerbung senden', d: 'Per Formular, E-Mail oder WhatsApp. Ein kurzer Lebenslauf reicht uns für den Anfang.' },
-  { t: 'Kennenlernen', d: 'Wir rufen Sie zurück und laden Sie zu einem persönlichen Gespräch in Dortmund-Hörde ein.' },
-  { t: 'Probearbeiten', d: 'Sie begleiten eine Tour und lernen das Team kennen – unverbindlich und ganz ohne Druck.' },
-  { t: 'Zusage & Start', d: 'Wir besprechen Vertrag und Starttermin – und Sie werden Schritt für Schritt eingearbeitet.' },
-];
+const p = getPage('karriere');
+const img = p.img('why.image');
+const why = p.list<{ icon: string; title: string; text: string }>('benefits.items');
+// Eckdaten: одна строка textarea — один пункт (вложенные списки контракт не допускает)
+const jobs = p.list<{ title: string; text: string; tags: string }>('jobs.items').map((j) => ({ ...j, tags: j.tags.split('\n').map((t) => t.trim()).filter(Boolean) }));
+const offers = p.list<{ text: string }>('offers.items');
+const steps = p.list<{ title: string; text: string }>('steps.items');
 ---
-<Base title="Karriere – Pflegekraft gesucht in Dortmund" description="Jobs beim Pflegedienst ALNO in Dortmund-Hörde: Pflegefachkraft, Pflegehelfer/in und Betreuungskraft (m/w/d) gesucht. Familiäres Team, feste Touren, faire Bezahlung – jetzt online bewerben.">
-  <PageHero title="Karriere: Pflegen mit Herz – in einem Team, das zusammenhält" lead="Wir suchen Pflegefachkräfte, Pflegehelfer/innen und Betreuungskräfte für Dortmund. Bewerben Sie sich in wenigen Minuten – ganz ohne Anschreiben." crumbs={[{ label: 'Karriere' }]}>
+<Base title={p.text('seo.title')} description={p.text('seo.description')}>
+  <PageHero title={p.text('hero.title')} lead={p.text('hero.lead')} crumbs={[{ label: p.text('hero.crumb') }]}>
     <div class="btn-row hero-cta">
-      <a class="btn btn--green" href="#bewerbung">Jetzt bewerben</a>
-      <a class="btn btn--white" href="#stellen">Offene Stellen</a>
+      <a class="btn btn--green" href="#bewerbung">{p.text('hero.buttonApply')}</a>
+      <a class="btn btn--white" href="#stellen">{p.text('hero.buttonJobs')}</a>
     </div>
   </PageHero>
 
   <section class="section">
     <div class="wrap split">
-      <Image src={img} alt="Mehrere Hände liegen in einem Kreis übereinander – Zusammenhalt im Team" widths={[424, 848]} sizes="(max-width: 900px) 100vw, 520px" class="img" />
+      {img && <Image src={img.src} alt={img.alt} widths={[424, 848]} sizes="(max-width: 900px) 100vw, 520px" class="img" />}
       <div>
-        <span class="eyebrow">Warum ALNO</span>
-        <h2>Ein Pflegedienst, bei dem Sie ankommen</h2>
-        <p>Der Pflegedienst ALNO ist ein familiärer, inhabergeführter Pflegedienst aus Dortmund-Hörde. Wir pflegen mit Herz und Kompetenz – und genauso gehen wir miteinander um: respektvoll, zuverlässig und auf Augenhöhe.</p>
-        <p>Wenn Sie Menschen gern im eigenen Zuhause unterstützen und dabei ein Team im Rücken haben möchten, sind Sie bei uns richtig.</p>
+        <span class="eyebrow">{p.text('why.eyebrow')}</span>
+        <h2>{p.text('why.h2')}</h2>
+        {p.list<{ text: string }>('why.paragraphs').map((t) => <p>{t.text}</p>)}
       </div>
     </div>
   </section>
 
   <section class="section section--soft">
     <div class="wrap">
-      <div class="head head--center"><span class="eyebrow">Ihre Vorteile</span><h2>Darum lohnt sich ALNO</h2></div>
+      <div class="head head--center"><span class="eyebrow">{p.text('benefits.eyebrow')}</span><h2>{p.text('benefits.h2')}</h2></div>
       <div class="grid grid-4">
-        {why.map((v) => <div class="card"><span class="ico"><Icon name={v.icon} /></span><h3>{v.t}</h3><p>{v.d}</p></div>)}
+        {why.map((v) => <div class="card"><span class="ico"><Icon name={v.icon} /></span><h3>{v.title}</h3><p>{v.text}</p></div>)}
       </div>
     </div>
   </section>
 
   <section class="section" id="stellen">
     <div class="wrap">
-      <div class="head"><span class="eyebrow">Offene Stellen</span><h2>Wir suchen Verstärkung</h2><p class="lead">Nichts Passendes dabei? Bewerben Sie sich gern initiativ – wir freuen uns über jede Nachricht.</p></div>
+      <div class="head"><span class="eyebrow">{p.text('jobs.eyebrow')}</span><h2>{p.text('jobs.h2')}</h2><p class="lead">{p.text('jobs.lead')}</p></div>
       <div class="grid grid-3">
         {jobs.map((j) => (
           <article class="card job">
-            <h3>{j.t}</h3>
-            <p>{j.d}</p>
+            <h3>{j.title}</h3>
+            <p>{j.text}</p>
             <ul class="tags">{j.tags.map((t) => <li>{t}</li>)}</ul>
-            <a class="btn btn--ghost" href="#bewerbung" data-position={j.pos}>Dafür bewerben <Icon name="arrow" size={18} /></a>
+            <a class="btn btn--ghost" href="#bewerbung" data-position={j.title}>{p.text('jobs.button')} <Icon name="arrow" size={18} /></a>
           </article>
         ))}
       </div>
@@ -86,16 +65,16 @@ const steps = [
   <section class="section section--soft">
     <div class="wrap split">
       <div>
-        <span class="eyebrow">Das bieten wir</span>
-        <h2>Gute Arbeit verdient gute Bedingungen</h2>
-        <ul class="checks">{offers.map((o) => <li>{o}</li>)}</ul>
-        <p class="muted">Sie möchten in der Pflege starten? Schauen Sie auch auf unsere Seite <a href="/ausbildung/">Ausbildung &amp; Praktikum</a>.</p>
+        <span class="eyebrow">{p.text('offers.eyebrow')}</span>
+        <h2>{p.text('offers.h2')}</h2>
+        <ul class="checks">{offers.map((o) => <li>{o.text}</li>)}</ul>
+        <p class="muted">{p.text('offers.noteBefore')} <a href="/ausbildung/">{p.text('offers.noteLink')}</a>{p.text('offers.noteAfter')}</p>
       </div>
       <div>
-        <span class="eyebrow">So läuft die Bewerbung</span>
-        <h2>In vier Schritten zu uns</h2>
+        <span class="eyebrow">{p.text('steps.eyebrow')}</span>
+        <h2>{p.text('steps.h2')}</h2>
         <ol class="steps">
-          {steps.map((s, i) => <li><span class="n">{i + 1}</span><div><b>{s.t}</b><p>{s.d}</p></div></li>)}
+          {steps.map((s, i) => <li><span class="n">{i + 1}</span><div><b>{s.title}</b><p>{s.text}</p></div></li>)}
         </ol>
       </div>
     </div>
@@ -104,15 +83,15 @@ const steps = [
   <section class="section" id="bewerbung">
     <div class="wrap layout">
       <div class="card">
-        <h2>Jetzt bewerben</h2>
+        <h2>{p.text('apply.h2')}</h2>
         <ApplicationForm variant="karriere" id="karriere-form" />
       </div>
       <aside class="side">
-        <h3>Lieber persönlich?</h3>
-        <p>Rufen Sie uns an oder schicken Sie Ihren Lebenslauf direkt per E-Mail oder WhatsApp.</p>
-        <a class="c" href={SITE.phoneHref}><span class="ico"><Icon name="phone" /></span><span><small>Telefon</small><b>{SITE.phone}</b></span></a>
-        <a class="c" href={`mailto:${SITE.email}`}><span class="ico"><Icon name="mail" /></span><span><small>E-Mail</small><b>{SITE.email}</b></span></a>
-        <a class="c" href={whatsappUrl} target="_blank" rel="noopener"><span class="ico ico--green"><Icon name="whatsapp" /></span><span><small>WhatsApp</small><b>Nachricht schreiben</b></span></a>
+        <h3>{p.text('apply.sideTitle')}</h3>
+        <p>{p.text('apply.sideText')}</p>
+        <a class="c" href={SITE.phoneHref}><span class="ico"><Icon name="phone" /></span><span><small>{p.text('apply.phoneLabel')}</small><b>{SITE.phone}</b></span></a>
+        <a class="c" href={`mailto:${SITE.email}`}><span class="ico"><Icon name="mail" /></span><span><small>{p.text('apply.emailLabel')}</small><b>{SITE.email}</b></span></a>
+        <a class="c" href={whatsappUrl} target="_blank" rel="noopener"><span class="ico ico--green"><Icon name="whatsapp" /></span><span><small>{p.text('apply.whatsappLabel')}</small><b>{p.text('apply.whatsappText')}</b></span></a>
       </aside>
     </div>
   </section>

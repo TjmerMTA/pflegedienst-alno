@@ -1,16 +1,17 @@
 ---
 // Баннер согласия (DSGVO). Активен только при заданном PUBLIC_GA_ID:
 // до «Akzeptieren» Google Analytics не загружается вообще.
-import { SITE } from '../config/site';
+import { SITE, getGlobal } from '../config/site';
+const g = getGlobal();
 const ga = SITE.gaId;
 ---
 {ga && (
   <div class="consent-box" id="consent" role="dialog" aria-labelledby="consent-t" hidden>
-    <p id="consent-t"><b>Datenschutz-Einstellungen</b></p>
-    <p>Wir möchten mit Google Analytics anonymisiert messen, wie unsere Website genutzt wird. Das geschieht nur mit Ihrer Einwilligung, die Sie jederzeit widerrufen können. <a href="/datenschutz/">Mehr erfahren</a></p>
+    <p id="consent-t"><b>{g.text('consent.title')}</b></p>
+    <p>{g.text('consent.text')} <a href="/datenschutz/">{g.text('consent.more')}</a></p>
     <div class="btn-row">
-      <button class="btn btn--primary" data-consent="yes">Akzeptieren</button>
-      <button class="btn btn--ghost" data-consent="no">Nur notwendige</button>
+      <button class="btn btn--primary" data-consent="yes">{g.text('consent.accept')}</button>
+      <button class="btn btn--ghost" data-consent="no">{g.text('consent.decline')}</button>
     </div>
   </div>
 )}

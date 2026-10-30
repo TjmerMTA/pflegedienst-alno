@@ -7,6 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "test": "node --test test/*.test.mjs",
     "admin": "php admin/tests/dev.php",
     "test:admin": "php admin/tests/run.php && node --test admin/tests/*.test.mjs"
   },
