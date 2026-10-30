@@ -1,11 +1,10 @@
 <?php
 // A page rewritten without changes must be byte-identical, or every save would drag formatting
-// changes through the repository. Runs on the real pages of branch vobuda/anna, read at test time:
-// nothing of the client's content is kept in this repository. Skips if the branch is not there.
+// changes through the repository. Runs on the real pages of this checkout, as committed.
 declare(strict_types=1);
 require_once __DIR__ . '/harness.php';
 
-const BRANCH = 'vobuda/anna';
+const BRANCH = 'HEAD';
 
 /**
  * A temporary site from the branch: pages and Markdown with their real bytes, read with `git show`.

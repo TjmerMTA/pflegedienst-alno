@@ -25,11 +25,11 @@ function within(float $ms, callable $fn, string $what): void
 function realFiles(string $dir): array
 {
     $root = dirname(__DIR__, 2);
-    $list = shell_exec('git -C ' . escapeshellarg($root) . ' ls-tree -r --name-only vobuda/anna ' . escapeshellarg($dir) . ' 2>/dev/null');
+    $list = shell_exec('git -C ' . escapeshellarg($root) . ' ls-tree -r --name-only HEAD ' . escapeshellarg($dir) . ' 2>/dev/null');
     $names = array_filter(explode("\n", trim((string) $list)), static fn ($f) => substr($f, -3) === '.md');
-    if (!$names) throw new Skip('branch vobuda/anna not available');
+    if (!$names) throw new Skip('no real files at HEAD');
     $out = [];
-    foreach ($names as $f) $out[$f] = (string) shell_exec('git -C ' . escapeshellarg($root) . ' show ' . escapeshellarg("vobuda/anna:$f"));
+    foreach ($names as $f) $out[$f] = (string) shell_exec('git -C ' . escapeshellarg($root) . ' show ' . escapeshellarg("HEAD:$f"));
     return $out;
 }
 
