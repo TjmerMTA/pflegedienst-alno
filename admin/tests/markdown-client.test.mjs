@@ -17,11 +17,11 @@ function realFiles() {
   for (const dir of ['blog', 'leistungen']) {
     for (const f of fs.readdirSync(path.join(fixtures, dir))) out.push([`${dir}/${f}`, fs.readFileSync(path.join(fixtures, dir, f), 'utf8')]);
   }
-  // The real texts, if that branch is around. Read at test time, nothing of it lands in the repository.
+  // The real texts of this checkout, read at test time.
   try {
-    const list = execFileSync('git', ['ls-tree', '-r', '--name-only', 'vobuda/anna', 'src/content/blog', 'src/content/leistungen'], { cwd: here, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim().split('\n');
-    for (const f of list) if (f.endsWith('.md')) out.push([f, execFileSync('git', ['show', `vobuda/anna:${f}`], { cwd: here }).toString()]);
-  } catch { /* branch not here */ }
+    const list = execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', 'src/content/blog', 'src/content/leistungen'], { cwd: here, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim().split('\n');
+    for (const f of list) if (f.endsWith('.md')) out.push([f, execFileSync('git', ['show', `HEAD:${f}`], { cwd: here }).toString()]);
+  } catch { /* no git here */ }
   return out;
 }
 
