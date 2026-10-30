@@ -3,9 +3,14 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Rechner from '../components/Rechner.astro';
 import CtaBand from '../components/CtaBand.astro';
+
+// Тексты — в src/content/pages/pflege-rechner.json (правятся в админке)
+// Импорт динамический: новый статический сдвинул бы порядок <style> на страницах (см. Certificates.astro)
+const { getPage } = await import('../lib/content');
+const p = getPage('pflege-rechner');
 ---
-<Base title="Pflege-Rechner: Was zahlt die Pflegekasse?" description="Kostenloser Pflege-Rechner 2026: Pflegegrad wählen, Pflegeplan zusammenstellen und sehen, was die Pflegekasse zahlt – und was Sie selbst zahlen. Mit Entlastungsbetrag-Rechner.">
-  <PageHero title="Pflege-Rechner" lead="In 3 Schritten herausfinden, was die Pflegekasse zahlt – und was Sie selbst zahlen. Unverbindlich und kostenlos." crumbs={[{ href: '/kosten-finanzierung/', label: 'Kosten & Finanzierung' }, { label: 'Pflege-Rechner' }]} />
+<Base title={p.text('seo.title')} description={p.text('seo.description')}>
+  <PageHero title={p.text('hero.title')} lead={p.text('hero.lead')} crumbs={[{ href: '/kosten-finanzierung/', label: p.text('hero.crumbParent') }, { label: p.text('hero.crumb') }]} />
   <section class="section">
     <div class="wrap">
       <Rechner />
