@@ -1,0 +1,321 @@
+{
+  "label": "Über uns",
+  "url": "/ueber-uns/",
+  "order": 4,
+  "groups": [
+    {
+      "id": "seo",
+      "label": "SEO: Titel und Beschreibung",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Meta Title",
+          "type": "text",
+          "help": "Ohne „ALNO“ im Titel hängt die Seite „| Pflegedienst ALNO Dortmund“ an",
+          "required": true,
+          "max": 70,
+          "value": "Über uns & Team"
+        },
+        {
+          "id": "description",
+          "label": "Meta Description",
+          "type": "textarea",
+          "required": true,
+          "max": 180,
+          "value": "Lernen Sie den Pflegedienst ALNO in Dortmund-Hörde kennen: unser Leitbild, unser qualifiziertes Pflegeteam und unsere Werte – Würde, Herzlichkeit und Kompetenz."
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Erster Bildschirm",
+      "fields": [
+        {
+          "id": "title",
+          "label": "Überschrift (H1)",
+          "type": "text",
+          "required": true,
+          "max": 90,
+          "value": "Über uns: Menschen, die mit Herz pflegen"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Der Pflegedienst ALNO ist ein familiärer, inhabergeführter Pflegedienst aus Dortmund-Hörde. Wir möchten den uns anvertrauten Menschen ein würdevolles, geborgenes Leben im eigenen Zuhause ermöglichen."
+        },
+        {
+          "id": "crumb",
+          "label": "Name in den Brotkrumen",
+          "type": "text",
+          "required": true,
+          "value": "Über uns"
+        }
+      ]
+    },
+    {
+      "id": "leitbild",
+      "label": "Unser Leitbild",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Unser Leitbild"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Körper, Geist und Seele im Blick"
+        },
+        {
+          "id": "paragraphs",
+          "label": "Absätze",
+          "type": "list",
+          "max": 4,
+          "itemLabel": "Absatz",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "text": "Wenn Sie nach einer fürsorglichen, herzlichen und vor allem kompetenten Pflege suchen, sind Sie bei uns richtig. Uns ist bewusst, wie verantwortungsvoll diese Aufgabe ist – und wie viel Vertrauen Familien uns schenken."
+            },
+            {
+              "text": "Wir kümmern uns um die körperliche Gesundheit und ebenso um das seelische Wohlbefinden. Über die medizinische Versorgung hinaus sind wir auch bei persönlichen und hauswirtschaftlichen Angelegenheiten da – vom gemeinsamen Einkauf bis zum Gespräch bei einer Tasse Kaffee."
+            }
+          ]
+        },
+        {
+          "id": "image",
+          "label": "Bild",
+          "type": "image",
+          "required": true,
+          "value": "ueber-uns-haende.jpg",
+          "alt": "Pflegekraft hält die Hand einer Seniorin mit Gehstock"
+        }
+      ]
+    },
+    {
+      "id": "values",
+      "label": "Unsere Werte",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Unsere Werte"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Wofür wir stehen"
+        },
+        {
+          "id": "items",
+          "label": "Werte",
+          "type": "list",
+          "max": 8,
+          "itemLabel": "Wert",
+          "min": 1,
+          "fields": [
+            {
+              "id": "icon",
+              "label": "Symbol",
+              "type": "text",
+              "help": "Name des Symbols: phone, whatsapp, mail, pin, clock, heart, shield, hands, cross, home, calendar, users, euro, check, arrow, chat, award, clipboard, star, car, info"
+            },
+            {
+              "id": "title",
+              "label": "Titel",
+              "type": "text"
+            },
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "textarea"
+            }
+          ],
+          "value": [
+            {
+              "icon": "heart",
+              "title": "Würde",
+              "text": "Die Würde des Menschen steht bei uns an erster Stelle – in jeder Handlung."
+            },
+            {
+              "icon": "users",
+              "title": "Familiär",
+              "text": "Wir begleiten verständnisvoll und herzlich. Niemand soll sich im Alter einsam fühlen."
+            },
+            {
+              "icon": "shield",
+              "title": "Kompetent",
+              "text": "Pflege auf hohem medizinischem Niveau, regelmäßig fortgebildet."
+            },
+            {
+              "icon": "hands",
+              "title": "Selbstbestimmt",
+              "text": "Jeder Mensch entscheidet mit. Wir pflegen individuell, nicht nach Schema."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "team",
+      "label": "Unser Team",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Unser Team"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Personen selbst werden unter „Team“ gepflegt",
+          "required": true,
+          "value": "Ihre Ansprechpartner"
+        },
+        {
+          "id": "lead",
+          "label": "Einleitungstext",
+          "type": "textarea",
+          "value": "Feste Gesichter, kurze Wege: Bei uns wissen Sie immer, wer zu Ihnen kommt."
+        }
+      ]
+    },
+    {
+      "id": "quals",
+      "label": "Qualifikationen",
+      "fields": [
+        {
+          "id": "image",
+          "label": "Bild",
+          "type": "image",
+          "required": true,
+          "value": "ueber-uns-team.jpg",
+          "alt": "Pfleger macht mit einem lächelnden Senior Handübungen"
+        },
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Qualifikationen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Ein Team aus verschiedenen Berufsgruppen"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "value": "Damit wir ein breites Spektrum abdecken können, beschäftigen wir Mitarbeiterinnen und Mitarbeiter mit diesen Ausbildungen:"
+        },
+        {
+          "id": "items",
+          "label": "Ausbildungen",
+          "type": "list",
+          "max": 10,
+          "itemLabel": "Ausbildung",
+          "min": 1,
+          "fields": [
+            {
+              "id": "text",
+              "label": "Text",
+              "type": "text"
+            }
+          ],
+          "value": [
+            {
+              "text": "3-jährig examinierte Gesundheits- und Krankenpfleger/innen"
+            },
+            {
+              "text": "3-jährig examinierte Altenpfleger/innen"
+            },
+            {
+              "text": "Kranken- und Altenpflegehelfer/innen"
+            },
+            {
+              "text": "Hauswirtschafter/innen"
+            },
+            {
+              "text": "Auszubildende in der Pflege"
+            },
+            {
+              "text": "Verwaltungsfachkräfte"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "certs",
+      "label": "Zulassungen",
+      "fields": [
+        {
+          "id": "eyebrow",
+          "label": "Kleine Überschrift",
+          "type": "text",
+          "value": "Zulassungen"
+        },
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "help": "Die Zulassungen selbst: „Allgemein → Zulassungen & Qualität“",
+          "required": true,
+          "value": "Geprüfte Qualität"
+        }
+      ]
+    },
+    {
+      "id": "jobs",
+      "label": "Wir suchen Verstärkung",
+      "fields": [
+        {
+          "id": "h2",
+          "label": "Überschrift",
+          "type": "text",
+          "required": true,
+          "value": "Wir suchen Verstärkung"
+        },
+        {
+          "id": "text",
+          "label": "Text",
+          "type": "textarea",
+          "value": "Sie sind Pflegefachkraft oder Pflegehelfer/in und möchten in einem familiären Team arbeiten? Wir freuen uns auf Ihre Nachricht."
+        },
+        {
+          "id": "buttonJobs",
+          "label": "Button zu den Stellen",
+          "type": "text",
+          "required": true,
+          "value": "Zu den Stellen"
+        },
+        {
+          "id": "buttonTraining",
+          "label": "Button zur Ausbildung",
+          "type": "text",
+          "required": true,
+          "value": "Ausbildung & Praktikum"
+        }
+      ]
+    }
+  ]
+}
