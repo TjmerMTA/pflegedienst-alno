@@ -314,6 +314,8 @@ tr:hover .row-actions, tr:focus-within .row-actions, .row-actions.visible { left
 .attachment-info .settings { margin: 16px 0; }
 .attachment-info label { font-weight: 600; display: block; margin-bottom: 4px; }
 .used-on { padding-left: 1.2em; }
+/* File names and slugs may have no break point; everywhere else words are limited on save. */
+.used-on li, .activity li, .misc-pub-section { overflow-wrap: anywhere; }
 
 /* ---------- revisions ---------- */
 .revisions-wrap { display: grid; grid-template-columns: 300px 1fr; gap: 20px; margin-top: 12px; }
