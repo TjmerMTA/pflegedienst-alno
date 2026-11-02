@@ -1,6 +1,6 @@
 ---
 name: Frau Heinze Jill
-role: Praxisanleitung, Pflegedienstleitung
+role: Praxisanleitung
 description: Examinierte Krankenpflegerin, Wundexpertin
 order: 2
 hidden: false
