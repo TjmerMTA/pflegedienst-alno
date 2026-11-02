@@ -215,7 +215,7 @@
           "type": "text",
           "help": "Token {{hours}}, z. B. in „Telefon {{hours}}“",
           "required": true,
-          "value": "8–22 Uhr"
+          "value": "0231 54 67 686"
         },
         {
           "id": "officeHours",
@@ -251,7 +251,7 @@
             },
             {
               "days": "Telefonisch",
-              "time": "08:00 – 22:00 Uhr"
+              "time": ""
             }
           ]
         }
