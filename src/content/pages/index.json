@@ -74,7 +74,7 @@
           "id": "telHintAfter",
           "label": "Telefon-Hinweis: Text nach der Nummer",
           "type": "text",
-          "value": "({{hours}}). Zur Beratung können Sie auch persönlich in unser Büro Termine vereinbaren ({{officeHours}})."
+          "value": ". Zur Beratung können Sie auch persönlich in unser Büro Termine vereinbaren ({{officeHours}})."
         },
         {
           "id": "trust",
