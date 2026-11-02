@@ -175,7 +175,7 @@
           "type": "text",
           "help": "Token {{email}}",
           "required": true,
-          "value": "info@pflegedienst-nogina.de"
+          "value": "info@pflegedienst-alno.de"
         },
         {
           "id": "whatsapp",
