@@ -817,7 +817,7 @@
               "name": "Pflegerische Betreuung",
               "cat": "betreuung",
               "type": "minute",
-              "price": "0,68",
+              "price": "0,71",
               "once": ""
             },
             {
@@ -825,7 +825,7 @@
               "name": "Hilfe bei der Sicherstellung der selbstverantwortlichen Haushaltsführung",
               "cat": "haus",
               "type": "minute",
-              "price": "0,68",
+              "price": "0,71",
               "once": ""
             },
             {
@@ -833,7 +833,7 @@
               "name": "Hauswirtschaftliche Versorgung",
               "cat": "haus",
               "type": "minute",
-              "price": "0,68",
+              "price": "0,71",
               "once": ""
             }
           ]
