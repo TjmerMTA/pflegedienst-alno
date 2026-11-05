@@ -634,7 +634,7 @@
               "cat": "mobil",
               "type": "fix",
               "price": "12,73",
-              "once": ""
+              "once": "15 Minuten"
             },
             {
               "code": "L09",
@@ -670,10 +670,10 @@
             },
             {
               "code": "L13",
-              "name": "Aufräumen und/oder Reinigen der Wohnung",
+              "name": "Arztbesuche",
               "cat": "haus",
               "type": "fix",
-              "price": "36,76",
+              "price": "24,51",
               "once": ""
             },
             {
@@ -697,7 +697,7 @@
               "name": "Folgebesuch",
               "cat": "beratung",
               "type": "fix",
-              "price": "61,27",
+              "price": "91,91",
               "once": "ja"
             },
             {
@@ -834,6 +834,22 @@
               "cat": "haus",
               "type": "minute",
               "price": "0,71",
+              "once": ""
+            },
+            {
+              "code": "LK15",
+              "name": "Hausbesuchspauschale",
+              "cat": "haus",
+              "type": "fix",
+              "price": "5,79",
+              "once": ""
+            },
+            {
+              "code": "LK15a",
+              "name": "erhöhte Hausbesuchspauschale",
+              "cat": "haus",
+              "type": "fix",
+              "price": "7,21",
               "once": ""
             }
           ]
