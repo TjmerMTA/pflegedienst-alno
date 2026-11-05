@@ -653,22 +653,6 @@
               "once": ""
             },
             {
-              "code": "L11",
-              "name": "Einkaufen",
-              "cat": "haus",
-              "type": "fix",
-              "price": "10,21",
-              "once": ""
-            },
-            {
-              "code": "L12",
-              "name": "Zubereiten von warmen Speisen",
-              "cat": "essen",
-              "type": "fix",
-              "price": "10,21",
-              "once": ""
-            },
-            {
               "code": "L13",
               "name": "Arztbesuche",
               "cat": "haus",
