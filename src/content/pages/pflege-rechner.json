@@ -837,7 +837,7 @@
               "once": ""
             },
             {
-              "code": "LK15",
+              "code": "L15",
               "name": "Hausbesuchspauschale",
               "cat": "haus",
               "type": "fix",
@@ -845,7 +845,7 @@
               "once": ""
             },
             {
-              "code": "LK15a",
+              "code": "L15a",
               "name": "erhöhte Hausbesuchspauschale",
               "cat": "haus",
               "type": "fix",
