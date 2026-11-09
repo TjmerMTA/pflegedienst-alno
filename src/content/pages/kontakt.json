@@ -22,7 +22,7 @@
           "type": "textarea",
           "required": true,
           "max": 180,
-          "value": "Kontakt zum Pflegedienst ALNO in Dortmund-Hörde: Telefon {{phone}}, WhatsApp, E-Mail oder Formular für eine kostenlose Beratung. {{street}}, {{zip}} {{city}}."
+          "value": "Kontakt zum Pflegedienst ALNO in Dortmund-Berghofen: Telefon {{phone}}, WhatsApp, E-Mail oder Formular für eine kostenlose Beratung. {{street}}, {{zip}} {{city}}."
         }
       ]
     },
