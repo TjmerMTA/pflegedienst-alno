@@ -112,7 +112,7 @@
           "id": "addressCity",
           "label": "Adresse: Ort",
           "type": "text",
-          "value": "{{zip}} {{city}}-Hörde"
+          "value": "{{zip}} {{city}}-Berghofen"
         },
         {
           "id": "addressFax",
