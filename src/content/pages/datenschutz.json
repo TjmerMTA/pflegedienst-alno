@@ -107,7 +107,7 @@
           "id": "text",
           "label": "Text",
           "type": "richtext",
-          "value": "<p>Diese Website wird bei einem externen Dienstleister gehostet. [Hosting-Anbieter und Sitz beim Livegang ergänzen.] Beim Aufruf werden technisch notwendige Daten verarbeitet (IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Betriebssystem). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse an einer sicheren und stabilen Bereitstellung. Mit dem Hoster besteht ein Vertrag über Auftragsverarbeitung.</p>"
+          "value": "<p>Diese Website wird bei der Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Deutschland, gehostet. Die Server stehen in Rechenzentren in Deutschland, die nach ISO/IEC 27001 zertifiziert sind, und die Verbindung zur Website ist verschlüsselt. Beim Aufruf werden technisch notwendige Daten verarbeitet (IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Betriebssystem). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse an einer sicheren und stabilen Bereitstellung. Mit dem Hoster besteht ein Vertrag über Auftragsverarbeitung.</p>"
         }
       ]
     },
