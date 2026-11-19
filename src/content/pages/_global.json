@@ -781,7 +781,7 @@
           "id": "officeLegend",
           "label": "Legende: Büro",
           "type": "text",
-          "value": "Unser Büro: {{street}}, Hörde"
+          "value": "Unser Büro: {{street}}, Berghofen"
         },
         {
           "id": "noteBefore",
@@ -1079,7 +1079,7 @@
             },
             {
               "q": "In welchen Stadtteilen sind Sie unterwegs?",
-              "a": "<p>Unser Büro liegt in Hörde. Wir sind in den Dortmunder Stadtbezirken Hörde, Hombruch und Aplerbeck sowie in der Stadt Schwerte für Sie da – alle Stadtteile finden Sie auf der Startseite unter „Einsatzgebiet“. Ihr Ort ist nicht dabei? Rufen Sie uns einfach an, wir prüfen das gern.</p>"
+              "a": "<p>Unser Büro liegt in Dortmund-Berghofen. Wir sind in den Dortmunder Stadtbezirken Hörde, Hombruch und Aplerbeck sowie in der Stadt Schwerte für Sie da – alle Stadtteile finden Sie auf der Startseite unter „Einsatzgebiet“. Ihr Ort ist nicht dabei? Rufen Sie uns einfach an, wir prüfen das gern.</p>"
             },
             {
               "q": "Wann sind Sie erreichbar?",
