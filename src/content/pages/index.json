@@ -319,7 +319,7 @@
           "id": "lead",
           "label": "Einleitungstext",
           "type": "textarea",
-          "value": "Wir sind ein inhabergeführter Pflegedienst aus Dortmund-Hörde. Bei uns kennt man sich – Patienten, Angehörige und Pflegekräfte."
+          "value": "Wir sind ein inhabergeführter Pflegedienst aus Dortmund-Berghofen. Bei uns kennt man sich – Patienten, Angehörige und Pflegekräfte."
         },
         {
           "id": "items",
@@ -477,7 +477,7 @@
           "label": "Einleitungstext",
           "type": "textarea",
           "help": "Karte und Stadtteile: „Allgemein → Einsatzgebiet“",
-          "value": "Von unserem Büro in Hörde versorgen wir die Stadtbezirke Hörde, Hombruch und Aplerbeck sowie die Stadt Schwerte – mit kurzen Wegen und festen Ansprechpartnern."
+          "value": "Von unserem Büro in Berghofen versorgen wir die Stadtbezirke Hörde, Hombruch und Aplerbeck sowie die Stadt Schwerte – mit kurzen Wegen und festen Ansprechpartnern."
         }
       ]
     },
