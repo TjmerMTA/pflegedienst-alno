@@ -21,9 +21,11 @@ const brand = getGlobal();
 const sized = async (id: string, width: number, height: number, format: 'png' | 'jpeg') =>
   (await getImage({ src: brand.img(`brand.${id}`)!.src, width, height, format, fit: 'cover' })).src;
 const [favicon, touchIcon, logoFile, defaultOg] = await Promise.all([
-  sized('favicon', 64, 64, 'png'), sized('favicon', 180, 180, 'png'), sized('logoImage', 512, 512, 'png'), sized('ogImage', 1200, 630, 'jpeg'),
+  sized('favicon', 96, 96, 'png'), sized('favicon', 180, 180, 'png'), sized('logoImage', 512, 512, 'png'), sized('ogImage', 1200, 630, 'jpeg'),
 ]);
 const canonical = new URL(Astro.url.pathname, Astro.site);
+// Имя сайта в выдаче Google берётся из разметки WebSite на главной
+const website = { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, alternateName: SITE.shortName, url: new URL('/', Astro.site).href };
 const fullTitle = title.includes('ALNO') ? title : `${title} | ${SITE.shortName} Dortmund`;
 const ogImage = new URL(image ?? defaultOg, Astro.site);
 const robots = NOINDEX || noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
@@ -56,7 +58,8 @@ const business = {
     <meta name="description" content={description} />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/png" href={favicon} />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="96x96" href={favicon} />
     <link rel="apple-touch-icon" href={touchIcon} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#047d8c" />
@@ -70,6 +73,7 @@ const business = {
     <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-sans" preload />
     <script type="application/ld+json" set:html={jsonForScript(business)} />
+    {Astro.url.pathname === '/' && <script type="application/ld+json" set:html={jsonForScript(website)} />}
     {schema.map((s) => <script type="application/ld+json" set:html={jsonForScript(s)} />)}
   </head>
   <body>

@@ -338,7 +338,7 @@ t('one plain-text mail per submission', function () {
   ok(str_contains($m, 'To: info@site.example') || str_contains($m, 'info@site.example'), 'fallback address');
   ok(str_contains($m, 'From: no-reply@site.example'), 'from');
   ok(str_contains($m, 'Reply-To: anna@example.org'), 'reply-to');
-  ok(str_contains($m, 'im Admin unter Anfragen'), 'admin hint');
+  ok(str_contains($m, 'Datenschutz: zugestimmt'), 'consent line');
   ok(str_contains($m, 'Anna Muster') && str_contains($m, '0231 123456'), 'contact data');
 });
 t('config address wins over the site address', function () {
@@ -359,9 +359,20 @@ t('broken config.php does not lose the submission', function () {
   accepted(post(beratung()));
   is_same(count(stored()), 1); is_same(count(mails()), 1);
 });
-t('health details and free text stay out of the mail', function () {
-  accepted(post(beratung(['message' => 'GEHEIM-Diagnose Demenz'])));
-  ok(!str_contains(lastMail(), 'GEHEIM'), 'message in mail');
+t('every filled field is in the mail, in form order', function () {
+  accepted(post(beratung(['message' => "Meine Mutter hat Pflegegrad 3.\nBitte am Vormittag anrufen."])));
+  $m = lastMail();
+  ok(str_contains($m, 'Leistung: Grundpflege'), 'leistung'); ok(str_contains($m, 'Name: Anna Muster'), 'name');
+  ok(str_contains($m, 'Telefon: 0231 123456'), 'phone'); ok(str_contains($m, 'E-Mail: anna@example.org'), 'email');
+  ok(str_contains($m, "Nachricht:\r\nMeine Mutter hat Pflegegrad 3.\r\nBitte am Vormittag anrufen."), 'multi-line message');
+  ok(strpos($m, 'Name:') < strpos($m, 'Nachricht:'), 'order');
+});
+t('dates in the mail are German', function () {
+  accepted(post(['subject' => 'Website: Termin Erstbegutachtung', 'from_page' => '/erstbegutachtung/', 'name' => 'Anna Muster', 'phone' => '0231 123456',
+    'stadtteil' => 'Berghofen', 'wunschtermin' => '2026-12-03', 'pflegegrad' => '2', 'website' => '', 'datenschutz' => 'on', 'fill_ms' => '5000']));
+  $m = lastMail();
+  ok(str_contains($m, 'Wunschtermin: 03.12.2026'), 'date'); ok(str_contains($m, 'Ort / Stadtteil: Berghofen'), 'stadtteil');
+  ok(str_contains($m, 'Pflegegrad: 2'), 'pflegegrad');
 });
 t('no Reply-To without an e-mail', function () { accepted(post(rueckruf())); ok(stripos(lastMail(), 'Reply-To') === false, 'Reply-To'); });
 t('subject carries no personal data', function () {

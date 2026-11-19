@@ -344,8 +344,16 @@ function mail_from(array $config, array $site): ?string {
   return valid_address("no-reply@$domain");
 }
 
-// Только контакт, чтобы перезвонить: письмо идёт через чужие серверы, поэтому текст и данные о здоровье
-// остаются на сервере. Тема — метка формы из правил, From и Reply-To — только проверенные адреса.
+const MAIL_LABELS = [
+  'leistung' => 'Leistung', 'name' => 'Name', 'phone' => 'Telefon', 'email' => 'E-Mail', 'message' => 'Nachricht',
+  'rueckrufzeit' => 'Rückrufzeit', 'stadtteil' => 'Ort / Stadtteil', 'wunschtermin' => 'Wunschtermin', 'tageszeit' => 'Tageszeit',
+  'pflegegrad' => 'Pflegegrad', 'rechner_ergebnis' => 'Ergebnis des Pflege-Rechners', 'position' => 'Stelle',
+  'qualifikation' => 'Qualifikation', 'eintritt' => 'Eintrittstermin', 'arbeitszeit' => 'Arbeitszeit', 'wunsch' => 'Wunsch',
+  'geburtsjahr' => 'Geburtsjahr', 'schulabschluss' => 'Schulabschluss', 'beginn' => 'Beginn',
+];
+
+// Все поля заявки в порядке формы: офис обрабатывает её прямо из письма, не заходя в админку (так просил заказчик).
+// Ящик info@ живёт на том же хостинге Hetzner. Тема — только метка формы, From и Reply-To — только проверенные адреса.
 function send_notification(array $record, array $form, array $config, array $site): void {
   $to = valid_address($config['anfragen_to'] ?? null) ?? valid_address($site['email'] ?? null);
   $from = mail_from($config, $site);
@@ -357,12 +365,17 @@ function send_notification(array $record, array $form, array $config, array $sit
   $lines = ['Neue Anfrage über die Website', '', 'Formular: ' . $form['label'], 'Eingegangen: ' . date('d.m.Y, H:i') . ' Uhr'];
   if ($record['page'] !== '') $lines[] = 'Seite: ' . $record['page'];
   $lines[] = '';
-  $lines[] = 'Name: ' . $f['name'];
-  $lines[] = 'Telefon: ' . $f['phone'];
   $emailOk = isset($f['email']) && !in_array('email', $record['invalid'], true);
-  if (isset($f['email'])) $lines[] = 'E-Mail: ' . $f['email'] . ($emailOk ? '' : ' (ungültig)');
+  foreach ($f as $key => $value) {
+    if ($key === 'datenschutz') continue;
+    $label = MAIL_LABELS[$key] ?? $key;
+    $bad = in_array($key, $record['invalid'], true);
+    if (!$bad && valid_date($value)) $value = date('d.m.Y', (int) strtotime($value));
+    if ($bad) $value .= ' (ungültig)';
+    $lines[] = str_contains($value, "\n") ? "$label:\r\n" . str_replace("\n", "\r\n", $value) : "$label: $value";
+  }
+  $lines[] = 'Datenschutz: zugestimmt';
   $lines[] = '';
-  $lines[] = 'Alle Angaben finden Sie im Admin unter Anfragen.';
   if ($record['files']) $lines[] = 'Dateien: ' . count($record['files']) . ' (bleiben auf dem Server, im Admin unter Anfragen)';
   if (isset($record['files_refused'])) $lines[] = 'Dateien nicht gespeichert: ' . $record['files_refused'] . ' (Speicher voll)';
   $lines[] = 'Vorgang: ' . $record['id'];

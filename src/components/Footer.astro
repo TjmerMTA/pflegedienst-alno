@@ -51,7 +51,7 @@ const year = new Date().getFullYear();
   </div>
   <div class="wrap legal">
     <span>© {year} {SITE.name}</span>
-    <nav aria-label="Rechtliches"><a href="/impressum/">{g.text('footer.legalImpressum')}</a><a href="/datenschutz/">{g.text('footer.legalDatenschutz')}</a>{SITE.gaId ? <button type="button" data-consent-open>{g.text('footer.legalCookieSettings')}</button> : <a href="/datenschutz/#cookies">{g.text('footer.legalCookies')}</a>}</nav>
+    <nav aria-label="Rechtliches"><a href="/impressum/">{g.text('footer.legalImpressum')}</a><a href="/datenschutz/">{g.text('footer.legalDatenschutz')}</a>{SITE.gaId || SITE.gtmId ? <button type="button" data-consent-open>{g.text('footer.legalCookieSettings')}</button> : <a href="/datenschutz/#cookies">{g.text('footer.legalCookies')}</a>}</nav>
   </div>
 </footer>
 <style>

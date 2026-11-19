@@ -31,10 +31,20 @@ export function inlineHashes(html) {
   return { scripts, styles };
 }
 
+// Хосты Google Analytics, Tag Manager (с режимом предпросмотра), Google Ads и Meta Pixel: их теги из шаблонов GTM
+// грузятся с этих адресов. Политика открывает их только на сайте с баннером согласия, а скрипты всё равно
+// загружаются лишь после «Akzeptieren». Теги «Benutzerdefiniertes HTML» в GTM под этой политикой не работают.
 const GA = {
-  script: ['https://www.googletagmanager.com'],
-  connect: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'],
-  img: ['https://*.google-analytics.com', 'https://*.googletagmanager.com'],
+  script: ['https://www.googletagmanager.com', 'https://tagmanager.google.com', 'https://*.google-analytics.com',
+    'https://googleads.g.doubleclick.net', 'https://www.googleadservices.com', 'https://connect.facebook.net'],
+  connect: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com',
+    'https://*.doubleclick.net', 'https://www.google.com', 'https://www.google.de', 'https://www.googleadservices.com',
+    'https://www.facebook.com', 'https://connect.facebook.net'],
+  img: ['https://*.google-analytics.com', 'https://*.googletagmanager.com', 'https://*.doubleclick.net', 'https://www.google.com',
+    'https://www.google.de', 'https://www.googleadservices.com', 'https://www.facebook.com', 'https://ssl.gstatic.com', 'https://www.gstatic.com'],
+  style: ['https://tagmanager.google.com', 'https://fonts.googleapis.com'],
+  font: ['https://fonts.gstatic.com'],
+  frame: ['https://www.googletagmanager.com', 'https://td.doubleclick.net', 'https://www.facebook.com'],
 };
 
 // style-src-attr: 'unsafe-inline' только для атрибутов style: иконки (Icon.astro) и Рехнер. Значения в них
@@ -44,12 +54,12 @@ export function buildPolicy({ scripts = [], styles = [], connect = [], ga = fals
   return [
     "default-src 'none'",
     `script-src ${list("'self'", scripts, ga ? GA.script : [])}`,
-    `style-src ${list("'self'", styles)}`,
+    `style-src ${list("'self'", styles, ga ? GA.style : [])}`,
     "style-src-attr 'unsafe-inline'",
     `img-src ${list("'self'", 'data:', ga ? GA.img : [])}`,
-    "font-src 'self'",
+    `font-src ${list("'self'", ga ? GA.font : [])}`,
     `connect-src ${list("'self'", connect, ga ? GA.connect : [])}`,
-    'frame-src https://www.openstreetmap.org',
+    `frame-src ${list('https://www.openstreetmap.org', ga ? GA.frame : [])}`,
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'self'",

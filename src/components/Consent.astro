@@ -1,11 +1,13 @@
 ---
-// Баннер согласия (DSGVO). Активен только при заданном PUBLIC_GA_ID:
-// до «Akzeptieren» Google Analytics не загружается вообще.
+// Баннер согласия (DSGVO). Активен при заданном PUBLIC_GA_ID или PUBLIC_GTM_ID:
+// до «Akzeptieren» ни Google Analytics, ни Tag Manager не загружаются вообще (Consent Mode, базовый режим).
+// Отказ после согласия удаляет cookie Google и Meta и перезагружает страницу, чтобы теги перестали работать.
 import { SITE, getGlobal } from '../config/site';
 const g = getGlobal();
 const ga = SITE.gaId;
+const gtm = SITE.gtmId;
 ---
-{ga && (
+{(ga || gtm) && (
   <div class="consent-box" id="consent" role="dialog" aria-labelledby="consent-t" hidden>
     <p id="consent-t"><b>{g.text('consent.title')}</b></p>
     <p>{g.text('consent.text')} <a href="/datenschutz/">{g.text('consent.more')}</a></p>
@@ -15,19 +17,42 @@ const ga = SITE.gaId;
     </div>
   </div>
 )}
-<script is:inline define:vars={{ ga }}>
+<script is:inline define:vars={{ ga, gtm }}>
   (function () {
     var KEY = 'alno-consent';
     var box = document.getElementById('consent');
-    function load() {
-      if (!ga || window.__ga) return;
-      window.__ga = true;
+    function add(src) {
       var s = document.createElement('script');
-      s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ga;
+      s.async = true; s.src = src;
       document.head.appendChild(s);
+    }
+    function load() {
+      if ((!ga && !gtm) || window.__ga) return;
+      window.__ga = true;
       window.dataLayer = window.dataLayer || [];
       window.gtag = function () { dataLayer.push(arguments); };
-      gtag('js', new Date()); gtag('config', ga, { anonymize_ip: true });
+      gtag('consent', 'default', { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+      if (gtm) {
+        dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
+        add('https://www.googletagmanager.com/gtm.js?id=' + gtm);
+      }
+      if (ga) {
+        add('https://www.googletagmanager.com/gtag/js?id=' + ga);
+        gtag('js', new Date()); gtag('config', ga, { anonymize_ip: true });
+      }
+    }
+    // Cookie Google (_ga, _gid, _gcl) и Meta (_fbp, _fbc) на всех уровнях домена
+    function forget() {
+      var parts = location.hostname.split('.');
+      document.cookie.split(';').forEach(function (c) {
+        var name = c.split('=')[0].trim();
+        if (!/^(_ga|_gid|_gat|_gcl|_fbp|_fbc)/.test(name)) return;
+        for (var i = 0; i < parts.length - 1; i++) {
+          var domain = parts.slice(i).join('.');
+          document.cookie = name + '=; Max-Age=0; path=/; domain=' + domain;
+        }
+        document.cookie = name + '=; Max-Age=0; path=/';
+      });
     }
     var v = null; try { v = localStorage.getItem(KEY); } catch (e) {}
     if (v === 'yes') load(); else if (!v && box) box.hidden = false;
@@ -39,6 +64,7 @@ const ga = SITE.gaId;
       try { localStorage.setItem(KEY, val); } catch (e) {}
       if (box) box.hidden = true;
       if (val === 'yes') load();
+      else { forget(); if (window.__ga) location.reload(); }
     });
   })();
 </script>

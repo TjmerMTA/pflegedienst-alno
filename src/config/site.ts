@@ -48,6 +48,8 @@ export const SITE = {
   formEndpoint: import.meta.env.PUBLIC_FORM_ENDPOINT || '',
   // ID Google Analytics 4. Пусто — GA и cookie-баннер не подключаются.
   gaId: import.meta.env.PUBLIC_GA_ID || '',
+  // ID контейнера Google Tag Manager (GTM-XXXXXXX). Задан — баннер согласия включается, GTM грузится только после «Akzeptieren».
+  gtmId: /^GTM-[A-Z0-9]{4,12}$/.test(import.meta.env.PUBLIC_GTM_ID || '') ? import.meta.env.PUBLIC_GTM_ID : '',
 };
 
 // Превью на siteboosty.com закрыто от индексации, продакшн — открыт.

@@ -1,42 +1,9 @@
 ---
-// Схематичная карта Einsatzgebiet (без внешних карт → без cookie и согласий).
-// Положение фигур — приблизительное, как в реальности: Hombruch запад, Hörde центр, Aplerbeck восток, Schwerte юго-восток за Ruhr.
+// Einsatzgebiet: районы и улицы списком. Схематичную карту убрали по просьбе заказчика (неточная, офис стоял не там).
 import { AREAS, SITE, getGlobal } from '../config/site';
 const g = getGlobal();
-const shapes: Record<string, { pts: string; label: [number, number] }> = {
-  hombruch: { pts: '20,130 250,100 235,235 190,340 40,300', label: [135, 215] },
-  hoerde: { pts: '250,100 410,105 425,240 360,335 190,340 235,235', label: [338, 245] },
-  aplerbeck: { pts: '410,105 600,120 615,250 520,305 360,335 425,240', label: [515, 205] },
-  schwerte: { pts: '250,385 410,372 560,345 625,360 610,445 310,455 230,430', label: [432, 418] },
-};
 ---
 <div class="area">
-  <figure class="map">
-    <svg viewBox="0 0 640 470" role="img" aria-labelledby="area-t">
-      <title id="area-t">{g.text('area.mapTitle')}</title>
-      <path class="ruhr" d="M-10 352 C 110 340 170 366 260 354 S 430 346 520 330 S 620 322 650 316" />
-      <text class="ruhr-t" x="72" y="384">{g.text('area.river')}</text>
-      {AREAS.map((a) => (
-        <g class={`shape s-${a.key}`}>
-          <polygon points={shapes[a.key].pts} />
-          <text x={shapes[a.key].label[0]} y={shapes[a.key].label[1]} text-anchor="middle">{a.name}</text>
-        </g>
-      ))}
-      <g class="pin" transform="translate(320 150)">
-        <circle cx="0" cy="0" r="22" />
-        <path d="M0-12a9 9 0 0 1 9 9c0 6.8-9 15-9 15S-9 3.8-9-3a9 9 0 0 1 9-9zm0 5.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="#fff" fill-rule="evenodd" />
-      </g>
-      <g class="north" transform="translate(40 50)">
-        <path d="M0 22V-14M-8-5 0-16 8-5" />
-        <text x="0" y="40" text-anchor="middle">N</text>
-      </g>
-    </svg>
-    <figcaption class="legend">
-      <span><i class="pinl"></i> {g.text('area.officeLegend')}</span>
-      <span><i class="river"></i> {g.text('area.river')}</span>
-    </figcaption>
-  </figure>
-
   <div class="groups">
     {AREAS.map((a) => (
       <section class={`group g-${a.key}`}>
@@ -49,26 +16,8 @@ const shapes: Record<string, { pts: string; label: [number, number] }> = {
   <p class="note">{g.text('area.noteBefore')} <a href={SITE.phoneHref}>{g.text('area.noteLink')}</a> {g.text('area.noteAfter')}</p>
 </div>
 <style>
-  .area { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
-  .map { margin: 0; }
-  svg { inline-size: 100%; block-size: auto; display: block; }
-  .shape polygon { stroke: #fff; stroke-width: 6; stroke-linejoin: round; }
-  .shape text { font: 700 26px var(--font); fill: #fff; }
-  .s-hombruch polygon { fill: var(--brand); }
-  .s-hoerde polygon { fill: var(--brand-700); }
-  .s-aplerbeck polygon { fill: var(--brand-600); }
-  .s-schwerte polygon { fill: var(--green-700); }
-  .ruhr { fill: none; stroke: var(--brand-100); stroke-width: 20; stroke-linecap: round; }
-  .ruhr-t { font: italic 600 18px var(--font); fill: var(--brand-600); }
-  .pin circle { fill: var(--green); stroke: #fff; stroke-width: 4; }
-  .north path { fill: none; stroke: var(--muted); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-  .north text { font: 700 18px var(--font); fill: var(--muted); }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-block-start: 12px; font-size: .92rem; color: var(--ink-2); }
-  .legend span { display: inline-flex; align-items: center; gap: 8px; }
-  .legend i { inline-size: 16px; block-size: 16px; flex: none; }
-  .pinl { border-radius: 50%; background: var(--green); box-shadow: 0 0 0 1px var(--line); }
-  .river { block-size: 8px !important; border-radius: 4px; background: var(--brand-100); }
-  .groups { display: grid; gap: 22px; }
+  .area { display: grid; gap: 22px; }
+  .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px clamp(24px, 4vw, 56px); }
   .group h3 { font-size: 1.05rem; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
   .group h3::before { content: ''; inline-size: 14px; block-size: 14px; border-radius: 4px; flex: none; background: var(--c); }
   .g-hombruch { --c: var(--brand); }
@@ -79,5 +28,5 @@ const shapes: Record<string, { pts: string; label: [number, number] }> = {
   .chips li { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: .92rem; color: var(--ink-2); overflow-wrap: anywhere; }
   .chips li::before { content: ''; inline-size: 7px; block-size: 7px; border-radius: 50%; flex: none; background: var(--c); }
   .note { grid-column: 1 / -1; margin: 0; padding: 16px 20px; border-radius: var(--radius); background: var(--green-50); color: var(--ink-2); font-weight: 600; }
-  @media (max-width: 900px) { .area { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 760px) { .groups { grid-template-columns: minmax(0, 1fr); } }
 </style>
