@@ -18,7 +18,7 @@ final class ConflictError extends RuntimeException {}
 
 final class GitHub
 {
-    const REPO = 'TjmerMTA/pflegedienst-alno';
+    const REPO = 'aineurowaves-ai/pflegedienst-alno';
     const BRANCH = 'main';
     const COMMITTER = ['name' => 'alno-admin-bot', 'email' => 'admin-bot@pflegedienst-alno.de'];
 

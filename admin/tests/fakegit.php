@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 final class FakeGit
 {
-    const REPO = 'TjmerMTA/pflegedienst-alno';
+    const REPO = 'aineurowaves-ai/pflegedienst-alno';
 
     public string $dir;
 

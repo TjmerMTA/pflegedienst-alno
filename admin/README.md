@@ -136,7 +136,7 @@ Target: Hetzner Webhosting M (konsoleH). Apache and PHP 8.2 or newer, cron, SFTP
 The admin is **its own origin**, `admin.pflegedienst-alno.de`, with its own docroot. A script on a public page, a tag manager or a bug in a form cannot reach it. The two share nothing but `~/alno-data`.
 
 ```
-GitHub repo TjmerMTA/pflegedienst-alno, branch main   source of truth
+GitHub repo aineurowaves-ai/pflegedienst-alno, branch main   source of truth
   ↑ commits (GitHub REST API, fine-grained token)
   │                       ↓ push → .github/workflows/deploy.yml: build, then SFTP
 public_html/              https://pflegedienst-alno.de: the site and api/
@@ -156,9 +156,9 @@ ssh-keygen -t ed25519 -N '' -C alno-deploy -f alno_sftp
 Add `alno_sftp.pub` to the hosting account (konsoleH, SSH keys, or `~/.ssh/authorized_keys` by SFTP). Then store the private key and the host key as repository secrets:
 
 ```bash
-gh secret set SFTP_KEY --repo TjmerMTA/pflegedienst-alno < alno_sftp
+gh secret set SFTP_KEY --repo aineurowaves-ai/pflegedienst-alno < alno_sftp
 ssh-keyscan -p 22 www810.your-server.de > known_hosts     # compare the fingerprint with konsoleH
-gh secret set SFTP_KNOWN_HOSTS --repo TjmerMTA/pflegedienst-alno < known_hosts
+gh secret set SFTP_KNOWN_HOSTS --repo aineurowaves-ai/pflegedienst-alno < known_hosts
 rm alno_sftp known_hosts
 ```
 
@@ -178,7 +178,7 @@ The nesting has three consequences, all handled: `public_html/.htaccess` is inhe
 
 | Setting | Value |
 |---|---|
-| Resource owner | `TjmerMTA` |
+| Resource owner | `aineurowaves-ai` |
 | Repository access | Only select repositories: `pflegedienst-alno` |
 | Contents | Read and write |
 | Actions | Read-only |
