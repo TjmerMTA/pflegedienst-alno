@@ -21,7 +21,7 @@
           "type": "textarea",
           "required": true,
           "max": 180,
-          "value": "Die gewünschte Seite wurde leider nicht gefunden."
+          "value": "Die gewünschte Seite wurde nicht gefunden."
         }
       ]
     },
