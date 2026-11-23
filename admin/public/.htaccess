@@ -4,6 +4,8 @@
 # everything served here; api.php sends its own CSP, which the first lines of the header block replace.
 Options -Indexes
 ServerSignature Off
+# The public site's 404 page is not in this docroot: without this line it would be inherited.
+ErrorDocument 404 default
 
 <If "%{HTTP_HOST} !~ /^(admin\.pflegedienst-alno\.de|127\.0\.0\.1|localhost)(:[0-9]+)?$/i">
   Require all denied
