@@ -537,7 +537,7 @@
           "id": "legalCookieSettings",
           "label": "Unten: Cookie-Einstellungen",
           "type": "text",
-          "help": "Nur sichtbar, wenn Google Analytics eingeschaltet ist",
+          "help": "Nur sichtbar, wenn Google Tag Manager oder Analytics eingeschaltet ist",
           "required": true,
           "value": "Cookie-Einstellungen"
         },
@@ -545,7 +545,7 @@
           "id": "legalCookies",
           "label": "Unten: Cookies",
           "type": "text",
-          "help": "Nur sichtbar, wenn Google Analytics ausgeschaltet ist",
+          "help": "Nur sichtbar, wenn Google Tag Manager und Analytics ausgeschaltet sind",
           "required": true,
           "value": "Cookies"
         }
@@ -583,7 +583,7 @@
     },
     {
       "id": "consent",
-      "label": "Cookie-Hinweis (nur mit Google Analytics)",
+      "label": "Cookie-Hinweis",
       "fields": [
         {
           "id": "title",
@@ -597,7 +597,7 @@
           "label": "Text",
           "type": "textarea",
           "required": true,
-          "value": "Wir möchten mit Google Analytics anonymisiert messen, wie unsere Website genutzt wird. Das geschieht nur mit Ihrer Einwilligung, die Sie jederzeit widerrufen können."
+          "value": "Wir nutzen Google-Dienste (Tag Manager, Analytics und Ads), um zu messen, wie unsere Website genutzt wird, und um unser Angebot zu verbessern. Das geschieht nur mit Ihrer Einwilligung, die Sie jederzeit über „Cookie-Einstellungen“ im Seitenfuß widerrufen können."
         },
         {
           "id": "more",

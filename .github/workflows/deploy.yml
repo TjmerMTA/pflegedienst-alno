@@ -50,7 +50,7 @@ jobs:
           SITE_URL: https://pflegedienst-alno.de
           PUBLIC_FORM_ENDPOINT: /api/anfrage.php
           PUBLIC_GA_ID: ${{ vars.PUBLIC_GA_ID }}
-          PUBLIC_GTM_ID: ${{ vars.PUBLIC_GTM_ID }}
+          PUBLIC_GTM_ID: GTM-MNXGPB4H
       - name: Assemble the two docroots
         run: scripts/assemble-upload.sh upload
       # As one tar: an artifact of the folder itself would lose .htaccess.

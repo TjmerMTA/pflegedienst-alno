@@ -53,7 +53,7 @@
           "id": "note",
           "label": "Graue Zeile",
           "type": "text",
-          "value": "Entwurf – vor Livegang juristisch prüfen lassen. Stand: September 2026."
+          "value": "Entwurf – vor Livegang juristisch prüfen lassen. Stand: November 2026."
         }
       ]
     },
@@ -197,7 +197,7 @@
           "id": "text",
           "label": "Text",
           "type": "richtext",
-          "value": "<p>Diese Website verwendet derzeit keine Cookies und keine Tracking-Dienste. Sollte künftig Google Analytics eingesetzt werden, geschieht dies ausschließlich nach Ihrer ausdrücklichen Einwilligung über ein Einwilligungs-Banner (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Ohne Einwilligung werden keine Analyse-Skripte geladen. Ihre Auswahl speichern wir lokal in Ihrem Browser; Sie können sie jederzeit über „Cookie-Einstellungen“ im Seitenfuß ändern.</p>"
+          "value": "<p>Technisch notwendig speichern wir nur Ihre Auswahl im Einwilligungs-Banner, und zwar lokal in Ihrem Browser. Alle weiteren Dienste laden wir erst, wenn Sie im Banner auf „Akzeptieren“ klicken (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Ohne Einwilligung werden keine Analyse- oder Werbe-Skripte geladen.</p><p>Mit Ihrer Einwilligung setzen wir den Google Tag Manager der Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland, ein. Über ihn werden Google Analytics 4 und Google Ads (Conversion-Messung) eingebunden. Dabei können Cookies gesetzt und Nutzungsdaten (z. B. aufgerufene Seiten, Verweildauer, ungefährer Standort, Geräteinformationen, IP-Adresse) an Google übermittelt werden; eine Übermittlung in die USA ist möglich. Die Google LLC ist unter dem EU-US Data Privacy Framework zertifiziert. Weitere Informationen: <a href=\"https://policies.google.com/privacy\">policies.google.com/privacy</a>.</p><p>Wir nutzen diese Daten ausschließlich, um unsere Website und unser Angebot zu verbessern und den Erfolg unserer Werbung zu messen. Wir verkaufen die Daten nicht und geben sie außer an die hier genannten Dienste nicht an Dritte weiter.</p><p>Ihre Einwilligung können Sie jederzeit mit Wirkung für die Zukunft über „Cookie-Einstellungen“ im Seitenfuß widerrufen. Die gesetzten Cookies werden dabei gelöscht.</p>"
         }
       ]
     },
